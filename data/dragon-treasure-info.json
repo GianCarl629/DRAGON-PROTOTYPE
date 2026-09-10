@@ -1,0 +1,76 @@
+{
+  "_notice": "DEMO DATA ONLY for development and testing. Can be replaced with verified client data without altering chatbot logic.",
+  "property": {
+    "name": "Dragon Treasure Transient & Condotel",
+    "location": "Baguio City, Benguet",
+    "description": "Dragon Treasure Transient & Condotel is a lodging property in Baguio City that offers short-term accommodations and monthly dormitory rentals."
+  },
+  "rooms": [
+    {
+      "name": "Standard Room",
+      "capacity": "2 guests",
+      "rate": "₱1,500/night",
+      "sampleQuantity": 60,
+      "type": "Short-term transient"
+    },
+    {
+      "name": "Deluxe Room",
+      "capacity": "3 guests",
+      "rate": "₱2,000/night",
+      "sampleQuantity": 40,
+      "type": "Short-term transient"
+    },
+    {
+      "name": "Family Room",
+      "capacity": "4 guests",
+      "rate": "₱2,800/night",
+      "sampleQuantity": 30,
+      "type": "Short-term transient"
+    },
+    {
+      "name": "Family Suite",
+      "capacity": "6 guests",
+      "rate": "₱3,500/night",
+      "sampleQuantity": 15,
+      "type": "Short-term transient"
+    },
+    {
+      "name": "Dormitory Room",
+      "capacity": "4–6 guests",
+      "rate": "₱8,000/month/person",
+      "sampleQuantity": 5,
+      "type": "Monthly dormitory rental"
+    }
+  ],
+  "amenities": [
+    "Free Wi-Fi",
+    "24-hour front desk/caretaker assistance",
+    "Parking area",
+    "Hot and cold shower",
+    "Television",
+    "Air conditioning",
+    "Common kitchen",
+    "Laundry area",
+    "CCTV/security",
+    "Elevator",
+    "Drinking-water station"
+  ],
+  "checkInTime": "2:00 PM",
+  "checkOutTime": "12:00 PM",
+  "paymentMethods": [
+    "GCash",
+    "Bank transfer",
+    "Cash payment at the property"
+  ],
+  "bookingProcess": "Guests select a room, choose check-in/check-out dates, enter their name and contact information, and submit a reservation request. The booking is confirmed after approval.",
+  "cancellationPolicy": {
+    "upTo24Hours": "Up to 24 hours before check-in: no cancellation fee",
+    "lessThan24Hours": "Less than 24 hours before check-in: may be subject to a cancellation fee"
+  },
+  "contact": {
+    "phone": "0917-123-4567",
+    "email": "dragon.treasure@example.com",
+    "facebook": "facebook.com/DragonTreasureTransient",
+    "hours": "8:00 AM–10:00 PM"
+  }
+}
