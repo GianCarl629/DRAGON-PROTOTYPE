@@ -152,8 +152,13 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Dragon Treasure Backend running on http://localhost:${PORT}`);
-  console.log(`Configured Gemini Model: ${GEMINI_MODEL} (Fallback: ${FALLBACK_MODEL})`);
-});
+// Export the Express app for serverless hosts such as Vercel.
+export default app;
+
+// Start a local server only when this module is run directly.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  app.listen(PORT, () => {
+    console.log(`Dragon Treasure Backend running on http://localhost:${PORT}`);
+    console.log(`Configured Gemini Model: ${GEMINI_MODEL} (Fallback: ${FALLBACK_MODEL})`);
+  });
+}
