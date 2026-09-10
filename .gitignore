@@ -4,3 +4,9 @@
 
 node_modules/
 dist/
+
+# Vercel local project and CLI session state
+.vercel/
+.vercel-cli-config/
+.vercel-cli-data/
+.vercel
