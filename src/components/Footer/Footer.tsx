@@ -13,8 +13,12 @@ export const Footer: React.FC = () => {
           {/* Brand Info (5 cols) */}
           <div className="lg:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-pine-800 flex items-center justify-center text-white shadow-md border border-pine-700">
-                <span className="font-serif font-bold text-lg text-cedar-300">DT</span>
+              <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-amber-500/70 shadow-lg bg-pine-950 flex-shrink-0">
+                <img
+                  src="/dragon-treasure-logo.jpg"
+                  alt="Dragon Treasure Transient & Condotel Logo"
+                  className="w-full h-full object-cover scale-[1.09]"
+                />
               </div>
               <div>
                 <span className="font-serif font-bold text-xl text-white tracking-tight">

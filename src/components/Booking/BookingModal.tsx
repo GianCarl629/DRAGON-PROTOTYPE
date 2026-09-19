@@ -86,8 +86,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         {/* Header */}
         <div className="p-6 pb-4 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-pine-100 text-pine-800 flex items-center justify-center font-bold">
-              <CalendarCheck className="w-5 h-5 text-pine-700" />
+            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-amber-500 shadow-md flex-shrink-0 bg-pine-950">
+              <img
+                src="/dragon-treasure-logo.jpg"
+                alt="Dragon Treasure Logo"
+                className="w-full h-full object-cover scale-[1.09]"
+              />
             </div>
             <div>
               <h2 className="font-serif font-bold text-xl text-slate-900">

@@ -50,8 +50,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       <div className="bg-gradient-to-r from-pine-900 to-pine-800 text-white p-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-9 h-9 rounded-xl bg-pine-700 text-cedar-300 flex items-center justify-center border border-pine-600 shadow-inner">
-              <Bot className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-amber-400/90 shadow-md bg-pine-950 flex-shrink-0">
+              <img
+                src="/dragon-treasure-logo.jpg"
+                alt="Dragon Treasure Assistant"
+                className="w-full h-full object-cover scale-[1.09]"
+              />
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-pine-900 rounded-full" />
           </div>
@@ -102,8 +106,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         {/* Loading Indicator Bubble */}
         {isLoading && (
           <div className="flex items-center gap-2 text-slate-500 text-xs py-1">
-            <div className="w-7 h-7 rounded-full bg-pine-100 text-pine-800 flex items-center justify-center">
-              <Bot className="w-4 h-4 text-pine-700" />
+            <div className="w-7 h-7 rounded-full overflow-hidden border border-amber-500/80 bg-pine-950 flex items-center justify-center flex-shrink-0 shadow-sm">
+              <img
+                src="/dragon-treasure-logo.jpg"
+                alt="Dragon Treasure Assistant"
+                className="w-full h-full object-cover scale-[1.09]"
+              />
             </div>
             <div className="bg-white border border-slate-200 px-3 py-2 rounded-2xl rounded-tl-sm flex items-center gap-1 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-pine-600 animate-bounce" style={{ animationDelay: '0ms' }} />

@@ -41,8 +41,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
         <div className="flex items-center justify-between">
           {/* Logo & Property Brand */}
           <a href="#home" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pine-800 to-pine-900 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
-              <span className="font-serif font-bold text-lg text-cedar-300">DT</span>
+            <div className="relative w-11 h-11 rounded-full overflow-hidden border-2 border-amber-600/80 shadow-md group-hover:scale-105 transition-transform bg-pine-950 flex-shrink-0">
+              <img
+                src="/dragon-treasure-logo.jpg"
+                alt="Dragon Treasure Transient & Condotel Logo"
+                className="w-full h-full object-cover scale-[1.09]"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">

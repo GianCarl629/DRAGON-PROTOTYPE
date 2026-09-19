@@ -31,12 +31,16 @@ export const AboutSection: React.FC = () => {
             {/* Overlapping floating highlight card */}
             <div className="hidden sm:block absolute -bottom-6 -right-6 bg-white p-5 rounded-2xl shadow-elevated border border-slate-100 max-w-xs">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-pine-100 text-pine-800 flex items-center justify-center font-bold">
-                  <Building2 className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-500 shadow-md flex-shrink-0 bg-pine-950">
+                  <img
+                    src="/dragon-treasure-logo.jpg"
+                    alt="Dragon Treasure Official Logo"
+                    className="w-full h-full object-cover scale-[1.09]"
+                  />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900">Hybrid Concept</h4>
-                  <p className="text-xs text-slate-600">Short-term transient & monthly dorms</p>
+                  <h4 className="text-sm font-bold text-slate-900">Dragon Treasure</h4>
+                  <p className="text-xs text-slate-600">Transient Lodging & Condotel</p>
                 </div>
               </div>
             </div>

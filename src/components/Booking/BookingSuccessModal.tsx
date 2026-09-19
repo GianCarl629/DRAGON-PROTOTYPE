@@ -19,9 +19,18 @@ export const BookingSuccessModal: React.FC<BookingSuccessModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 text-center space-y-6">
         
-        {/* Success Icon */}
-        <div className="w-16 h-16 rounded-full bg-pine-100 text-pine-800 mx-auto flex items-center justify-center">
-          <CheckCircle className="w-10 h-10 text-pine-700" />
+        {/* Success Brand Crest with Check Badge */}
+        <div className="relative w-20 h-20 mx-auto">
+          <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-amber-500 shadow-elevated bg-pine-950">
+            <img
+              src="/dragon-treasure-logo.jpg"
+              alt="Dragon Treasure Official Logo"
+              className="w-full h-full object-cover scale-[1.09]"
+            />
+          </div>
+          <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-md border-2 border-white">
+            <CheckCircle className="w-4 h-4" />
+          </div>
         </div>
 
         {/* Required Confirmation Headline & Message */}

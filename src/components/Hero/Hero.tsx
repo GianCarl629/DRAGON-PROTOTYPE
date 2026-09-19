@@ -30,12 +30,23 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
           
           {/* Left Text & Call to Action (7 cols) */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            {/* Mountain Location Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pine-100 border border-pine-200 text-pine-800 text-xs sm:text-sm font-semibold tracking-wide shadow-sm">
-              <MapPin className="w-3.5 h-3.5 text-pine-600" />
-              <span>{PROPERTY_INFO.location}</span>
-              <span className="w-1 h-1 rounded-full bg-pine-400" />
-              <span className="text-cedar-700">Cool Pines • Affordable Lodging</span>
+            {/* Mountain Location & Brand Crest Badge */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2">
+              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/95 border border-amber-500/40 text-pine-950 text-xs sm:text-sm font-semibold tracking-wide shadow-sm backdrop-blur-sm">
+                <div className="w-5 h-5 rounded-full overflow-hidden border border-amber-600/70 flex-shrink-0 bg-pine-950">
+                  <img
+                    src="/dragon-treasure-logo.jpg"
+                    alt="Dragon Treasure Crest"
+                    className="w-full h-full object-cover scale-[1.09]"
+                  />
+                </div>
+                <span>Dragon Treasure</span>
+                <span className="w-1 h-1 rounded-full bg-amber-500" />
+                <span className="text-cedar-700 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-pine-600 inline" />
+                  {PROPERTY_INFO.location}
+                </span>
+              </div>
             </div>
 
             {/* Main Headline */}
@@ -104,6 +115,14 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
                 className="w-full h-64 sm:h-72 object-cover transform hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              {/* Official Dragon Crest Badge */}
+              <div className="absolute top-3.5 right-3.5 w-12 h-12 rounded-full overflow-hidden border-2 border-amber-400/90 shadow-elevated bg-pine-950/90 backdrop-blur-md z-10">
+                <img
+                  src="/dragon-treasure-logo.jpg"
+                  alt="Dragon Treasure Crest"
+                  className="w-full h-full object-cover scale-[1.09]"
+                />
+              </div>
               <div className="absolute bottom-4 left-4 right-4 text-white">
                 <div className="flex items-center justify-between">
                   <div>
