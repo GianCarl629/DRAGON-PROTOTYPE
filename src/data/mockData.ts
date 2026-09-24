@@ -229,7 +229,7 @@ export const SAMPLE_FAQS: FAQItem[] = [
   {
     id: "faq-1",
     question: "How much is a room?",
-    answer: "Our sample demonstration rates start at ₱1,500/night for a Standard Room (2 guests), ₱2,000/night for a Deluxe Room (3 guests), ₱2,800/night for a Family Room (4 guests), and ₱3,500/night for a Family Suite (6 guests). Monthly dormitory rentals start at ₱8,000/month/person. Please note that these are prototype rates subject to change."
+    answer: "Our room rates start at ₱1,500/night for a Standard Room (2 guests), ₱2,000/night for a Deluxe Room (3 guests), ₱2,800/night for a Family Room (4 guests), and ₱3,500/night for a Family Suite (6 guests). Monthly dormitory rentals start at ₱8,000/month/person."
   },
   {
     id: "faq-2",

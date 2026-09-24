@@ -1,79 +1,104 @@
 import React from 'react';
-import { Mountain, Users, Flame, ShieldCheck, HeartHandshake, Coffee } from 'lucide-react';
+import { Mountain, Users, Flame, ShieldCheck, HeartHandshake, Coffee, Sparkles } from 'lucide-react';
 
 export const WhyChooseUs: React.FC = () => {
   const points = [
     {
-      icon: <Mountain className="w-6 h-6 text-pine-700" />,
-      title: "Authentic Baguio Experience",
-      description: "Enjoy the crisp mountain breeze and pine-scented air of Baguio City with easy access to iconic scenic spots, cafes, and parks."
+      num: "01",
+      icon: Mountain,
+      title: "Authentic Highland Experience",
+      description: "Enjoy the crisp mountain breeze and pine-scented air of Baguio City with effortless access to iconic scenic spots, mountain cafes, and local parks."
     },
     {
-      icon: <Users className="w-6 h-6 text-pine-700" />,
+      num: "02",
+      icon: Users,
       title: "Hybrid Lodging & Monthly Dorms",
-      description: "Whether you're visiting for a weekend vacation or studying for board exams, we cater to both short-term travelers and long-term students."
+      description: "Whether visiting for a refreshing weekend vacation or studying for university board exams, our flexible accommodations cater to both short stays and monthly rentals."
     },
     {
-      icon: <Flame className="w-6 h-6 text-pine-700" />,
-      title: "Hot Water & Cozy Highland Comfort",
-      description: "Baguio mornings require reliable hot water! Enjoy pressurized hot and cold showers, strong Wi-Fi, and home-style comfort."
+      num: "03",
+      icon: Flame,
+      title: "Highland Warmth & Hot Showers",
+      description: "Baguio mornings require dependable comfort. Enjoy strong water pressure with reliable hot and cold showers in every room and shared facility."
     },
     {
-      icon: <ShieldCheck className="w-6 h-6 text-pine-700" />,
-      title: "Safe & Secure with 24/7 Caretaker",
-      description: "Rest easy with round-the-clock caretaker support, secure key access, and CCTV surveillance throughout all common corridors."
+      num: "04",
+      icon: ShieldCheck,
+      title: "24/7 Caretaker & CCTV Security",
+      description: "Rest easy with round-the-clock caretaker support on property grounds, secure key access, and continuous CCTV surveillance in all corridors."
     },
     {
-      icon: <Coffee className="w-6 h-6 text-pine-700" />,
-      title: "Community Kitchen & Amenities",
-      description: "Save on dining costs with our shared cooking facilities, drinking-water stations, and convenient laundry areas."
+      num: "05",
+      icon: Coffee,
+      title: "Shared Kitchen & Resident Amenities",
+      description: "Save on dining costs with our well-maintained common cooking facilities, hot and cold drinking water dispensers, and accessible laundry areas."
     },
     {
-      icon: <HeartHandshake className="w-6 h-6 text-pine-700" />,
-      title: "Friendly & Attentive Hospitality",
-      description: "Experience genuine Cordilleran warmth and courteous assistance ensuring your stay is hassle-free from check-in to check-out."
+      num: "06",
+      icon: HeartHandshake,
+      title: "Attentive Cordilleran Hospitality",
+      description: "Experience genuine northern warmth and attentive customer care, ensuring your stay is peaceful, comfortable, and memorable from start to finish."
     }
   ];
 
   return (
-    <section id="why-us" className="py-20 bg-cream-50/50">
+    <section id="why-us" className="py-24 bg-gradient-to-b from-stone-50 via-cream-50/70 to-stone-50 relative overflow-hidden">
+      {/* Decorative background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 w-[700px] h-[700px] bg-gradient-to-tr from-pine-100/40 via-gold-100/20 to-transparent rounded-full blur-3xl pointer-events-none" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cedar-100 text-cedar-800 text-xs font-semibold tracking-wide uppercase">
+        <div className="text-center max-w-3xl mx-auto space-y-3.5">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gold-100/80 text-gold-900 border border-gold-300/80 text-xs font-semibold tracking-wider uppercase">
+            <Sparkles className="w-3.5 h-3.5 text-gold-700" strokeWidth={2} />
             <span>Hospitality Distinction</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-pine-950">
-            Why Choose Dragon Treasure
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-pine-950 tracking-tight">
+            Why Stay at <span className="text-gold-gradient">Dragon Treasure</span>
           </h2>
 
-          <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-            A balanced condotel experience combining the warmth of a local transient house with the security and amenities of modern accommodations.
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+            A harmonious condotel experience combining the comfort and warmth of a traditional transient home with the security and conveniences of modern accommodation.
           </p>
         </div>
 
         {/* Feature Cards Grid */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {points.map((pt, idx) => (
-            <div
-              key={idx}
-              className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
-            >
-              <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-pine-50 border border-pine-100 flex items-center justify-center">
-                  {pt.icon}
+        <div className="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {points.map((pt, idx) => {
+            const Icon = pt.icon;
+            return (
+              <div
+                key={idx}
+                className="group relative bg-white/90 backdrop-blur-sm p-7 rounded-3xl border border-stone-200/90 shadow-card hover:shadow-luxury-hover hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between"
+              >
+                {/* Top Number & Icon Row */}
+                <div>
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pine-50 to-cream-100 border border-pine-100 text-pine-800 flex items-center justify-center group-hover:scale-110 group-hover:bg-pine-900 group-hover:text-gold-300 transition-all duration-300 shadow-xs">
+                      <Icon className="w-5 h-5 transition-colors" strokeWidth={1.8} />
+                    </div>
+                    <span className="font-mono text-xs font-bold text-stone-600 group-hover:text-gold-600 transition-colors">
+                      {pt.num}
+                    </span>
+                  </div>
+
+                  <h3 className="font-serif font-bold text-lg text-pine-950 mb-2.5 group-hover:text-pine-800 transition-colors">
+                    {pt.title}
+                  </h3>
+
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    {pt.description}
+                  </p>
                 </div>
-                <h3 className="font-serif font-bold text-lg text-slate-900">
-                  {pt.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  {pt.description}
-                </p>
+
+                <div className="mt-6 pt-4 border-t border-stone-100 flex items-center text-[11px] font-semibold text-gold-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span>Guest Comfort Standard</span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
       </div>

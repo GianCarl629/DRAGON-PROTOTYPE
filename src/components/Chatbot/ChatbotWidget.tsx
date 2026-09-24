@@ -8,7 +8,7 @@ const INITIAL_MESSAGES: ChatMessageType[] = [
   {
     id: 'msg-welcome',
     sender: 'assistant',
-    text: "Hello! Welcome to Dragon Treasure Transient & Condotel in Baguio City. I can help answer questions about our room types, sample rates, amenities, check-in policies, or monthly dormitory rentals. How may I assist you today?",
+    text: "Hello! Welcome to Dragon Treasure Transient & Condotel in Baguio City. I can help answer questions about our room types, rates, amenities, check-in policies, or monthly dormitory rentals. How may I assist you today?",
     timestamp: 'Just now'
   }
 ];

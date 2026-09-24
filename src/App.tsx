@@ -86,7 +86,7 @@ export function App() {
         onSubmitSuccess={handleBookingSuccess}
       />
 
-      {/* Booking Confirmation / Prototype Disclaimer Modal */}
+      {/* Booking Confirmation Modal */}
       <BookingSuccessModal
         isOpen={isSuccessOpen}
         onClose={() => setIsSuccessOpen(false)}
