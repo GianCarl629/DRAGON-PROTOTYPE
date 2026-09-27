@@ -56,8 +56,9 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
-        serif: ['Playfair Display', 'Georgia', 'serif'],
+        sans: ['Manrope', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        serif: ['DM Serif Display', 'Georgia', 'serif'],
+        display: ['Outfit', 'sans-serif'],
       },
       boxShadow: {
         'soft': '0 4px 20px -2px rgba(27, 67, 55, 0.08)',

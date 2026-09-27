@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { X, CalendarCheck, Users, Mail, Phone, User, Calendar, BedDouble, Sparkles, ShieldCheck, Check } from 'lucide-react';
 import { SAMPLE_ROOMS } from '../../data/mockData';
 import { BookingFormData } from '../../types';
+import { RoomDropdown } from '../UI/RoomDropdown';
+import { GuestDropdown } from '../UI/GuestDropdown';
+import { DatePickerInput } from '../UI/DatePickerInput';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -87,13 +90,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/75 backdrop-blur-md animate-fade-in">
-      <div className="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-stone-200/90 flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in overflow-hidden">
+      <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] shadow-2xl border border-stone-200/90 flex flex-col overflow-hidden transform-gpu">
         
-        {/* Header */}
-        <div className="p-6 pb-4 border-b border-stone-100 flex items-center justify-between">
+        {/* Pinned Header */}
+        <div className="p-5 sm:p-6 pb-4 border-b border-stone-100 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gold-500 shadow-glow-gold flex-shrink-0 bg-pine-950">
+            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-gold-500 shadow-glow-gold flex-shrink-0 bg-pine-950">
               <img
                 src="/dragon-treasure-logo.jpg"
                 alt="Dragon Treasure Logo"
@@ -110,16 +113,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-slate-600 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Close modal"
           >
-            <X className="w-4 h-4" strokeWidth={2} />
+            <X className="w-4 h-4" strokeWidth={2.5} />
           </button>
         </div>
 
-        {/* Selected Room Summary Pill */}
-        <div className="px-6 py-2.5 bg-gradient-to-r from-pine-50 via-cream-100 to-pine-50 border-b border-pine-100 flex items-center justify-between text-xs text-pine-950 font-semibold">
+        {/* Pinned Selected Room Summary Pill */}
+        <div className="px-5 sm:px-6 py-2.5 bg-gradient-to-r from-pine-50 via-cream-100 to-pine-50 border-b border-pine-100 flex items-center justify-between text-xs text-pine-950 font-semibold flex-shrink-0">
           <div className="flex items-center gap-2">
             <BedDouble className="w-4 h-4 text-pine-700" strokeWidth={2} />
             <span>Selected: {currentRoom.name}</span>
@@ -127,73 +131,53 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           <span className="text-pine-800 font-bold font-serif">{currentRoom.formattedRate}</span>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Room Type */}
+        {/* Scrollable Form Body (Scrollbar strictly contained inside white body) */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 overscroll-contain flex flex-col justify-between">
+          <div className="space-y-4">
+          {/* Room Type Luxury Dropdown */}
           <div className="space-y-1">
-            <label className="text-xs font-bold text-pine-950 flex items-center gap-1.5 uppercase tracking-wider">
-              <BedDouble className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />
-              <span>Room Choice <span className="text-red-500">*</span></span>
-            </label>
-            <select
-              value={formData.roomType}
-              onChange={(e) => setFormData({ ...formData, roomType: e.target.value })}
-              className="w-full text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-pine-700 font-medium transition-all"
-            >
-              {SAMPLE_ROOMS.map((room) => (
-                <option key={room.id} value={room.name}>
-                  {room.name} — {room.formattedRate} ({room.capacityLabel})
-                </option>
-              ))}
-            </select>
+            <RoomDropdown
+              rooms={SAMPLE_ROOMS}
+              selectedRoomName={formData.roomType}
+              onSelectRoom={(name) => setFormData({ ...formData, roomType: name })}
+              label="Room Choice *"
+            />
             {errors.roomType && (
               <p className="text-xs text-red-500">{errors.roomType}</p>
             )}
           </div>
 
-          {/* Dates Row */}
+          {/* Dates Row with Luxury Date Pickers */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-pine-950 flex items-center gap-1.5 uppercase tracking-wider">
-                <Calendar className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />
-                <span>Check-in Date</span>
-              </label>
-              <input
-                type="date"
-                value={formData.checkInDate}
-                onChange={(e) => setFormData({ ...formData, checkInDate: e.target.value })}
-                className="w-full text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-pine-700 font-medium transition-all"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-pine-950 flex items-center gap-1.5 uppercase tracking-wider">
-                <Calendar className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />
-                <span>Check-out Date</span>
-              </label>
-              <input
-                type="date"
-                value={formData.checkOutDate}
-                onChange={(e) => setFormData({ ...formData, checkOutDate: e.target.value })}
-                className="w-full text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-pine-700 font-medium transition-all"
-              />
-            </div>
-          </div>
-
-          {/* Number of Guests */}
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-pine-950 flex items-center gap-1.5 uppercase tracking-wider">
-              <Users className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />
-              <span>Number of Guests <span className="text-red-500">*</span></span>
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={10}
-              value={formData.numberOfGuests}
-              onChange={(e) => setFormData({ ...formData, numberOfGuests: Number(e.target.value) })}
-              className="w-full text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-pine-700 font-medium transition-all"
+            <DatePickerInput
+              label="Check-in Date"
+              value={formData.checkInDate}
+              onChange={(date) => {
+                const updated: Partial<BookingFormData> = { checkInDate: date };
+                if (!formData.checkOutDate || formData.checkOutDate <= date) {
+                  const next = new Date(date);
+                  next.setDate(next.getDate() + 1);
+                  updated.checkOutDate = next.toISOString().split('T')[0];
+                }
+                setFormData({ ...formData, ...updated });
+              }}
+              placeholder="Select check-in"
+            />
+            <DatePickerInput
+              label="Check-out Date"
+              value={formData.checkOutDate}
+              onChange={(date) => setFormData({ ...formData, checkOutDate: date })}
+              minDate={formData.checkInDate || new Date().toISOString().split('T')[0]}
+              placeholder="Select check-out"
             />
           </div>
+
+          {/* Number of Guests Luxury Dropdown */}
+          <GuestDropdown
+            value={formData.numberOfGuests}
+            onChange={(val) => setFormData({ ...formData, numberOfGuests: val })}
+            label="Number of Guests *"
+          />
 
           {/* Guest Full Name */}
           <div className="space-y-1">
@@ -263,9 +247,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               className="w-full text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-pine-700 resize-none font-medium transition-all"
             />
           </div>
+          </div>
 
           {/* Actions */}
-          <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-3">
+          <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-3 flex-shrink-0">
             <button
               type="button"
               onClick={onClose}

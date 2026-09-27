@@ -14,6 +14,13 @@ import { ChatbotWidget } from './components/Chatbot/ChatbotWidget';
 import { BookingFormData } from './types';
 
 export function App() {
+  // Prevent browser from erratic scroll jumps on refresh
+  React.useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
   // Booking modal state
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingRoomType, setBookingRoomType] = useState<string | undefined>(undefined);

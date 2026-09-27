@@ -59,7 +59,8 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({ onSelectLandmark }) => {
         zoom: MAP_CONFIG.defaultZoom,
         minZoom: MAP_CONFIG.minZoom,
         maxZoom: MAP_CONFIG.maxZoom,
-        attributionControl: true
+        attributionControl: true,
+        cooperativeGestures: true
       });
 
       // Navigation control (zoom in/out, pitch, bearing)
@@ -77,10 +78,9 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({ onSelectLandmark }) => {
         mainEl.className = 'group cursor-pointer relative';
         mainEl.innerHTML = `
           <div class="relative flex items-center justify-center">
-            <div class="w-12 h-12 rounded-full bg-pine-950 border-2 border-gold-500 shadow-glow-gold overflow-hidden flex items-center justify-center transition-transform transform group-hover:scale-115 duration-300">
+            <div class="w-12 h-12 rounded-full bg-pine-950 border-2 border-gold-500 shadow-luxury overflow-hidden flex items-center justify-center transition-transform transform group-hover:scale-110 duration-300">
               <img src="/dragon-treasure-logo.jpg" alt="Dragon Treasure" class="w-full h-full object-cover scale-[1.10]" />
             </div>
-            <div class="absolute -inset-1.5 rounded-full bg-gold-400/40 animate-ping -z-10"></div>
             <div class="absolute -bottom-1.5 w-3 h-3 bg-gold-500 rotate-45 border-r border-b border-pine-950"></div>
           </div>
         `;
@@ -113,8 +113,11 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({ onSelectLandmark }) => {
           </div>
         `;
 
-        const mainPopup = new mapboxgl.Popup({ offset: 25, closeButton: false })
-          .setHTML(propertyPopupContent);
+        const mainPopup = new mapboxgl.Popup({ 
+          offset: 25, 
+          closeButton: false,
+          focusAfterOpen: false 
+        }).setHTML(propertyPopupContent);
 
         const propertyMarker = new mapboxgl.Marker({ element: mainEl, anchor: 'bottom' })
           .setLngLat(MAP_CONFIG.propertyCoordinates)
@@ -123,7 +126,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({ onSelectLandmark }) => {
 
         markersRef.current.push(propertyMarker);
 
-        // Open popup by default
+        // Open popup by default without stealing focus
         propertyMarker.togglePopup();
 
         // 2. Add Surrounding Landmark Markers with Photos & Directions
@@ -160,8 +163,11 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({ onSelectLandmark }) => {
             </div>
           `;
 
-          const lPopup = new mapboxgl.Popup({ offset: 15, closeButton: false })
-            .setHTML(landmarkPopupHtml);
+          const lPopup = new mapboxgl.Popup({ 
+            offset: 15, 
+            closeButton: false,
+            focusAfterOpen: false 
+          }).setHTML(landmarkPopupHtml);
 
           const lMarker = new mapboxgl.Marker({ element: lEl, anchor: 'center' })
             .setLngLat(landmark.coordinates)
@@ -297,12 +303,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({ onSelectLandmark }) => {
             </div>
           </div>
 
-          {/* Top-Right Coordinates Pill (Clean, avoids crowding bottom) */}
-          <div className="absolute top-3.5 right-14 z-10 hidden md:flex items-center gap-1.5 bg-pine-950/90 backdrop-blur-md text-white px-3 py-1.5 rounded-2xl border border-gold-500/30 text-[11px] shadow-md">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-semibold text-gold-300">Baguio City:</span>
-            <span>16.4023° N, 120.5960° E</span>
-          </div>
+
 
           {/* Bottom Floating Jump-To Bar (Clean flex-wrap, NO horizontal scroll) */}
           <div className="absolute bottom-3.5 left-3.5 right-3.5 z-10 flex flex-wrap items-center gap-1.5 bg-white/95 backdrop-blur-md p-2 rounded-2xl border border-stone-200/90 shadow-lg">

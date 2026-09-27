@@ -14,6 +14,9 @@ import {
   Clock
 } from 'lucide-react';
 import { PROPERTY_INFO, SAMPLE_ROOMS } from '../../data/mockData';
+import { RoomDropdown } from '../UI/RoomDropdown';
+import { GuestDropdown } from '../UI/GuestDropdown';
+import { DatePickerInput } from '../UI/DatePickerInput';
 
 interface HeroProps {
   onOpenBooking: (roomType?: string, checkIn?: string, checkOut?: string, guests?: number) => void;
@@ -228,71 +231,44 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Room Type */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                    <BedDouble className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />
-                    <span>Room Option</span>
-                  </label>
-                  <select
-                    value={selectedRoom}
-                    onChange={(e) => setSelectedRoom(e.target.value)}
-                    className="w-full text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-pine-700 transition-all"
-                  >
-                    {filteredRoomOptions.map((r) => (
-                      <option key={r.id} value={r.name}>
-                        {r.name} ({r.formattedRate})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* Room Option Luxury Dropdown */}
+                <RoomDropdown
+                  rooms={filteredRoomOptions}
+                  selectedRoomName={selectedRoom}
+                  onSelectRoom={(name) => setSelectedRoom(name)}
+                  label="Room Option"
+                />
 
-                {/* Guests */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />
-                    <span>Guests</span>
-                  </label>
-                  <select
-                    value={guests}
-                    onChange={(e) => setGuests(Number(e.target.value))}
-                    className="w-full text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-pine-700 transition-all"
-                  >
-                    <option value={1}>1 Guest</option>
-                    <option value={2}>2 Guests</option>
-                    <option value={3}>3 Guests</option>
-                    <option value={4}>4 Guests</option>
-                    <option value={6}>5-6 Guests</option>
-                  </select>
-                </div>
+                {/* Guests Luxury Dropdown */}
+                <GuestDropdown
+                  value={guests}
+                  onChange={(val) => setGuests(val)}
+                  label="Guests"
+                />
 
-                {/* Check-In */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />
-                    <span>Check-in Date</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={checkIn}
-                    onChange={(e) => setCheckIn(e.target.value)}
-                    className="w-full text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-pine-700 transition-all"
-                  />
-                </div>
+                {/* Check-In Luxury Date Picker */}
+                <DatePickerInput
+                  label="Check-in Date"
+                  value={checkIn}
+                  onChange={(date) => {
+                    setCheckIn(date);
+                    if (!checkOut || checkOut <= date) {
+                      const next = new Date(date);
+                      next.setDate(next.getDate() + 1);
+                      setCheckOut(next.toISOString().split('T')[0]);
+                    }
+                  }}
+                  placeholder="Select check-in"
+                />
 
-                {/* Check-Out */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />
-                    <span>Check-out Date</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={checkOut}
-                    onChange={(e) => setCheckOut(e.target.value)}
-                    className="w-full text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-pine-700 transition-all"
-                  />
-                </div>
+                {/* Check-Out Luxury Date Picker */}
+                <DatePickerInput
+                  label="Check-out Date"
+                  value={checkOut}
+                  onChange={(date) => setCheckOut(date)}
+                  minDate={checkIn || new Date().toISOString().split('T')[0]}
+                  placeholder="Select check-out"
+                />
               </div>
 
               {/* Submit CTA */}

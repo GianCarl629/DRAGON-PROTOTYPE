@@ -82,28 +82,42 @@ export const AmenitiesSection: React.FC = () => {
         {/* Category Pills */}
         <div className="mt-10 flex justify-center">
           <div className="inline-flex p-1.5 rounded-full bg-stone-100/80 border border-stone-200/80 shadow-xs flex-wrap justify-center gap-1">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setFilterCategory(cat)}
-                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 ${
-                  filterCategory === cat
-                    ? 'bg-pine-900 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-pine-950 hover:bg-white/80'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const count = cat === 'All' 
+                ? SAMPLE_AMENITIES.length 
+                : SAMPLE_AMENITIES.filter(a => a.category === cat).length;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setFilterCategory(cat)}
+                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
+                    filterCategory === cat
+                      ? 'bg-pine-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-pine-950 hover:bg-white/80'
+                  }`}
+                >
+                  <span>{cat}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    filterCategory === cat ? 'bg-pine-800 text-gold-300' : 'bg-stone-200 text-slate-600'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* 11 Amenities Bento Grid */}
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* 11 Amenities Bento Grid with layout stability */}
+        <div 
+          className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 min-h-[560px] content-start transition-all duration-300"
+          style={{ overflowAnchor: 'none' }}
+        >
           {filteredAmenities.map((amenity) => (
             <div
               key={amenity.id}
-              className="p-6 rounded-3xl bg-gradient-to-br from-white via-cream-50/40 to-white border border-stone-200/80 hover:border-gold-400/60 hover:bg-white hover:shadow-luxury-hover hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between"
+              className="p-6 rounded-3xl bg-gradient-to-br from-white via-cream-50/40 to-white border border-stone-200/80 hover:border-gold-400/60 hover:bg-white hover:shadow-luxury-hover hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between animate-fade-in"
             >
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pine-50 to-cream-100 border border-pine-100/80 text-pine-800 group-hover:bg-pine-900 group-hover:text-gold-300 group-hover:scale-105 flex items-center justify-center transition-all duration-300 mb-4 shadow-xs">
