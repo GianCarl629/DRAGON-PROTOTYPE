@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, ShieldCheck, Award, Sparkles, Check, Edit2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { MockAuthService } from '../../services/mockAuth';
 
 interface MyProfileModalProps {
   isOpen: boolean;
@@ -9,12 +8,40 @@ interface MyProfileModalProps {
 }
 
 export const MyProfileModal: React.FC<MyProfileModalProps> = ({ isOpen, onClose }) => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(user?.name || '');
   const [editPhone, setEditPhone] = useState(user?.phone || '');
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Lock background scrolling while modal is open & synchronize user data
+  useEffect(() => {
+    if (isOpen) {
+      if (user) {
+        setEditName(user.name || '');
+        setEditPhone(user.phone || '');
+      }
+      setIsEditing(false);
+      setSaveSuccess(false);
+
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen, user]);
+
+  // Handle escape key to close modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !user) return null;
 
@@ -27,14 +54,19 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({ isOpen, onClose 
       name: editName.trim(),
       phone: editPhone.trim()
     };
-    MockAuthService.setStoredUser(updated);
+    updateUser(updated);
     setSaveSuccess(true);
     setIsEditing(false);
     setTimeout(() => setSaveSuccess(false), 2500);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/75 backdrop-blur-sm animate-fade-in overflow-hidden">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/75 backdrop-blur-sm animate-fade-in overflow-hidden"
+    >
       <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-stone-200/90 overflow-hidden transform-gpu flex flex-col max-h-[90vh]">
         
         {/* Pinned Header */}

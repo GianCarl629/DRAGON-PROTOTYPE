@@ -65,10 +65,10 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
       <button
         type="button"
         onClick={openCalendar}
-        className="relative w-full text-left bg-white border border-stone-200 rounded-2xl px-3.5 py-2.5 transition-all duration-200 flex items-center justify-between gap-2 shadow-xs hover:border-gold-400 focus:outline-none focus:ring-2 focus:ring-pine-800 cursor-pointer group"
+        className="relative w-full text-left bg-[#fffdfa] border border-gold-300/80 rounded-2xl px-3.5 py-2.5 transition-all duration-200 flex items-center justify-between gap-2 shadow-xs hover:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-500/20 cursor-pointer group"
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-pine-50 text-pine-800 flex items-center justify-center flex-shrink-0 border border-pine-100 group-hover:bg-pine-100 transition-colors">
+          <div className="w-9 h-9 rounded-xl bg-gold-100 text-pine-900 flex items-center justify-center flex-shrink-0 border border-gold-200/80 group-hover:bg-gold-200/80 transition-colors shadow-2xs">
             <Calendar className="w-4 h-4 text-pine-700" strokeWidth={2} />
           </div>
           <div className="truncate">
@@ -77,13 +77,13 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
                 <span className="block text-xs sm:text-sm font-bold text-pine-950 truncate">
                   {readableDate}
                 </span>
-                <span className="block text-[10px] text-emerald-700 font-semibold">
+                <span className="block text-[10px] text-gold-800 font-bold">
                   Date Selected
                 </span>
               </>
             ) : (
               <>
-                <span className="block text-xs sm:text-sm font-medium text-slate-400 truncate">
+                <span className="block text-xs sm:text-sm font-medium text-slate-500 truncate">
                   {placeholder}
                 </span>
                 <span className="block text-[10px] text-slate-400 font-medium">
@@ -94,7 +94,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
           </div>
         </div>
 
-        <div className="w-7 h-7 rounded-xl bg-stone-100 group-hover:bg-stone-200 text-slate-600 flex items-center justify-center transition-colors flex-shrink-0">
+        <div className="w-7 h-7 rounded-full bg-gold-50 group-hover:bg-gold-100 text-gold-800 border border-gold-300/80 flex items-center justify-center transition-colors flex-shrink-0 shadow-2xs">
           <ChevronDown className="w-3.5 h-3.5" strokeWidth={2.5} />
         </div>
 

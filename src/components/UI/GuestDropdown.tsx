@@ -71,12 +71,12 @@ export const GuestDropdown: React.FC<GuestDropdownProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className={`w-full text-left bg-white border rounded-2xl px-3.5 py-2.5 transition-all duration-200 flex items-center justify-between gap-2 shadow-xs hover:border-gold-400 focus:outline-none focus:ring-2 focus:ring-pine-800 ${
-          isOpen ? 'border-pine-800 ring-2 ring-pine-800/10 shadow-md' : 'border-stone-200'
+        className={`w-full text-left bg-[#fffdfa] border rounded-2xl px-3.5 py-2.5 transition-all duration-200 flex items-center justify-between gap-2 shadow-xs hover:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-500/20 cursor-pointer ${
+          isOpen ? 'border-gold-500 ring-2 ring-gold-500/20 shadow-md' : 'border-gold-300/80 hover:border-gold-400'
         }`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-pine-50 text-pine-800 flex items-center justify-center flex-shrink-0 border border-pine-100">
+          <div className="w-9 h-9 rounded-xl bg-gold-100 text-pine-900 flex items-center justify-center flex-shrink-0 border border-gold-200/80 shadow-2xs">
             <Users className="w-4 h-4 text-pine-700" strokeWidth={2} />
           </div>
           <div className="truncate">
@@ -89,8 +89,8 @@ export const GuestDropdown: React.FC<GuestDropdownProps> = ({
           </div>
         </div>
 
-        <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-transform duration-200 flex-shrink-0 ${
-          isOpen ? 'bg-pine-900 text-white rotate-180' : 'bg-stone-100 text-slate-600'
+        <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform duration-200 flex-shrink-0 ${
+          isOpen ? 'bg-pine-900 text-gold-300 rotate-180 shadow-xs' : 'bg-gold-50 text-gold-800 border border-gold-300/80'
         }`}>
           <ChevronDown className="w-3.5 h-3.5" strokeWidth={2.5} />
         </div>

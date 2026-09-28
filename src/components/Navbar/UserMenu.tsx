@@ -40,16 +40,16 @@ export const UserMenu: React.FC = () => {
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all cursor-pointer flex-shrink-0 ${
           isOpen
-            ? 'bg-pine-900 text-white border-pine-800 shadow-md ring-2 ring-pine-800/20'
-            : 'bg-white hover:bg-stone-50 text-pine-950 border-stone-200 shadow-2xs hover:border-gold-400'
+            ? 'bg-pine-900 text-white border-pine-800 shadow-md ring-2 ring-gold-400/20'
+            : 'bg-[#fffdfa] hover:bg-gold-50/60 text-pine-950 border-gold-300/90 shadow-2xs hover:border-gold-400'
         }`}
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-pine-900 to-pine-800 text-gold-300 font-serif font-bold text-xs flex items-center justify-center border border-gold-400/60 flex-shrink-0">
+        <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-pine-900 to-pine-800 text-gold-300 font-serif font-bold text-xs flex items-center justify-center border border-gold-400/80 flex-shrink-0 shadow-2xs">
           {initial}
         </div>
-        <span className="text-xs font-bold max-w-[100px] truncate">
+        <span className="text-xs font-bold max-w-[100px] truncate text-pine-950">
           Hi, {firstName}
         </span>
         <ChevronDown
@@ -62,7 +62,7 @@ export const UserMenu: React.FC = () => {
 
       {/* Floating Dropdown Panel */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-stone-200 p-2 z-50 animate-fade-in divide-y divide-stone-100">
+        <div className="absolute right-0 mt-2 w-64 bg-[#fffdfa] rounded-2xl shadow-2xl border border-gold-200/90 p-2 z-50 animate-fade-in divide-y divide-gold-100/80">
           
           {/* Header Section: User Details */}
           <div className="px-3 py-2.5">

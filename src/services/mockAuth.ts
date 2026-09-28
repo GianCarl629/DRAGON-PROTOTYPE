@@ -1,83 +1,49 @@
-// Mock Authentication Service for Dragon Treasure Prototype
+// Mock Authentication Service for Dragon Treasure Prototype (Demo Only)
 import { AuthUser, UserReservation } from '../types/auth';
-import { SAMPLE_ROOMS } from '../data/mockData';
 
 const AUTH_USER_KEY = 'dragon_treasure_mock_user';
 const RESERVATIONS_KEY = 'dragon_treasure_mock_reservations';
 
-// Sample demo reservations if user has none yet
-const DEFAULT_DEMO_RESERVATIONS: UserReservation[] = [
-  {
-    id: 'res-demo-1',
-    reservationCode: 'DT-2026-8492',
-    roomName: 'Deluxe Queen Studio',
-    roomCategory: 'transient',
-    roomImage: SAMPLE_ROOMS[0].image,
-    rate: SAMPLE_ROOMS[0].rate,
-    ratePeriod: SAMPLE_ROOMS[0].ratePeriod,
-    checkInDate: '2026-10-15',
-    checkOutDate: '2026-10-18',
-    numberOfGuests: 2,
-    fullName: 'Guest User',
-    email: 'guest@example.com',
-    contactNumber: '0917-555-0199',
-    specialRequests: 'Quiet room on upper floor with sunrise view.',
-    status: 'Confirmed',
-    bookedAt: '2026-09-20'
-  }
-];
-
 export const MockAuthService = {
-  // Retrieve currently stored demo user
+  // In-memory active session records (temporary for current demo session)
+  currentUser: null as AuthUser | null,
+  currentReservations: [] as UserReservation[],
+
+  // Completely purge any legacy stored items from browser storage
+  clearLegacyStorage(): void {
+    try {
+      localStorage.removeItem(AUTH_USER_KEY);
+      localStorage.removeItem(RESERVATIONS_KEY);
+      sessionStorage.removeItem(AUTH_USER_KEY);
+      sessionStorage.removeItem(RESERVATIONS_KEY);
+    } catch {
+      // ignore in environments without storage access
+    }
+  },
+
+  // Retrieve stored user: Always returns null on page load/refresh
+  // so temporary demo accounts are deleted whenever the page is refreshed
   getStoredUser(): AuthUser | null {
-    try {
-      const data = localStorage.getItem(AUTH_USER_KEY);
-      return data ? JSON.parse(data) : null;
-    } catch {
-      return null;
-    }
+    return this.currentUser;
   },
 
-  // Save or clear demo user
+  // Save or clear in-memory user
   setStoredUser(user: AuthUser | null): void {
-    try {
-      if (user) {
-        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-      } else {
-        localStorage.removeItem(AUTH_USER_KEY);
-      }
-    } catch (e) {
-      console.warn('Unable to persist auth state to localStorage', e);
-    }
+    this.currentUser = user;
+    this.clearLegacyStorage();
   },
 
-  // Retrieve user's reservation history
+  // Retrieve user's reservation history for the active session (starts empty)
   getStoredReservations(): UserReservation[] {
-    try {
-      const data = localStorage.getItem(RESERVATIONS_KEY);
-      if (data) {
-        return JSON.parse(data);
-      }
-      // Initialize with realistic sample reservation
-      localStorage.setItem(RESERVATIONS_KEY, JSON.stringify(DEFAULT_DEMO_RESERVATIONS));
-      return DEFAULT_DEMO_RESERVATIONS;
-    } catch {
-      return DEFAULT_DEMO_RESERVATIONS;
-    }
+    return this.currentReservations;
   },
 
-  // Append a newly completed reservation
+  // Append a newly completed reservation to the active session
   addReservation(reservation: UserReservation): void {
-    try {
-      const current = this.getStoredReservations();
-      const updated = [reservation, ...current];
-      localStorage.setItem(RESERVATIONS_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Unable to persist reservation to localStorage', e);
-    }
+    this.currentReservations = [reservation, ...this.currentReservations];
   },
 
-  // Demo Login: Validates non-empty fields and instantly authenticates
+  // Demo Login: Validates non-empty fields and creates a fresh session
   async login(email: string, password: string): Promise<AuthUser> {
     // Artificial brief network delay (200ms) for realistic UX feel
     await new Promise((resolve) => setTimeout(resolve, 200));
@@ -85,6 +51,10 @@ export const MockAuthService = {
     if (!email.trim() || !password.trim()) {
       throw new Error('Please fill in both email and password.');
     }
+
+    // Reset any previous temporary account's data
+    this.currentReservations = [];
+    this.clearLegacyStorage();
 
     // Derive a clean display name from email if not provided
     const localPart = email.split('@')[0] || 'Guest';
@@ -101,11 +71,11 @@ export const MockAuthService = {
       joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     };
 
-    this.setStoredUser(user);
+    this.currentUser = user;
     return user;
   },
 
-  // Demo Registration: Validates fields, checks password match, and creates account
+  // Demo Registration: Validates fields, checks password match, and creates a fresh account
   async register(data: {
     name: string;
     email: string;
@@ -124,6 +94,10 @@ export const MockAuthService = {
       throw new Error('Passwords do not match.');
     }
 
+    // Clear any previous temporary account's data completely!
+    this.currentReservations = [];
+    this.clearLegacyStorage();
+
     const user: AuthUser = {
       id: `usr-${Date.now()}`,
       name: data.name.trim(),
@@ -133,12 +107,17 @@ export const MockAuthService = {
       joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     };
 
-    this.setStoredUser(user);
+    this.currentUser = user;
     return user;
   },
 
-  // Logout: clears persisted mock state
+  // Logout: cleans up temporary account and all session data
   logout(): void {
-    this.setStoredUser(null);
+    this.currentUser = null;
+    this.currentReservations = [];
+    this.clearLegacyStorage();
   }
 };
+
+// Purge any lingering legacy storage immediately on load
+MockAuthService.clearLegacyStorage();

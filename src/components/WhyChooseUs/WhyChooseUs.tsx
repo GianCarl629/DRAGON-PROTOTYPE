@@ -76,10 +76,10 @@ export const WhyChooseUs: React.FC = () => {
                 {/* Top Number & Icon Row */}
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pine-50 to-cream-100 border border-pine-100 text-pine-800 flex items-center justify-center group-hover:scale-110 group-hover:bg-pine-900 group-hover:text-gold-300 transition-all duration-300 shadow-xs">
-                      <Icon className="w-5 h-5 transition-colors" strokeWidth={1.8} />
+                    <div className="w-12 h-12 rounded-2xl bg-gold-100/70 border border-gold-300/80 text-pine-900 flex items-center justify-center group-hover:scale-110 group-hover:bg-pine-900 group-hover:border-pine-950 group-hover:text-gold-300 transition-all duration-300 shadow-xs group-hover:shadow-md">
+                      <Icon className="w-5 h-5 transition-colors duration-300" strokeWidth={1.8} />
                     </div>
-                    <span className="font-mono text-xs font-bold text-stone-600 group-hover:text-gold-600 transition-colors">
+                    <span className="font-mono text-xs font-bold text-stone-600 group-hover:text-gold-700 transition-colors">
                       {pt.num}
                     </span>
                   </div>

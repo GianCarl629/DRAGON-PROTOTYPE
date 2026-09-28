@@ -10,13 +10,13 @@
     -moz-osx-font-smoothing: grayscale;
   }
   body {
-    background-color: #fdfbf7;
-    color: #1e293b;
+    background-color: #faf5ea;
+    color: #2c231e;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   
   ::selection {
-    background-color: #c59b27;
+    background-color: #871818;
     color: #ffffff;
   }
 }
@@ -28,47 +28,47 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f4efe6;
+  background: #f4ecdc;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c2baa8;
+  background: #c59b27;
   border-radius: 9999px;
-  border: 2px solid #f4efe6;
+  border: 2px solid #f4ecdc;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a89f8b;
+  background: #a67e1a;
 }
 
 @layer components {
   /* Frosted Glass Utilities */
   .glass-nav {
-    background: rgba(253, 251, 247, 0.88);
+    background: rgba(251, 247, 238, 0.92);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(226, 218, 203, 0.6);
+    border-bottom: 1px solid rgba(229, 207, 135, 0.4);
   }
 
   .glass-card {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 253, 249, 0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(240, 235, 224, 0.8);
+    border: 1px solid rgba(229, 207, 135, 0.45);
   }
 
   .glass-card-dark {
-    background: rgba(7, 27, 20, 0.82);
+    background: rgba(38, 4, 4, 0.88);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(197, 155, 39, 0.25);
+    border: 1px solid rgba(197, 155, 39, 0.35);
   }
 
   .glass-gold-badge {
-    background: linear-gradient(135deg, rgba(248, 242, 223, 0.9), rgba(240, 227, 188, 0.7));
+    background: linear-gradient(135deg, rgba(249, 244, 220, 0.95), rgba(241, 228, 180, 0.85));
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(197, 155, 39, 0.4);
-    box-shadow: 0 2px 8px -2px rgba(197, 155, 39, 0.15);
+    border: 1px solid rgba(197, 155, 39, 0.5);
+    box-shadow: 0 2px 8px -2px rgba(197, 155, 39, 0.2);
   }
 
   /* Shimmer button overlay */
@@ -86,7 +86,7 @@
     background: linear-gradient(
       60deg,
       transparent,
-      rgba(255, 255, 255, 0.18),
+      rgba(255, 255, 255, 0.22),
       transparent
     );
     transform: rotate(25deg) translateY(-100%);
@@ -98,20 +98,21 @@
 
   /* Gold gradient text */
   .text-gold-gradient {
-    background: linear-gradient(135deg, #e5cf92 0%, #c59b27 50%, #876017 100%);
+    background: linear-gradient(135deg, #e5cf87 0%, #c59b27 50%, #856114 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
-  .text-pine-gradient {
-    background: linear-gradient(135deg, #071b14 0%, #1b4337 60%, #2f6c58 100%);
+  .text-pine-gradient,
+  .text-crimson-gradient {
+    background: linear-gradient(135deg, #260404 0%, #6b1212 60%, #a32222 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   /* Ambient radial backdrop */
   .bg-radial-luxury {
-    background: radial-gradient(circle at 50% 0%, rgba(221, 237, 230, 0.6) 0%, rgba(253, 251, 247, 1) 70%);
+    background: radial-gradient(circle at 50% 0%, rgba(245, 236, 220, 0.7) 0%, rgba(251, 247, 238, 1) 75%);
   }
 }
 
@@ -121,7 +122,7 @@
 }
 .luxury-card-hover:hover {
   transform: translateY(-5px);
-  box-shadow: 0 20px 40px -12px rgba(7, 27, 20, 0.14), 0 0 0 1px rgba(197, 155, 39, 0.3);
+  box-shadow: 0 20px 40px -12px rgba(38, 4, 4, 0.16), 0 0 0 1px rgba(197, 155, 39, 0.35);
 }
 
 /* Custom Mapbox Popup Styling override for high luxury presentation */
@@ -134,4 +135,20 @@
 }
 .mapboxgl-popup-tip {
   border-top-color: #ffffff !important;
+}
+
+/* Header Navbar Background Stability Rules */
+.nav-header-top {
+  background-color: rgba(250, 245, 234, 0.96) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(229, 207, 135, 0.5);
+}
+
+.nav-header-scrolled {
+  background-color: #faf5ea !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px -2px rgba(72, 9, 9, 0.08), 0 2px 8px -2px rgba(197, 155, 39, 0.12) !important;
+  border-bottom: 1px solid rgba(217, 186, 92, 0.75) !important;
 }

@@ -70,8 +70,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
     <header
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
         isScrolled
-          ? 'bg-white shadow-md py-2.5 sm:py-3 border-b border-stone-200'
-          : 'bg-white/95 backdrop-blur-md py-3 sm:py-3.5 border-b border-stone-200/60'
+          ? 'nav-header-scrolled py-2.5 sm:py-3'
+          : 'nav-header-top py-3 sm:py-3.5'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-6 xl:px-8">
@@ -92,9 +92,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
                 <span className="font-serif font-bold text-base sm:text-xl text-pine-950 tracking-tight whitespace-nowrap group-hover:text-pine-800 transition-colors">
                   Dragon Treasure
                 </span>
-                <span className="hidden xl:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-gold-100 text-gold-900 border border-gold-300/80">
-                  Condotel
-                </span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-slate-500 flex items-center gap-1 font-medium whitespace-nowrap -mt-0.5">
                 <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-pine-700 flex-shrink-0" strokeWidth={2} />
@@ -104,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
           </a>
 
           {/* Desktop Navigation Links (with whitespace-nowrap so "Why Us" never wraps) */}
-          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 p-1 bg-stone-100/80 rounded-full border border-stone-200/70 shadow-2xs flex-shrink-0">
+          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 p-1 bg-[#f5ecdc] rounded-full border border-gold-300/80 shadow-2xs flex-shrink-0">
             {navLinks.map((link) => {
               const isActive = activeSection === link.id;
               return (
@@ -114,7 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
                   className={`px-2.5 xl:px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap tracking-normal transition-all duration-200 ${
                     isActive
                       ? 'bg-pine-900 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-pine-950 hover:bg-white/80'
+                      : 'text-slate-700 hover:text-pine-950 hover:bg-white/80'
                   }`}
                 >
                   {link.name}
@@ -130,7 +127,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
             {isLoggedIn ? (
               <UserMenu />
             ) : (
-              <div className="flex items-center gap-1 p-0.5 bg-stone-100 rounded-full border border-stone-200/80 shadow-2xs">
+              <div className="flex items-center gap-1 p-0.5 bg-[#f5ecdc] rounded-full border border-gold-300/80 shadow-2xs">
                 <button
                   type="button"
                   onClick={() => openAuthModal('login')}
@@ -148,14 +145,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
               </div>
             )}
 
-            {/* Front Desk Phone (shown on 2xl to avoid crowding smaller screens) */}
+            {/* Front Desk Phone (shown on xl+ matching reference layout) */}
             <a
               href="tel:0917-123-4567"
-              className="hidden 2xl:flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-pine-900 hover:bg-stone-100 transition-colors whitespace-nowrap"
+              className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700 bg-cream-200/90 border border-gold-300/80 shadow-2xs hover:text-pine-900 transition-colors whitespace-nowrap"
               title="Call Front Desk: 0917-123-4567"
             >
-              <div className="w-7 h-7 rounded-lg bg-pine-50 text-pine-800 flex items-center justify-center border border-pine-100 flex-shrink-0">
-                <Phone className="w-3.5 h-3.5" strokeWidth={2} />
+              <div className="w-5 h-5 rounded-full bg-gold-100 text-pine-800 flex items-center justify-center border border-gold-300/60 flex-shrink-0">
+                <Phone className="w-3 h-3 text-pine-700" strokeWidth={2} />
               </div>
               <span>{DEMO_CONTACT.phone}</span>
             </a>

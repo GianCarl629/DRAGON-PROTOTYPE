@@ -17,7 +17,7 @@ import { SAMPLE_AMENITIES } from '../../data/mockData';
 
 // Map icon string to Lucide component with standardized props
 const getAmenityIcon = (iconName: string) => {
-  const iconProps = { className: "w-5 h-5", strokeWidth: 1.8 };
+  const iconProps = { className: "w-5 h-5 transition-colors duration-300", strokeWidth: 1.8 };
   switch (iconName) {
     case 'Wifi':
       return <Wifi {...iconProps} />;
@@ -120,7 +120,7 @@ export const AmenitiesSection: React.FC = () => {
               className="p-6 rounded-3xl bg-gradient-to-br from-white via-cream-50/40 to-white border border-stone-200/80 hover:border-gold-400/60 hover:bg-white hover:shadow-luxury-hover hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between animate-fade-in"
             >
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pine-50 to-cream-100 border border-pine-100/80 text-pine-800 group-hover:bg-pine-900 group-hover:text-gold-300 group-hover:scale-105 flex items-center justify-center transition-all duration-300 mb-4 shadow-xs">
+                <div className="w-12 h-12 rounded-2xl bg-gold-100/70 border border-gold-300/80 text-pine-900 group-hover:bg-pine-900 group-hover:border-pine-950 group-hover:text-gold-300 group-hover:scale-105 flex items-center justify-center transition-all duration-300 mb-4 shadow-xs group-hover:shadow-md">
                   {getAmenityIcon(amenity.icon)}
                 </div>
 

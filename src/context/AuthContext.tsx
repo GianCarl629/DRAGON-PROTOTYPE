@@ -14,6 +14,7 @@ interface AuthContextType {
     confirmPassword: string;
   }) => Promise<AuthUser>;
   logout: () => void;
+  updateUser: (updated: AuthUser) => void;
   reservations: UserReservation[];
   addReservation: (reservation: UserReservation) => void;
 
@@ -40,8 +41,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(() => MockAuthService.getStoredUser());
-  const [reservations, setReservations] = useState<UserReservation[]>(() => MockAuthService.getStoredReservations());
+  // Temporary demo account starts null on load/refresh
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [reservations, setReservations] = useState<UserReservation[]>([]);
 
   // Modal controls
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -73,6 +75,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string): Promise<AuthUser> => {
     const loggedInUser = await MockAuthService.login(email, password);
     setUser(loggedInUser);
+    setReservations([]);
     return loggedInUser;
   };
 
@@ -85,20 +88,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }): Promise<AuthUser> => {
     const newUser = await MockAuthService.register(data);
     setUser(newUser);
+    // Clear any reservations from any previous temporary session
+    setReservations([]);
     return newUser;
   };
 
   const logout = () => {
     MockAuthService.logout();
     setUser(null);
+    setReservations([]);
     setPendingBookingIntent(null);
     setIsReservationsModalOpen(false);
     setIsProfileModalOpen(false);
   };
 
+  const updateUser = (updated: AuthUser) => {
+    MockAuthService.setStoredUser(updated);
+    setUser(updated);
+  };
+
   const addReservation = (reservation: UserReservation) => {
     MockAuthService.addReservation(reservation);
-    setReservations(MockAuthService.getStoredReservations());
+    setReservations((prev) => [reservation, ...prev]);
   };
 
   const openAuthModal = (mode: AuthModalMode = 'prompt') => {
@@ -132,6 +143,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         register,
         logout,
+        updateUser,
         reservations,
         addReservation,
         isAuthModalOpen,

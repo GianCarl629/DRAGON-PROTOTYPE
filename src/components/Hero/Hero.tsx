@@ -42,18 +42,24 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
   return (
     <section id="home" className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden bg-radial-luxury">
       {/* Background Atmospheric Glows */}
-      <div className="absolute top-0 right-0 -z-10 w-[550px] h-[550px] bg-gradient-to-br from-pine-200/50 via-gold-200/20 to-transparent rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/4 pointer-events-none" />
-      <div className="absolute top-1/3 left-0 -z-10 w-[500px] h-[500px] bg-gradient-to-tr from-cedar-200/40 via-pine-100/30 to-transparent rounded-full blur-3xl transform -translate-x-1/3 pointer-events-none" />
+      <div className="absolute top-0 right-0 z-0 w-[550px] h-[550px] bg-gradient-to-br from-gold-200/40 via-pine-100/30 to-transparent rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/4 pointer-events-none" />
+      <div className="absolute top-1/3 left-0 z-0 w-[500px] h-[500px] bg-gradient-to-tr from-cedar-200/40 via-gold-100/30 to-transparent rounded-full blur-3xl transform -translate-x-1/3 pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Oriental Golden Wave Pattern Motif in Bottom Right */}
+      <div 
+        className="absolute -bottom-2 right-0 w-80 sm:w-[420px] h-40 z-0 pointer-events-none opacity-45 select-none bg-repeat"
+        style={{ backgroundImage: 'url(/oriental-waves.svg)', backgroundSize: '60px 30px' }}
+      />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
           
           {/* Left Text & Call to Action (7 cols) */}
-          <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
+          <div className="lg:col-span-7 space-y-7 text-center lg:text-left relative isolate">
             
             {/* Top Eyebrow Badge */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 border border-gold-400/50 text-pine-950 text-xs sm:text-sm font-semibold tracking-wide shadow-sm backdrop-blur-md">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 border border-gold-400/60 text-pine-950 text-xs sm:text-sm font-semibold tracking-wide shadow-sm backdrop-blur-md">
                 <div className="w-5 h-5 rounded-full overflow-hidden border border-gold-600/80 flex-shrink-0 bg-pine-950 shadow-xs">
                   <img
                     src="/dragon-treasure-logo.jpg"
@@ -69,24 +75,35 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
                 </span>
               </div>
 
-              <div className="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full bg-pine-100/80 text-pine-900 text-xs font-semibold border border-pine-200/80">
+              <div className="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gold-100/90 text-gold-900 text-xs font-semibold border border-gold-300/90 shadow-2xs">
                 <Star className="w-3.5 h-3.5 fill-gold-500 text-gold-500" strokeWidth={1.5} />
                 <span>Highland Hospitality</span>
               </div>
             </div>
 
-            {/* Main Headline */}
-            <div className="space-y-2">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold text-pine-950 tracking-tight leading-[1.12]">
+            {/* Main Headline with Watermark Centered Directly on "Your Peaceful Haven in the" */}
+            <div className="relative space-y-2">
+              {/* Golden Dragon Watermark centered right around the headline words (Clean, no glow/shine effect) */}
+              <div 
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:left-[45%] w-[480px] h-[480px] sm:w-[560px] sm:h-[560px] lg:w-[620px] lg:h-[620px] -z-10 pointer-events-none select-none flex items-center justify-center opacity-30"
+              >
+                <img
+                  src="/golden-dragon-watermark.png?v=4"
+                  alt="Dragon Treasure Watermark"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold text-pine-900 tracking-tight leading-[1.12] relative z-10">
                 Your Peaceful Haven in the <span className="text-gold-gradient">City of Pines</span>
               </h1>
-              <p className="font-serif italic text-lg sm:text-xl text-pine-800/80 font-medium">
+              <p className="font-serif italic text-lg sm:text-xl text-pine-800 font-medium relative z-10">
                 Dragon Treasure Transient & Condotel
               </p>
             </div>
 
             {/* Narrative Description */}
-            <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
+            <p className="text-base sm:text-lg text-slate-700 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
               {PROPERTY_INFO.description} Enjoy crisp mountain breezes, clean contemporary suites, pressurized hot showers, and dedicated 24/7 caretaker assistance.
             </p>
 
@@ -97,13 +114,13 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
                 className="shimmer-btn inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-sm sm:text-base font-semibold text-white bg-gradient-to-r from-pine-900 via-pine-800 to-pine-900 hover:from-pine-800 hover:to-pine-950 active:scale-98 shadow-md hover:shadow-glow-pine transition-all duration-300 border border-pine-700/50"
               >
                 <span>View Accommodations</span>
-                <ArrowRight className="w-4 h-4" strokeWidth={2} />
+                <ArrowRight className="w-4 h-4 text-gold-300" strokeWidth={2} />
               </a>
 
               <button
                 type="button"
                 onClick={() => onOpenBooking()}
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-sm sm:text-base font-semibold text-pine-950 bg-white/95 border border-stone-200/90 hover:bg-stone-50 hover:border-gold-400 active:scale-98 shadow-card transition-all duration-300"
+                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-sm sm:text-base font-semibold text-pine-950 bg-white/95 border border-gold-300 hover:border-gold-500 hover:bg-gold-50/50 active:scale-98 shadow-card transition-all duration-300 cursor-pointer"
               >
                 <Calendar className="w-4 h-4 text-pine-800" strokeWidth={2} />
                 <span>Reserve a Room</span>
@@ -112,7 +129,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
               <button
                 type="button"
                 onClick={onOpenChat}
-                className="inline-flex items-center gap-2 px-4 py-3.5 rounded-xl text-xs sm:text-sm font-semibold text-pine-900 bg-gold-100/80 border border-gold-300/80 hover:bg-gold-200/80 active:scale-98 transition-all duration-200 shadow-xs"
+                className="inline-flex items-center gap-2 px-4 py-3.5 rounded-xl text-xs sm:text-sm font-semibold text-pine-900 bg-gold-100/90 border border-gold-300/90 hover:bg-gold-200 active:scale-98 transition-all duration-200 shadow-xs cursor-pointer"
               >
                 <Sparkles className="w-4 h-4 text-gold-700" strokeWidth={2} />
                 <span>Virtual Concierge</span>
@@ -120,25 +137,19 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
             </div>
 
             {/* Trust & Amenity Highlights Strip */}
-            <div className="pt-6 grid grid-cols-3 gap-3 max-w-xl mx-auto lg:mx-0 border-t border-stone-200/80">
-              <div className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                <div className="w-7 h-7 rounded-lg bg-pine-100/80 text-pine-800 flex items-center justify-center flex-shrink-0 border border-pine-200/60">
-                  <ShieldCheck className="w-4 h-4" strokeWidth={2} />
-                </div>
+            <div className="pt-6 flex flex-wrap items-center justify-center lg:justify-start gap-2.5 max-w-xl mx-auto lg:mx-0 border-t border-gold-200/70">
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/85 border border-gold-300/70 text-xs sm:text-sm text-slate-800 font-medium shadow-2xs">
+                <ShieldCheck className="w-4 h-4 text-pine-700 flex-shrink-0" strokeWidth={2} />
                 <span>24/7 Caretaker</span>
               </div>
 
-              <div className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                <div className="w-7 h-7 rounded-lg bg-pine-100/80 text-pine-800 flex items-center justify-center flex-shrink-0 border border-pine-200/60">
-                  <Wifi className="w-4 h-4" strokeWidth={2} />
-                </div>
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/85 border border-gold-300/70 text-xs sm:text-sm text-slate-800 font-medium shadow-2xs">
+                <Wifi className="w-4 h-4 text-pine-700 flex-shrink-0" strokeWidth={2} />
                 <span>Fast Free Wi-Fi</span>
               </div>
 
-              <div className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
-                <div className="w-7 h-7 rounded-lg bg-pine-100/80 text-pine-800 flex items-center justify-center flex-shrink-0 border border-pine-200/60">
-                  <Flame className="w-4 h-4" strokeWidth={2} />
-                </div>
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/85 border border-gold-300/70 text-xs sm:text-sm text-slate-800 font-medium shadow-2xs">
+                <Flame className="w-4 h-4 text-pine-700 flex-shrink-0" strokeWidth={2} />
                 <span>Hot Showers</span>
               </div>
             </div>
@@ -184,12 +195,12 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
             {/* Quick Availability Reservation Bar */}
             <form
               onSubmit={handleQuickSearch}
-              className="bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-6 shadow-luxury border border-stone-200/80 space-y-4"
+              className="bg-[#fffdfa] rounded-3xl p-5 sm:p-6 shadow-luxury border-2 border-gold-300/80 space-y-4"
             >
               {/* Card Header & Category Switcher */}
-              <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+              <div className="flex items-center justify-between pb-3 border-b border-gold-200/60">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-pine-50 text-pine-800 flex items-center justify-center border border-pine-100">
+                  <div className="w-7 h-7 rounded-lg bg-gold-100 text-pine-900 flex items-center justify-center border border-gold-300/80 shadow-2xs">
                     <BedDouble className="w-4 h-4 text-pine-700" strokeWidth={2} />
                   </div>
                   <span className="text-xs font-bold text-pine-950 uppercase tracking-wider">
@@ -197,17 +208,17 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
                   </span>
                 </div>
 
-                <div className="flex p-0.5 bg-stone-100 rounded-lg border border-stone-200/60">
+                <div className="flex p-0.5 bg-gold-100/60 rounded-lg border border-gold-300/70">
                   <button
                     type="button"
                     onClick={() => {
                       setActiveTab('transient');
                       setSelectedRoom(SAMPLE_ROOMS[0].name);
                     }}
-                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                    className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                       activeTab === 'transient'
-                        ? 'bg-pine-800 text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-pine-900'
                     }`}
                   >
                     Transient
@@ -219,10 +230,10 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
                       const dorm = SAMPLE_ROOMS.find(r => r.category === 'dormitory');
                       if (dorm) setSelectedRoom(dorm.name);
                     }}
-                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                    className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                       activeTab === 'dormitory'
-                        ? 'bg-pine-800 text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-pine-900'
                     }`}
                   >
                     Monthly Dorm
@@ -274,7 +285,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
               {/* Submit CTA */}
               <button
                 type="submit"
-                className="shimmer-btn w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-pine-900 via-pine-800 to-pine-900 hover:from-pine-800 hover:to-pine-950 active:scale-98 shadow-md hover:shadow-glow-pine transition-all duration-300 flex items-center justify-center gap-2"
+                className="shimmer-btn w-full py-3.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-pine-900 via-pine-800 to-pine-900 hover:from-pine-800 hover:to-pine-950 active:scale-98 shadow-md hover:shadow-glow-pine transition-all duration-300 flex items-center justify-center gap-2 border border-pine-700/50 cursor-pointer"
               >
                 <span>Check Availability & Inquire</span>
                 <ArrowRight className="w-4 h-4 text-gold-300" strokeWidth={2} />
