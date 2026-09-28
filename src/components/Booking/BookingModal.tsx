@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X, CalendarCheck, Users, Mail, Phone, User, Calendar, BedDouble, Sparkles, ShieldCheck, Check } from 'lucide-react';
 import { SAMPLE_ROOMS } from '../../data/mockData';
 import { BookingFormData } from '../../types';
+import { UserReservation } from '../../types/auth';
+import { useAuth } from '../../context/AuthContext';
 import { RoomDropdown } from '../UI/RoomDropdown';
 import { GuestDropdown } from '../UI/GuestDropdown';
 import { DatePickerInput } from '../UI/DatePickerInput';
@@ -25,6 +27,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   preGuests,
   onSubmitSuccess
 }) => {
+  const { user, addReservation } = useAuth();
+
   const [formData, setFormData] = useState<BookingFormData>({
     roomType: SAMPLE_ROOMS[0].name,
     checkInDate: '',
@@ -46,9 +50,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         checkInDate: preCheckIn || '',
         checkOutDate: preCheckOut || '',
         numberOfGuests: preGuests || 2,
-        fullName: '',
-        contactNumber: '',
-        email: '',
+        fullName: user?.name || '',
+        contactNumber: user?.phone || '',
+        email: user?.email || '',
         specialRequests: ''
       });
       setErrors({});
@@ -60,7 +64,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         document.body.style.overflow = originalOverflow;
       };
     }
-  }, [isOpen, preSelectedRoomType, preCheckIn, preCheckOut, preGuests]);
+  }, [isOpen, preSelectedRoomType, preCheckIn, preCheckOut, preGuests, user]);
 
   if (!isOpen) return null;
 
@@ -85,6 +89,29 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
+
+      // Create a confirmed reservation record for user's booking history
+      const selectedRoomObj = SAMPLE_ROOMS.find((r) => r.name === formData.roomType) || SAMPLE_ROOMS[0];
+      const newReservation: UserReservation = {
+        id: `res-${Date.now()}`,
+        reservationCode: `DT-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+        roomName: formData.roomType,
+        roomCategory: selectedRoomObj.category,
+        roomImage: selectedRoomObj.image,
+        rate: selectedRoomObj.rate,
+        ratePeriod: selectedRoomObj.ratePeriod,
+        checkInDate: formData.checkInDate,
+        checkOutDate: formData.checkOutDate,
+        numberOfGuests: formData.numberOfGuests,
+        fullName: formData.fullName,
+        email: formData.email,
+        contactNumber: formData.contactNumber,
+        specialRequests: formData.specialRequests,
+        status: 'Confirmed',
+        bookedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      };
+      addReservation(newReservation);
+
       onSubmitSuccess(formData);
     }, 450);
   };
