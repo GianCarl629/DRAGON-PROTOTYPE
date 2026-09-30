@@ -34,6 +34,8 @@ export interface UserReservation {
   email: string;
   contactNumber: string;
   specialRequests?: string;
-  status: 'Confirmed' | 'Pending Review' | 'Completed';
+  status: 'Confirmed' | 'Pending Review' | 'Completed' | 'Cancelled';
+  cancellationReason?: string;
+  cancelledAt?: string;
   bookedAt: string;
 }

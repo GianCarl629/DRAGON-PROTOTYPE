@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CalendarCheck, Users, Mail, Phone, User, Calendar, BedDouble, Sparkles, ShieldCheck, Check } from 'lucide-react';
+import { X, CalendarCheck, Users, Mail, Phone, User, Calendar, BedDouble, Sparkles, ShieldCheck, Check, Clock, AlertCircle } from 'lucide-react';
 import { SAMPLE_ROOMS } from '../../data/mockData';
 import { BookingFormData } from '../../types';
 import { UserReservation } from '../../types/auth';
@@ -45,11 +45,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      const initialRoomName = preSelectedRoomType || SAMPLE_ROOMS[0].name;
+      const initialRoomObj = SAMPLE_ROOMS.find(r => r.name === initialRoomName) || SAMPLE_ROOMS[0];
+      const initialGuests = preGuests
+        ? Math.min(preGuests, initialRoomObj.capacity)
+        : Math.min(2, initialRoomObj.capacity);
+
       setFormData({
-        roomType: preSelectedRoomType || SAMPLE_ROOMS[0].name,
+        roomType: initialRoomName,
         checkInDate: preCheckIn || '',
         checkOutDate: preCheckOut || '',
-        numberOfGuests: preGuests || 2,
+        numberOfGuests: initialGuests,
         fullName: user?.name || '',
         contactNumber: user?.phone || '',
         email: user?.email || '',
@@ -70,14 +76,57 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   const currentRoom = SAMPLE_ROOMS.find(r => r.name === formData.roomType) || SAMPLE_ROOMS[0];
 
+  const handleRoomChange = (roomName: string) => {
+    const targetRoom = SAMPLE_ROOMS.find(r => r.name === roomName) || SAMPLE_ROOMS[0];
+    setFormData(prev => ({
+      ...prev,
+      roomType: roomName,
+      numberOfGuests: prev.numberOfGuests > targetRoom.capacity ? targetRoom.capacity : prev.numberOfGuests
+    }));
+    setErrors(prev => {
+      const copy = { ...prev };
+      delete copy.roomType;
+      delete copy.numberOfGuests;
+      return copy;
+    });
+  };
+
   const validate = () => {
     const newErrors: Partial<Record<keyof BookingFormData, string>> = {};
-    if (!formData.fullName.trim()) newErrors.fullName = 'Full guest name is required';
-    if (!formData.contactNumber.trim()) newErrors.contactNumber = 'Contact phone number is required';
+
+    // 1. Room Type validation
+    if (!formData.roomType) {
+      newErrors.roomType = 'Please select a room type';
+    }
+
+    // 2. Dates validation (Mandatory check-in and check-out)
+    if (!formData.checkInDate) {
+      newErrors.checkInDate = 'Check-in date is required';
+    }
+    if (!formData.checkOutDate) {
+      newErrors.checkOutDate = 'Check-out date is required';
+    } else if (formData.checkInDate && formData.checkOutDate <= formData.checkInDate) {
+      newErrors.checkOutDate = 'Check-out date must be after check-in date';
+    }
+
+    // 3. Capacity enforcement (Room maximum guests)
+    if (!formData.numberOfGuests || formData.numberOfGuests < 1) {
+      newErrors.numberOfGuests = 'Please select at least 1 guest';
+    } else if (formData.numberOfGuests > currentRoom.capacity) {
+      newErrors.numberOfGuests = `${currentRoom.name} accommodates up to ${currentRoom.capacity} guests (selected: ${formData.numberOfGuests}). Please reduce guest count or choose a larger room.`;
+    }
+
+    // 4. Contact validation
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'Full guest name is required';
+    }
+    if (!formData.contactNumber.trim()) {
+      newErrors.contactNumber = 'Contact phone number is required';
+    }
     if (!formData.email.trim() || !formData.email.includes('@')) {
       newErrors.email = 'Valid email address is required';
     }
-    if (!formData.roomType) newErrors.roomType = 'Please select a room type';
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -90,7 +139,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     setTimeout(() => {
       setIsSubmitting(false);
 
-      // Create a confirmed reservation record for user's booking history
+      // Create a pending review reservation record for user's booking history
       const selectedRoomObj = SAMPLE_ROOMS.find((r) => r.name === formData.roomType) || SAMPLE_ROOMS[0];
       const newReservation: UserReservation = {
         id: `res-${Date.now()}`,
@@ -107,7 +156,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         email: formData.email,
         contactNumber: formData.contactNumber,
         specialRequests: formData.specialRequests,
-        status: 'Confirmed',
+        status: 'Pending Review',
         bookedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       };
       addReservation(newReservation);
@@ -151,9 +200,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
         {/* Pinned Selected Room Summary Pill */}
         <div className="px-5 sm:px-6 py-2.5 bg-gradient-to-r from-pine-50 via-cream-100 to-pine-50 border-b border-pine-100 flex items-center justify-between text-xs text-pine-950 font-semibold flex-shrink-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <BedDouble className="w-4 h-4 text-pine-700" strokeWidth={2} />
             <span>Selected: {currentRoom.name}</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-gold-300/80 text-gold-900 shadow-2xs">
+              Capacity: {currentRoom.capacityLabel}
+            </span>
           </div>
           <span className="text-pine-800 font-bold font-serif">{currentRoom.formattedRate}</span>
         </div>
@@ -161,24 +213,35 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         {/* Scrollable Form Body (Scrollbar strictly contained inside white body) */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 overscroll-contain flex flex-col justify-between">
           <div className="space-y-4">
+          
+          {/* Staff Review Workflow Notice */}
+          <div className="p-3 bg-amber-50/80 border border-amber-200/90 rounded-2xl flex items-center gap-2.5 text-xs text-amber-950 font-medium">
+            <Clock className="w-4 h-4 text-amber-700 flex-shrink-0" />
+            <span>
+              <strong>Workflow Note:</strong> Reservations are submitted as <strong>Pending Review</strong> until staff verifies availability and confirms your stay.
+            </span>
+          </div>
+
           {/* Room Type Luxury Dropdown */}
           <div className="space-y-1">
             <RoomDropdown
               rooms={SAMPLE_ROOMS}
               selectedRoomName={formData.roomType}
-              onSelectRoom={(name) => setFormData({ ...formData, roomType: name })}
+              onSelectRoom={handleRoomChange}
               label="Room Choice *"
             />
             {errors.roomType && (
-              <p className="text-xs text-red-500">{errors.roomType}</p>
+              <p className="text-xs text-red-500 font-medium">{errors.roomType}</p>
             )}
           </div>
 
-          {/* Dates Row with Luxury Date Pickers */}
+          {/* Dates Row with Mandatory Date Pickers */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <DatePickerInput
               label="Check-in Date"
               value={formData.checkInDate}
+              required
+              error={errors.checkInDate}
               onChange={(date) => {
                 const updated: Partial<BookingFormData> = { checkInDate: date };
                 if (!formData.checkOutDate || formData.checkOutDate <= date) {
@@ -187,24 +250,39 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   updated.checkOutDate = next.toISOString().split('T')[0];
                 }
                 setFormData({ ...formData, ...updated });
+                setErrors(prev => ({ ...prev, checkInDate: undefined, checkOutDate: undefined }));
               }}
               placeholder="Select check-in"
             />
             <DatePickerInput
               label="Check-out Date"
               value={formData.checkOutDate}
-              onChange={(date) => setFormData({ ...formData, checkOutDate: date })}
+              required
+              error={errors.checkOutDate}
+              onChange={(date) => {
+                setFormData({ ...formData, checkOutDate: date });
+                setErrors(prev => ({ ...prev, checkOutDate: undefined }));
+              }}
               minDate={formData.checkInDate || new Date().toISOString().split('T')[0]}
               placeholder="Select check-out"
             />
           </div>
 
-          {/* Number of Guests Luxury Dropdown */}
-          <GuestDropdown
-            value={formData.numberOfGuests}
-            onChange={(val) => setFormData({ ...formData, numberOfGuests: val })}
-            label="Number of Guests *"
-          />
+          {/* Number of Guests Luxury Dropdown with Room Capacity Enforcement */}
+          <div className="space-y-1">
+            <GuestDropdown
+              value={formData.numberOfGuests}
+              onChange={(val) => {
+                setFormData({ ...formData, numberOfGuests: val });
+                setErrors(prev => ({ ...prev, numberOfGuests: undefined }));
+              }}
+              maxGuests={currentRoom.capacity}
+              roomCapacityLabel={currentRoom.capacityLabel}
+              error={errors.numberOfGuests}
+              required
+              label="Number of Guests"
+            />
+          </div>
 
           {/* Guest Full Name */}
           <div className="space-y-1">
@@ -216,11 +294,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               type="text"
               placeholder="e.g. Juan Dela Cruz"
               value={formData.fullName}
-              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-              className="w-full text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-pine-700 font-medium transition-all"
+              onChange={(e) => {
+                setFormData({ ...formData, fullName: e.target.value });
+                if (errors.fullName) setErrors(prev => ({ ...prev, fullName: undefined }));
+              }}
+              className={`w-full text-xs sm:text-sm bg-stone-50 border rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 font-medium transition-all ${
+                errors.fullName ? 'border-red-400 focus:ring-red-400/20' : 'border-stone-200 focus:ring-pine-700'
+              }`}
             />
             {errors.fullName && (
-              <p className="text-xs text-red-500">{errors.fullName}</p>
+              <p className="text-xs text-red-500 font-medium">{errors.fullName}</p>
             )}
           </div>
 
@@ -235,11 +318,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 type="tel"
                 placeholder="0917-000-0000"
                 value={formData.contactNumber}
-                onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
-                className="w-full text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-pine-700 font-medium transition-all"
+                onChange={(e) => {
+                  setFormData({ ...formData, contactNumber: e.target.value });
+                  if (errors.contactNumber) setErrors(prev => ({ ...prev, contactNumber: undefined }));
+                }}
+                className={`w-full text-xs sm:text-sm bg-stone-50 border rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 font-medium transition-all ${
+                  errors.contactNumber ? 'border-red-400 focus:ring-red-400/20' : 'border-stone-200 focus:ring-pine-700'
+                }`}
               />
               {errors.contactNumber && (
-                <p className="text-xs text-red-500">{errors.contactNumber}</p>
+                <p className="text-xs text-red-500 font-medium">{errors.contactNumber}</p>
               )}
             </div>
 
@@ -252,11 +340,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 type="email"
                 placeholder="guest@example.com"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-pine-700 font-medium transition-all"
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  if (errors.email) setErrors(prev => ({ ...prev, email: undefined }));
+                }}
+                className={`w-full text-xs sm:text-sm bg-stone-50 border rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 font-medium transition-all ${
+                  errors.email ? 'border-red-400 focus:ring-red-400/20' : 'border-stone-200 focus:ring-pine-700'
+                }`}
               />
               {errors.email && (
-                <p className="text-xs text-red-500">{errors.email}</p>
+                <p className="text-xs text-red-500 font-medium">{errors.email}</p>
               )}
             </div>
           </div>
@@ -281,17 +374,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-stone-100 transition-colors"
+              className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-stone-100 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="shimmer-btn px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-pine-900 via-pine-800 to-pine-900 hover:from-pine-800 hover:to-pine-950 active:scale-95 shadow-md hover:shadow-glow-pine transition-all duration-200 flex items-center gap-2"
+              className="shimmer-btn px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-pine-900 via-pine-800 to-pine-900 hover:from-pine-800 hover:to-pine-950 active:scale-95 shadow-md hover:shadow-glow-pine transition-all duration-200 flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <CalendarCheck className="w-4 h-4 text-gold-400" strokeWidth={2} />
-              <span>{isSubmitting ? 'Submitting Request...' : 'Submit Reservation'}</span>
+              <span>{isSubmitting ? 'Submitting Request...' : 'Submit Reservation Request'}</span>
             </button>
           </div>
         </form>

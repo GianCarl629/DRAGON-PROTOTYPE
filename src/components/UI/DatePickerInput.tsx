@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, ChevronDown } from 'lucide-react';
+import { Calendar, ChevronDown, AlertCircle } from 'lucide-react';
 
 interface DatePickerInputProps {
   label: string;
@@ -8,6 +8,8 @@ interface DatePickerInputProps {
   minDate?: string;
   placeholder?: string;
   id?: string;
+  error?: string;
+  required?: boolean;
 }
 
 export const DatePickerInput: React.FC<DatePickerInputProps> = ({
@@ -16,7 +18,9 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   onChange,
   minDate = new Date().toISOString().split('T')[0],
   placeholder = 'Select date',
-  id
+  id,
+  error,
+  required
 }) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -56,16 +60,24 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
 
   return (
     <div className="relative space-y-1" id={id}>
-      <label className="text-xs font-bold text-pine-950 flex items-center gap-1.5 uppercase tracking-wider">
-        <Calendar className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />
-        <span>{label}</span>
+      <label className="text-xs font-bold text-pine-950 flex items-center justify-between uppercase tracking-wider">
+        <span className="flex items-center gap-1.5">
+          <Calendar className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />
+          <span>
+            {label} {required && <span className="text-red-500">*</span>}
+          </span>
+        </span>
       </label>
 
       {/* Styled Interactive Card with full clickable trigger */}
       <button
         type="button"
         onClick={openCalendar}
-        className="relative w-full text-left bg-[#fffdfa] border border-gold-300/80 rounded-2xl px-3.5 py-2.5 transition-all duration-200 flex items-center justify-between gap-2 shadow-xs hover:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-500/20 cursor-pointer group"
+        className={`relative w-full text-left bg-[#fffdfa] border rounded-2xl px-3.5 py-2.5 transition-all duration-200 flex items-center justify-between gap-2 shadow-xs focus:outline-none focus:ring-2 cursor-pointer group ${
+          error
+            ? 'border-red-400 ring-2 ring-red-400/20'
+            : 'border-gold-300/80 hover:border-gold-400 focus:ring-gold-500/20'
+        }`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-9 h-9 rounded-xl bg-gold-100 text-pine-900 flex items-center justify-center flex-shrink-0 border border-gold-200/80 group-hover:bg-gold-200/80 transition-colors shadow-2xs">
@@ -110,6 +122,13 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
           aria-label={label}
         />
       </button>
+
+      {error && (
+        <p className="text-xs text-red-500 font-medium flex items-center gap-1 mt-1">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>{error}</span>
+        </p>
+      )}
     </div>
   );
 };

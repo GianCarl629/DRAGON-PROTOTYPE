@@ -17,6 +17,8 @@ interface AuthContextType {
   updateUser: (updated: AuthUser) => void;
   reservations: UserReservation[];
   addReservation: (reservation: UserReservation) => void;
+  cancelReservation: (id: string, reason?: string) => void;
+  deleteReservation: (id: string) => void;
 
   // Auth Modal State & Controls
   isAuthModalOpen: boolean;
@@ -112,6 +114,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setReservations((prev) => [reservation, ...prev]);
   };
 
+  const cancelReservation = (id: string, reason?: string) => {
+    MockAuthService.cancelReservation(id, reason);
+    const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    setReservations((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? {
+              ...r,
+              status: 'Cancelled',
+              cancellationReason: reason || 'Change in plans',
+              cancelledAt: today
+            }
+          : r
+      )
+    );
+  };
+
+  const deleteReservation = (id: string) => {
+    MockAuthService.deleteReservation(id);
+    setReservations((prev) => prev.filter((r) => r.id !== id));
+  };
+
   const openAuthModal = (mode: AuthModalMode = 'prompt') => {
     setAuthModalMode(mode);
     setIsAuthModalOpen(true);
@@ -146,6 +170,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateUser,
         reservations,
         addReservation,
+        cancelReservation,
+        deleteReservation,
         isAuthModalOpen,
         authModalMode,
         openAuthModal,

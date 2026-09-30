@@ -34,6 +34,26 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
     activeTab === 'transient' ? r.category === 'transient' : r.category === 'dormitory'
   );
 
+  const currentRoomObj = SAMPLE_ROOMS.find(r => r.name === selectedRoom) || filteredRoomOptions[0] || SAMPLE_ROOMS[0];
+
+  const handleSelectRoom = (name: string) => {
+    setSelectedRoom(name);
+    const targetRoom = SAMPLE_ROOMS.find(r => r.name === name);
+    if (targetRoom && guests > targetRoom.capacity) {
+      setGuests(targetRoom.capacity);
+    }
+  };
+
+  const handleCategorySwitch = (tab: 'transient' | 'dormitory') => {
+    setActiveTab(tab);
+    const roomsInTab = SAMPLE_ROOMS.filter(r => r.category === tab);
+    const defaultRoom = roomsInTab[0] || SAMPLE_ROOMS[0];
+    setSelectedRoom(defaultRoom.name);
+    if (guests > defaultRoom.capacity) {
+      setGuests(defaultRoom.capacity);
+    }
+  };
+
   const handleQuickSearch = (e: React.FormEvent) => {
     e.preventDefault();
     onOpenBooking(selectedRoom, checkIn, checkOut, guests);
@@ -211,10 +231,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
                 <div className="flex p-0.5 bg-gold-100/60 rounded-lg border border-gold-300/70">
                   <button
                     type="button"
-                    onClick={() => {
-                      setActiveTab('transient');
-                      setSelectedRoom(SAMPLE_ROOMS[0].name);
-                    }}
+                    onClick={() => handleCategorySwitch('transient')}
                     className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                       activeTab === 'transient'
                         ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-xs'
@@ -225,11 +242,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      setActiveTab('dormitory');
-                      const dorm = SAMPLE_ROOMS.find(r => r.category === 'dormitory');
-                      if (dorm) setSelectedRoom(dorm.name);
-                    }}
+                    onClick={() => handleCategorySwitch('dormitory')}
                     className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                       activeTab === 'dormitory'
                         ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-xs'
@@ -246,14 +259,16 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
                 <RoomDropdown
                   rooms={filteredRoomOptions}
                   selectedRoomName={selectedRoom}
-                  onSelectRoom={(name) => setSelectedRoom(name)}
+                  onSelectRoom={handleSelectRoom}
                   label="Room Option"
                 />
 
-                {/* Guests Luxury Dropdown */}
+                {/* Guests Luxury Dropdown with capacity enforcement */}
                 <GuestDropdown
                   value={guests}
                   onChange={(val) => setGuests(val)}
+                  maxGuests={currentRoomObj.capacity}
+                  roomCapacityLabel={currentRoomObj.capacityLabel}
                   label="Guests"
                 />
 

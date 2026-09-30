@@ -43,6 +43,26 @@ export const MockAuthService = {
     this.currentReservations = [reservation, ...this.currentReservations];
   },
 
+  // Cancel an active reservation request with a documented reason
+  cancelReservation(id: string, reason?: string): void {
+    const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    this.currentReservations = this.currentReservations.map((r) =>
+      r.id === id
+        ? {
+            ...r,
+            status: 'Cancelled' as const,
+            cancellationReason: reason || 'Change in plans',
+            cancelledAt: today
+          }
+        : r
+    );
+  },
+
+  // Delete/dismiss a reservation from user history
+  deleteReservation(id: string): void {
+    this.currentReservations = this.currentReservations.filter((r) => r.id !== id);
+  },
+
   // Demo Login: Validates non-empty fields and creates a fresh session
   async login(email: string, password: string): Promise<AuthUser> {
     // Artificial brief network delay (200ms) for realistic UX feel
