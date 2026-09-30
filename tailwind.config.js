@@ -2,6 +2,8 @@
 export default {
   content: [
     "./index.html",
+    "./admin.html",
+    "./404.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
