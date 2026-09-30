@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock, User, AlertCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { CursorSettingsDropdown } from '../../components/UI/CursorSettingsDropdown';
 
 interface AdminLoginProps {
   onLoginSuccess: (username: string) => void;
@@ -41,6 +42,10 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-[#faf5ea] text-slate-800 relative overflow-hidden font-sans">
+      {/* Top right cursor toggle */}
+      <div className="absolute top-4 right-4 z-20">
+        <CursorSettingsDropdown />
+      </div>
       
       {/* Background Atmospheric Glows matching index.html */}
       <div className="absolute top-0 right-0 z-0 w-[550px] h-[550px] bg-gradient-to-br from-gold-200/40 via-pine-100/30 to-transparent rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/4 pointer-events-none" />

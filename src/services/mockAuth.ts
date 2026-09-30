@@ -86,7 +86,7 @@ export const MockAuthService = {
       id: `usr-${Date.now()}`,
       name: capitalizedName.length > 2 ? capitalizedName : 'Guest Traveler',
       email: email.trim().toLowerCase(),
-      phone: '0917-123-4567',
+      phone: '0907 861 4267',
       tier: 'Guest Member',
       joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     };

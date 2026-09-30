@@ -22,6 +22,7 @@ import {
   Info
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { DEMO_CONTACT } from '../../data/mockData';
 
 interface MyReservationsModalProps {
   isOpen: boolean;
@@ -597,10 +598,11 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
               <span>Pending Review reservations are verified by staff for availability before final confirmation.</span>
             </div>
             <a
-              href="tel:0917-123-4567"
+              href={`tel:${DEMO_CONTACT.phone.replace(/\s+/g, '')}`}
               className="text-pine-800 hover:text-gold-700 font-bold hover:underline flex-shrink-0"
+              title={`Call Front Desk: ${DEMO_CONTACT.phone}`}
             >
-              Call Front Desk
+              Call Front Desk ({DEMO_CONTACT.phone})
             </a>
           </div>
 

@@ -118,7 +118,7 @@ export const RoomSection: React.FC<RoomSectionProps> = ({ onOpenBooking }) => {
 
           <div className="flex items-center gap-3 flex-shrink-0">
             <a
-              href="tel:0917-123-4567"
+              href={`tel:${DEMO_CONTACT.phone.replace(/\s+/g, '')}`}
               className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 transition-colors"
             >
               Call {DEMO_CONTACT.phone}

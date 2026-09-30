@@ -96,7 +96,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onResetData }) => {
             <label className="text-slate-700 font-semibold block">Front Desk Hotline</label>
             <input
               type="text"
-              defaultValue="0917-123-4567"
+              defaultValue="0907 861 4267"
               className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-gold-500"
             />
           </div>

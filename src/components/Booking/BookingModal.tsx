@@ -316,7 +316,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </label>
               <input
                 type="tel"
-                placeholder="0917-000-0000"
+                placeholder="0907 861 4267"
                 value={formData.contactNumber}
                 onChange={(e) => {
                   setFormData({ ...formData, contactNumber: e.target.value });

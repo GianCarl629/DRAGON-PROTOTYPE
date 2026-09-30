@@ -1,11 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, CalendarCheck, LogOut, ChevronDown, Award } from 'lucide-react';
+import { User, CalendarCheck, LogOut, ChevronDown, Award, MousePointer2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { CursorPreference, getCursorPreference, setCursorPreference } from '../../services/cursorService';
 
 export const UserMenu: React.FC = () => {
   const { user, logout, openReservationsModal, openProfileModal, reservations } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [cursorPref, setCursorPref] = useState<CursorPreference>(getCursorPreference);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleCursorChange = (e: Event) => {
+      const customEvent = e as CustomEvent<CursorPreference>;
+      if (customEvent.detail) {
+        setCursorPref(customEvent.detail);
+      } else {
+        setCursorPref(getCursorPreference());
+      }
+    };
+    window.addEventListener('cursorPreferenceChanged', handleCursorChange);
+    return () => window.removeEventListener('cursorPreferenceChanged', handleCursorChange);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -110,6 +125,48 @@ export const UserMenu: React.FC = () => {
               <User className="w-4 h-4 text-pine-700 group-hover:text-gold-600 transition-colors" />
               <span>My Profile</span>
             </button>
+          </div>
+
+          {/* Preferences: Cursor Style */}
+          <div className="py-2 px-3 bg-stone-50/70 rounded-xl my-1 border border-stone-200/60">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1.5">
+              <span>Cursor Style</span>
+              <span className="text-[10px] font-bold text-pine-900">
+                {cursorPref === 'dragon' ? 'Dragon' : 'System'}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setCursorPref('dragon');
+                  setCursorPreference('dragon');
+                }}
+                className={`py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  cursorPref === 'dragon'
+                    ? 'bg-gold-200 text-pine-950 font-bold shadow-2xs border border-gold-300'
+                    : 'bg-white text-slate-600 hover:text-pine-950 border border-slate-200'
+                }`}
+              >
+                <img src="/assets/cursor/dragon-cursor-32.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                <span>Dragon</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCursorPref('system');
+                  setCursorPreference('system');
+                }}
+                className={`py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  cursorPref === 'system'
+                    ? 'bg-pine-900 text-white font-bold shadow-2xs'
+                    : 'bg-white text-slate-600 hover:text-pine-950 border border-slate-200'
+                }`}
+              >
+                <MousePointer2 className="w-3 h-3 text-slate-400" />
+                <span>System</span>
+              </button>
+            </div>
           </div>
 
           {/* Logout Action */}

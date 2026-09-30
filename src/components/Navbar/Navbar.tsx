@@ -13,6 +13,7 @@ import {
 import { DEMO_CONTACT } from '../../data/mockData';
 import { useAuth } from '../../context/AuthContext';
 import { UserMenu } from './UserMenu';
+import { CursorSettingsDropdown } from '../UI/CursorSettingsDropdown';
 
 interface NavbarProps {
   onOpenBooking: (roomType?: string) => void;
@@ -122,7 +123,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
 
           {/* Right Action: Auth State + Contact Snippet + Book Now CTA (hidden lg:flex so it matches desktop nav breakpoint) */}
           <div className="hidden lg:flex items-center gap-2 xl:gap-3 flex-shrink-0">
-            
+            {/* Quick Cursor Settings */}
+            <CursorSettingsDropdown />
+
             {/* Authentication UI Controls (Login / Register OR User Menu) */}
             {isLoggedIn ? (
               <UserMenu />
@@ -147,9 +150,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
 
             {/* Front Desk Phone (shown on xl+ matching reference layout) */}
             <a
-              href="tel:0917-123-4567"
+              href={`tel:${DEMO_CONTACT.phone.replace(/\s+/g, '')}`}
               className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700 bg-cream-200/90 border border-gold-300/80 shadow-2xs hover:text-pine-900 transition-colors whitespace-nowrap"
-              title="Call Front Desk: 0917-123-4567"
+              title={`Call Front Desk: ${DEMO_CONTACT.phone}`}
             >
               <div className="w-5 h-5 rounded-full bg-gold-100 text-pine-800 flex items-center justify-center border border-gold-300/60 flex-shrink-0">
                 <Phone className="w-3 h-3 text-pine-700" strokeWidth={2} />
@@ -276,6 +279,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
             ))}
           </div>
 
+          {/* Mobile Cursor Preference */}
+          <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-stone-50 border border-stone-200/80">
+            <span className="text-xs font-semibold text-slate-700">Cursor Style</span>
+            <CursorSettingsDropdown />
+          </div>
+
           {/* Logged-In Mobile Quick Actions */}
           {isLoggedIn && (
             <div className="grid grid-cols-2 gap-2 pt-1 border-t border-stone-100">
@@ -318,7 +327,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
             </button>
 
             <a
-              href="tel:0917-123-4567"
+              href={`tel:${DEMO_CONTACT.phone.replace(/\s+/g, '')}`}
               className="w-full py-2 px-4 rounded-xl text-center text-xs font-semibold text-slate-600 hover:text-pine-900 bg-stone-50 hover:bg-stone-100 transition-colors flex items-center justify-center gap-2 border border-stone-200"
             >
               <Phone className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />

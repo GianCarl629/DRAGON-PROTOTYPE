@@ -1,7 +1,13 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { NotFoundPage } from './components/NotFound/NotFoundPage';
+import { initCursorSystem } from './services/cursorService';
 import './index.css';
+
+// Initialize customer website cursor system
+if (typeof window !== 'undefined') {
+  initCursorSystem();
+}
 
 // Lazy load heavy homepage application so 404 error page loads with zero unnecessary overhead
 const App = React.lazy(() => import('./App'));

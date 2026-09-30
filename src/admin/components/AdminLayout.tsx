@@ -17,6 +17,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { AdminStoreState } from '../data/adminMockData';
+import { CursorSettingsDropdown } from '../../components/UI/CursorSettingsDropdown';
 
 interface AdminLayoutProps {
   activeTab: string;
@@ -220,6 +221,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
           {/* Right Header Status Strip */}
           <div className="flex items-center gap-3 text-xs">
+            {/* Quick Cursor Control */}
+            <CursorSettingsDropdown />
+
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold-50/80 border border-gold-300 text-pine-950 text-[11px] font-medium shadow-2xs">
               <MapPin className="w-3.5 h-3.5 text-pine-700" />
               <span>Baguio City • Front Desk Management</span>

@@ -1,0 +1,43 @@
+/* Dragon Treasure Custom Cursor Stylesheet - High-DPI Bigger Cursor */
+
+@media (pointer: fine) {
+  /* Default Dragon Cursor (Neutral State) - 40px balanced scale */
+  html.cursor-dragon,
+  html.cursor-dragon body,
+  html.cursor-dragon button,
+  html.cursor-dragon a,
+  html.cursor-dragon select,
+  html.cursor-dragon label,
+  html.cursor-dragon [role="button"],
+  html.cursor-dragon [role="tab"],
+  html.cursor-dragon .cursor-pointer,
+  html.cursor-dragon summary,
+  html.cursor-dragon img {
+    cursor: url("/assets/cursor/dragon-cursor-40.png") 4 4,
+            url("/dragon-cursor-40.png") 4 4,
+            url("/assets/cursor/dragon-cursor-neutral-48.png") 8 10,
+            url("/dragon-cursor-neutral-48.png") 8 10,
+            auto !important;
+  }
+
+  /* Click State: When mouse button is actively held down */
+  html.cursor-dragon:active,
+  html.cursor-dragon body:active,
+  html.cursor-dragon.cursor-active,
+  html.cursor-dragon.cursor-active body,
+  html.cursor-dragon.cursor-active button,
+  html.cursor-dragon.cursor-active a,
+  html.cursor-dragon.cursor-active select,
+  html.cursor-dragon.cursor-active label,
+  html.cursor-dragon.cursor-active [role="button"],
+  html.cursor-dragon.cursor-active [role="tab"],
+  html.cursor-dragon.cursor-active .cursor-pointer,
+  html.cursor-dragon.cursor-active summary,
+  html.cursor-dragon.cursor-active img {
+    cursor: url("/assets/cursor/dragon-cursor-click-40.png") 5 5,
+            url("/dragon-cursor-click-40.png") 5 5,
+            url("/assets/cursor/dragon-cursor-click-48.png") 8 10,
+            url("/dragon-cursor-click-48.png") 8 10,
+            auto !important;
+  }
+}

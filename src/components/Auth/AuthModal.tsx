@@ -452,7 +452,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       type="tel"
                       value={regPhone}
                       onChange={(e) => setRegPhone(e.target.value)}
-                      placeholder="0917-123-4567"
+                      placeholder="0907 861 4267"
                       className="w-full pl-10 pr-3.5 py-2 text-sm bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-pine-800 transition-all"
                     />
                   </div>

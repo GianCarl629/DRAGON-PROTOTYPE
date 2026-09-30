@@ -82,7 +82,7 @@ export const Footer: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-semibold block">Phone / Mobile</span>
-                  <a href={`tel:${DEMO_CONTACT.phone}`} className="font-semibold text-white hover:text-gold-300 transition-colors">
+                  <a href={`tel:${DEMO_CONTACT.phone.replace(/\s+/g, '')}`} className="font-semibold text-white hover:text-gold-300 transition-colors">
                     {DEMO_CONTACT.phone}
                   </a>
                 </div>
@@ -143,7 +143,7 @@ export const Footer: React.FC = () => {
           </p>
           <div className="flex items-center gap-4">
             <span className="text-slate-400">
-              Baguio City, Benguet, Philippines
+              95-B Vergara 2 Alley, Engineers' Hill, Baguio City, Philippines, 2600
             </span>
             <button
               onClick={scrollToTop}

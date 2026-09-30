@@ -272,22 +272,23 @@ export const PROPERTY_POLICIES = {
  * In accordance with PROJECT_RULES.md, these are placeholder demo details.
  */
 export const DEMO_CONTACT: ContactInfo = {
-  phone: "0917-123-4567",
-  email: "dragon.treasure@example.com",
+  phone: "0907 861 4267",
+  email: "sannycariaso24@gmail.com",
   facebook: "facebook.com/profile.php?id=100063892871886",
   facebookUrl: "https://www.facebook.com/profile.php?id=100063892871886",
   hours: "8:00 AM – 10:00 PM",
-  address: "Baguio City",
+  address: "95-B Vergara 2 Alley, Engineers' Hill",
   city: "Baguio City",
-  province: "Benguet, Philippines"
+  province: "Benguet, Philippines, 2600"
 };
 
 /**
- * NEARBY BAGUIO LANDMARKS (DEMO REFERENCE)
+ * NEARBY BAGUIO LANDMARKS (FROM ENGINEERS' HILL)
  */
 export const BAGUIO_LANDMARKS = [
-  { name: "Burnham Park", distance: "10-15 mins drive", desc: "Boat riding, cycling, and city gardens" },
-  { name: "Session Road & SM City Baguio", distance: "12 mins drive", desc: "Shopping, dining, and central hub" },
-  { name: "Camp John Hay", distance: "18 mins drive", desc: "Pine tree trails, picnic grounds, and cafes" },
-  { name: "Mines View Park & The Mansion", distance: "20 mins drive", desc: "Panoramic mountain view and souvenir shops" }
+  { name: "SM City Baguio & Session Road", distance: "5-8 mins walk", desc: "Premier shopping, dining hub, and vibrant Session Road" },
+  { name: "Victory Liner Bus Terminal", distance: "3-5 mins walk", desc: "Key transit terminal for effortless arrival and departure" },
+  { name: "Burnham Park", distance: "8-10 mins drive", desc: "Historic swan boat lake, cycling lanes, and garden walks" },
+  { name: "Camp John Hay", distance: "10-12 mins drive", desc: "Towering pine forest trails, Bell Amphitheater, and cafes" },
+  { name: "Mines View Park & The Mansion", distance: "15 mins drive", desc: "Panoramic mountain outlook, Cordillera crafts, and souvenirs" }
 ];
