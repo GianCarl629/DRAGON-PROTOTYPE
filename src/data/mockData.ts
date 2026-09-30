@@ -274,8 +274,8 @@ export const PROPERTY_POLICIES = {
 export const DEMO_CONTACT: ContactInfo = {
   phone: "0917-123-4567",
   email: "dragon.treasure@example.com",
-  facebook: "facebook.com/DragonTreasureTransient",
-  facebookUrl: "https://facebook.com/DragonTreasureTransient",
+  facebook: "facebook.com/profile.php?id=100063892871886",
+  facebookUrl: "https://www.facebook.com/profile.php?id=100063892871886",
   hours: "8:00 AM – 10:00 PM",
   address: "Baguio City",
   city: "Baguio City",

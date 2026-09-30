@@ -110,17 +110,27 @@ export const Footer: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-1">
-                <a
-                  href={`https://${DEMO_CONTACT.facebook}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-xs font-semibold text-gold-300 hover:text-white transition-colors py-1 px-3 rounded-lg bg-pine-900/80 border border-pine-800"
-                >
-                  <span>{DEMO_CONTACT.facebook}</span>
-                  <ExternalLink className="w-3.5 h-3.5" strokeWidth={2} />
-                </a>
-              </div>
+              <a
+                href={DEMO_CONTACT.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-2.5 rounded-xl bg-pine-900/60 border border-pine-800/80 hover:border-gold-500/50 hover:bg-pine-900/90 transition-all group"
+              >
+                <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm border border-gold-500/30 bg-pine-950">
+                  <img
+                    src="/facebook-icon.png"
+                    alt="Facebook"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold block">Official Facebook</span>
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-gold-300 group-hover:text-white transition-colors text-xs sm:text-sm">
+                    <span>Dragon Treasure Baguio</span>
+                    <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" strokeWidth={2} />
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
 
