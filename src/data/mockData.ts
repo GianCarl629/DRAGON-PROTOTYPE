@@ -41,7 +41,7 @@ export const SAMPLE_ROOMS: Room[] = [
       "1 Queen or 2 Single Beds",
       "Hot & Cold Shower",
       "High-speed Free Wi-Fi",
-      "Cable Television",
+      "Work Desk & Chair",
       "Clean Towels & Linen"
     ],
     popular: false
@@ -62,7 +62,7 @@ export const SAMPLE_ROOMS: Room[] = [
       "1 Double Bed + 1 Single Bed",
       "Hot & Cold Shower",
       "High-speed Free Wi-Fi",
-      "Smart TV & Seating Area",
+      "Comfortable Seating Area & Desk",
       "Air Conditioning",
       "Complimentary Toiletries"
     ],
@@ -84,9 +84,9 @@ export const SAMPLE_ROOMS: Room[] = [
       "2 Double Beds",
       "Private Bathroom with Hot Shower",
       "High-speed Free Wi-Fi",
-      "Television & Work Table",
+      "Dedicated Work & Dining Table",
       "Wardrobe & Luggage Rack",
-      "Access to Common Kitchen"
+      "Electric Kettle & Refrigerator Access"
     ],
     popular: true
   },
@@ -106,7 +106,7 @@ export const SAMPLE_ROOMS: Room[] = [
       "Multiple Bed Configurations (Up to 6 guests)",
       "Spacious Living / Lounge Corner",
       "Hot & Cold Shower",
-      "High-speed Wi-Fi & Large TV",
+      "High-speed Free Wi-Fi",
       "Dining Nook & Refrigerator Access",
       "Dedicated Clothes Storage"
     ],
@@ -129,8 +129,8 @@ export const SAMPLE_ROOMS: Room[] = [
       "Study Desk & Reading Lamps",
       "Shared Hot & Cold Shower",
       "High-speed Free Wi-Fi",
-      "Full Common Kitchen Access",
-      "Laundry Area Access",
+      "Secure Personal Storage",
+      "Quiet Study Environment",
       "24/7 Security & CCTV Monitoring"
     ],
     popular: false
@@ -138,7 +138,7 @@ export const SAMPLE_ROOMS: Room[] = [
 ];
 
 /**
- * SAMPLE AMENITIES (DEMO DATA ONLY - 11 Specified Amenities)
+ * SAMPLE AMENITIES (DEMO DATA ONLY - Core Verified Amenities)
  * Replace with API endpoint: GET /api/amenities
  */
 export const SAMPLE_AMENITIES: Amenity[] = [
@@ -171,13 +171,6 @@ export const SAMPLE_AMENITIES: Amenity[] = [
     category: "Comfort"
   },
   {
-    id: "am-tv",
-    name: "Television",
-    description: "Flat-screen TVs provided for entertainment after a full day of Baguio adventures.",
-    icon: "Tv",
-    category: "Comfort"
-  },
-  {
     id: "am-ac",
     name: "Air Conditioning",
     description: "Climate-controlled rooms available for customized personal comfort.",
@@ -185,39 +178,11 @@ export const SAMPLE_AMENITIES: Amenity[] = [
     category: "Comfort"
   },
   {
-    id: "am-kitchen",
-    name: "Common Kitchen",
-    description: "Shared cooking facilities equipped for guests and monthly dormitory tenants.",
-    icon: "UtensilsCrossed",
-    category: "Convenience"
-  },
-  {
-    id: "am-laundry",
-    name: "Laundry Area",
-    description: "Dedicated laundry and drying zone convenient for extended and dormitory stays.",
-    icon: "Shirt",
-    category: "Convenience"
-  },
-  {
     id: "am-security",
     name: "CCTV / Security",
     description: "24/7 surveillance cameras in common areas ensuring peace of mind.",
     icon: "ShieldCheck",
     category: "Safety & Facilities"
-  },
-  {
-    id: "am-elevator",
-    name: "Elevator",
-    description: "Easy elevator access across multiple floors for luggage and guests.",
-    icon: "ArrowUpDown",
-    category: "Safety & Facilities"
-  },
-  {
-    id: "am-water",
-    name: "Drinking-Water Station",
-    description: "Complimentary purified hot and cold drinking water dispensers on floor stations.",
-    icon: "GlassWater",
-    category: "Convenience"
   }
 ];
 

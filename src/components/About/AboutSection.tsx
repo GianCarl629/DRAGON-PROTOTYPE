@@ -84,7 +84,7 @@ export const AboutSection: React.FC = () => {
                 <div className="w-5 h-5 rounded-full bg-pine-100 text-pine-800 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2} />
                 </div>
-                <span><strong>Monthly Dormitory:</strong> Secure shared quarters with individual lockers, study areas, full kitchen access, and laundry facilities.</span>
+                <span><strong>Monthly Dormitory:</strong> Secure shared quarters with individual lockers, dedicated study desks, and comfortable bunk beds.</span>
               </div>
 
               <div className="flex items-start gap-3 text-xs sm:text-sm text-slate-700 p-3 rounded-2xl bg-stone-50 border border-stone-100">

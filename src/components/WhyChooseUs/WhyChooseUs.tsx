@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mountain, Users, Flame, ShieldCheck, HeartHandshake, Coffee, Sparkles } from 'lucide-react';
+import { Mountain, Users, Flame, ShieldCheck, HeartHandshake, Car, Sparkles } from 'lucide-react';
 
 export const WhyChooseUs: React.FC = () => {
   const points = [
@@ -29,9 +29,9 @@ export const WhyChooseUs: React.FC = () => {
     },
     {
       num: "05",
-      icon: Coffee,
-      title: "Shared Kitchen & Resident Amenities",
-      description: "Save on dining costs with our well-maintained common cooking facilities, hot and cold drinking water dispensers, and accessible laundry areas."
+      icon: Car,
+      title: "Dedicated Parking & Prime Access",
+      description: "Enjoy designated on-site parking for your vehicle and convenient road access to Session Road, SM Baguio, and scenic tourist destinations."
     },
     {
       num: "06",

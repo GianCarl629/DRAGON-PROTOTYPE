@@ -46,13 +46,8 @@
     "24-hour front desk/caretaker assistance",
     "Parking area",
     "Hot and cold shower",
-    "Television",
     "Air conditioning",
-    "Common kitchen",
-    "Laundry area",
-    "CCTV/security",
-    "Elevator",
-    "Drinking-water station"
+    "CCTV/security"
   ],
   "checkInTime": "2:00 PM",
   "checkOutTime": "12:00 PM",

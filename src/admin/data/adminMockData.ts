@@ -173,7 +173,7 @@ export const INITIAL_ADMIN_RESERVATIONS: AdminReservation[] = [
     totalAmount: 7000,
     status: 'Confirmed',
     paymentStatus: 'Paid',
-    specialRequests: 'Quiet room away from elevator',
+    specialRequests: 'Quiet room with scenic view',
     bookedAt: 'Sep 27, 2026'
   },
   {
@@ -230,7 +230,7 @@ export const INITIAL_ADMIN_ROOMS: AdminRoom[] = [
     ratePeriod: 'night',
     status: 'Available',
     floor: '1st Floor',
-    amenities: ['1 Queen or 2 Single Beds', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Cable Television', 'Clean Towels & Linen']
+    amenities: ['1 Queen or 2 Single Beds', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Work Desk & Chair', 'Clean Towels & Linen']
   },
   {
     id: 'room-102',
@@ -243,7 +243,7 @@ export const INITIAL_ADMIN_ROOMS: AdminRoom[] = [
     ratePeriod: 'night',
     status: 'Occupied',
     floor: '1st Floor',
-    amenities: ['1 Queen or 2 Single Beds', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Cable Television', 'Clean Towels & Linen']
+    amenities: ['1 Queen or 2 Single Beds', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Work Desk & Chair', 'Clean Towels & Linen']
   },
   {
     id: 'room-201',
@@ -256,7 +256,7 @@ export const INITIAL_ADMIN_ROOMS: AdminRoom[] = [
     ratePeriod: 'night',
     status: 'Reserved',
     floor: '2nd Floor',
-    amenities: ['1 Double Bed + 1 Single Bed', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Smart TV & Seating Area', 'Air Conditioning', 'Complimentary Toiletries']
+    amenities: ['1 Double Bed + 1 Single Bed', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Comfortable Seating Area & Desk', 'Air Conditioning', 'Complimentary Toiletries']
   },
   {
     id: 'room-202',
@@ -269,7 +269,7 @@ export const INITIAL_ADMIN_ROOMS: AdminRoom[] = [
     ratePeriod: 'night',
     status: 'Available',
     floor: '2nd Floor',
-    amenities: ['1 Double Bed + 1 Single Bed', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Smart TV & Seating Area', 'Air Conditioning', 'Complimentary Toiletries']
+    amenities: ['1 Double Bed + 1 Single Bed', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Comfortable Seating Area & Desk', 'Air Conditioning', 'Complimentary Toiletries']
   },
   {
     id: 'room-301',
@@ -282,7 +282,7 @@ export const INITIAL_ADMIN_ROOMS: AdminRoom[] = [
     ratePeriod: 'night',
     status: 'Occupied',
     floor: '3rd Floor',
-    amenities: ['2 Double Beds', 'Private Bathroom with Hot Shower', 'High-speed Free Wi-Fi', 'Television & Work Table', 'Wardrobe & Luggage Rack', 'Access to Common Kitchen']
+    amenities: ['2 Double Beds', 'Private Bathroom with Hot Shower', 'High-speed Free Wi-Fi', 'Dedicated Work & Dining Table', 'Wardrobe & Luggage Rack', 'Electric Kettle & Refrigerator Access']
   },
   {
     id: 'room-302',
@@ -295,7 +295,7 @@ export const INITIAL_ADMIN_ROOMS: AdminRoom[] = [
     ratePeriod: 'night',
     status: 'Maintenance',
     floor: '3rd Floor',
-    amenities: ['Multiple Bed Configurations (Up to 6 guests)', 'Spacious Living / Lounge Corner', 'Hot & Cold Shower', 'High-speed Wi-Fi & Large TV', 'Dining Nook & Refrigerator Access', 'Dedicated Clothes Storage']
+    amenities: ['Multiple Bed Configurations (Up to 6 guests)', 'Spacious Living / Lounge Corner', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Dining Nook & Refrigerator Access', 'Dedicated Clothes Storage']
   },
   {
     id: 'room-401',
@@ -308,7 +308,7 @@ export const INITIAL_ADMIN_ROOMS: AdminRoom[] = [
     ratePeriod: 'night',
     status: 'Available',
     floor: '4th Floor (Top Floor)',
-    amenities: ['Multiple Bed Configurations (Up to 6 guests)', 'Spacious Living / Lounge Corner', 'Hot & Cold Shower', 'High-speed Wi-Fi & Large TV', 'Dining Nook & Refrigerator Access', 'Dedicated Clothes Storage']
+    amenities: ['Multiple Bed Configurations (Up to 6 guests)', 'Spacious Living / Lounge Corner', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Dining Nook & Refrigerator Access', 'Dedicated Clothes Storage']
   },
   {
     id: 'room-dorm-101',
@@ -321,7 +321,7 @@ export const INITIAL_ADMIN_ROOMS: AdminRoom[] = [
     ratePeriod: 'month',
     status: 'Available',
     floor: '1st Floor',
-    amenities: ['Bunk Beds with Sturdy Lockers', 'Study Desk & Reading Lamps', 'Shared Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Full Common Kitchen Access', 'Laundry Area Access', '24/7 Security & CCTV Monitoring']
+    amenities: ['Bunk Beds with Sturdy Lockers', 'Study Desk & Reading Lamps', 'Shared Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Secure Personal Storage', 'Quiet Study Environment', '24/7 Security & CCTV Monitoring']
   }
 ];
 

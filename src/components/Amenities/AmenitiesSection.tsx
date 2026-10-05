@@ -4,13 +4,8 @@ import {
   Clock, 
   Car, 
   Droplets, 
-  Tv, 
   Wind, 
-  UtensilsCrossed, 
-  Shirt, 
   ShieldCheck, 
-  ArrowUpDown, 
-  GlassWater,
   Sparkles
 } from 'lucide-react';
 import { SAMPLE_AMENITIES } from '../../data/mockData';
@@ -27,20 +22,10 @@ const getAmenityIcon = (iconName: string) => {
       return <Car {...iconProps} />;
     case 'Droplets':
       return <Droplets {...iconProps} />;
-    case 'Tv':
-      return <Tv {...iconProps} />;
     case 'Wind':
       return <Wind {...iconProps} />;
-    case 'UtensilsCrossed':
-      return <UtensilsCrossed {...iconProps} />;
-    case 'Shirt':
-      return <Shirt {...iconProps} />;
     case 'ShieldCheck':
       return <ShieldCheck {...iconProps} />;
-    case 'ArrowUpDown':
-      return <ArrowUpDown {...iconProps} />;
-    case 'GlassWater':
-      return <GlassWater {...iconProps} />;
     default:
       return <Sparkles {...iconProps} />;
   }
