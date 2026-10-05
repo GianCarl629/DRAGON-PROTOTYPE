@@ -20,16 +20,26 @@ interface InquiriesViewProps {
   onReply: (id: string, replyText: string) => void;
   onMarkRead: (id: string) => void;
   onArchive: (id: string) => void;
+  initialFilter?: string;
 }
 
 export const InquiriesView: React.FC<InquiriesViewProps> = ({
   inquiries,
   onReply,
   onMarkRead,
-  onArchive
+  onArchive,
+  initialFilter
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'All' | 'New' | 'Replied' | 'Archived'>('All');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'New' | 'Replied' | 'Archived'>(
+    (initialFilter as any) || 'All'
+  );
+
+  React.useEffect(() => {
+    if (initialFilter) {
+      setStatusFilter(initialFilter as any);
+    }
+  }, [initialFilter]);
   
   const [replyingInquiry, setReplyingInquiry] = useState<AdminInquiry | null>(null);
   const [replyMessage, setReplyMessage] = useState('');

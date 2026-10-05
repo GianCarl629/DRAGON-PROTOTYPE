@@ -36,8 +36,9 @@ export const AdminApp: React.FC = () => {
     return AdminDataManager.getAdminSession()?.username || 'admin';
   });
 
-  // Active Tab
+  // Active Tab & Filter
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [tabFilter, setTabFilter] = useState<string | undefined>(undefined);
 
   // Main Admin Store State
   const [store, setStore] = useState<AdminStoreState>(() => {
@@ -79,8 +80,9 @@ export const AdminApp: React.FC = () => {
     setIsAdminLoggedIn(false);
   };
 
-  const handleSelectTab = (tab: string) => {
+  const handleSelectTab = (tab: string, filter?: string) => {
     setActiveTab(tab);
+    setTabFilter(filter);
     window.location.hash = tab;
   };
 
@@ -281,6 +283,7 @@ export const AdminApp: React.FC = () => {
           onUpdateReservation={handleUpdateReservation}
           onAddReservation={handleAddReservation}
           onDeleteReservation={handleDeleteReservation}
+          initialFilter={tabFilter}
         />
       )}
 
@@ -290,6 +293,7 @@ export const AdminApp: React.FC = () => {
           onAddRoom={handleAddRoom}
           onUpdateRoom={handleUpdateRoom}
           onDeleteRoom={handleDeleteRoom}
+          initialFilter={tabFilter}
         />
       )}
 
@@ -305,6 +309,7 @@ export const AdminApp: React.FC = () => {
           billingRecords={store.billing}
           onUpdateStatus={handleUpdateBillingStatus}
           onAddRecord={handleAddBillingRecord}
+          initialFilter={tabFilter}
         />
       )}
 
@@ -322,6 +327,7 @@ export const AdminApp: React.FC = () => {
           onReply={handleReplyInquiry}
           onMarkRead={handleMarkReadInquiry}
           onArchive={handleArchiveInquiry}
+          initialFilter={tabFilter}
         />
       )}
 

@@ -21,16 +21,26 @@ interface RoomsViewProps {
   onAddRoom: (newRoom: AdminRoom) => void;
   onUpdateRoom: (updated: AdminRoom) => void;
   onDeleteRoom: (id: string) => void;
+  initialFilter?: string;
 }
 
 export const RoomsView: React.FC<RoomsViewProps> = ({
   rooms,
   onAddRoom,
   onUpdateRoom,
-  onDeleteRoom
+  onDeleteRoom,
+  initialFilter
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'All' | 'Available' | 'Occupied' | 'Reserved' | 'Maintenance'>('All');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Available' | 'Occupied' | 'Reserved' | 'Maintenance'>(
+    (initialFilter as any) || 'All'
+  );
+
+  React.useEffect(() => {
+    if (initialFilter) {
+      setStatusFilter(initialFilter as any);
+    }
+  }, [initialFilter]);
   
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

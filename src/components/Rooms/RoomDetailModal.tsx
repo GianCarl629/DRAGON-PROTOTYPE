@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { X, Users, Check, CalendarCheck, BedDouble, ShieldCheck, Sparkles } from 'lucide-react';
+import { X, Users, Check, CalendarCheck, ShieldCheck, Sparkles } from 'lucide-react';
 import { Room } from '../../types';
 
 interface RoomDetailModalProps {
@@ -47,17 +47,20 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({ room, onClose,
           </button>
 
           {/* Header Title Overlay */}
+          {/* Header Title Overlay */}
           <div className="absolute bottom-3.5 left-5 right-5 text-white">
-            <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-pine-900/90 border border-gold-500/40 text-gold-300 backdrop-blur-md shadow-xs">
-              {isDorm ? 'Monthly Dormitory Rental' : 'Short-Term Transient Lodging'}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-pine-900/90 border border-gold-500/40 text-gold-300 backdrop-blur-md shadow-xs">
+                {isDorm ? 'Monthly Dormitory Rental' : 'Short-Term Transient Lodging'}
+              </span>
+            </div>
             <h2 className="text-xl sm:text-2xl font-serif font-bold mt-1 text-white leading-tight">
               {room.name}
             </h2>
           </div>
         </div>
 
-        {/* Scrollable Modal Content (Scrollbar stays STRICTLY inside this inner white body!) */}
+        {/* Scrollable Modal Content */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-5 overscroll-contain">
           {/* Key Specs Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-stone-50 to-cream-100 border border-stone-200/80">
@@ -83,34 +86,53 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({ room, onClose,
             </div>
           </div>
 
+
           {/* Description */}
           <div>
             <h3 className="text-xs font-bold text-pine-950 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-gold-600" strokeWidth={2} />
-              <span>Room Overview</span>
+              <span>Room Overview & Vibe</span>
             </h3>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
               {room.description}
             </p>
           </div>
 
-          {/* Inclusions & Amenities */}
+          {/* Inclusions & Room Amenities */}
           <div>
             <h3 className="text-xs font-bold text-pine-950 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <BedDouble className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />
-              <span>Included Amenities & Features</span>
+              <Check className="w-3.5 h-3.5 text-pine-700" strokeWidth={2} />
+              <span>Room Amenities & Inclusions</span>
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {room.features.map((feat, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-xs text-slate-700 p-2 rounded-xl bg-stone-50 border border-stone-200/70">
+                <div key={idx} className="flex items-center gap-2 text-xs text-slate-700 p-2.5 rounded-xl bg-stone-50 border border-stone-200/70">
                   <div className="w-4 h-4 rounded-full bg-pine-100 text-pine-800 flex items-center justify-center flex-shrink-0">
                     <Check className="w-2.5 h-2.5 text-emerald-700" strokeWidth={3} />
                   </div>
-                  <span className="font-medium truncate">{feat}</span>
+                  <span className="font-medium">{feat}</span>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Shared Amenities (Common Area per Unit) */}
+          {room.sharedAmenities && room.sharedAmenities.length > 0 && (
+            <div className="pt-2">
+              <h3 className="text-xs font-bold text-pine-950 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-gold-700" strokeWidth={2} />
+                <span>Shared Amenities (Common Area per Unit)</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {room.sharedAmenities.map((amenity, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-xs text-slate-700 p-2.5 rounded-xl bg-gold-50/60 border border-gold-200/80">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gold-600 flex-shrink-0" />
+                    <span className="font-medium">{amenity}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Fixed Pinned Bottom Action Bar (Convenient, never gets lost) */}

@@ -24,163 +24,251 @@ export const PROPERTY_INFO = {
  * SAMPLE ROOM INVENTORY (DEMO DATA ONLY)
  * Replace with API / Database endpoint: GET /api/rooms
  */
+/**
+ * SAMPLE ROOM INVENTORY (DEMO DATA ONLY - Updated Units)
+ * 
+ * Vibe: Premium, modern minimalist, cozy Baguio feels.
+ * White walls, white square floor tiles, dark wood accents, matte black industrial fixtures, and red accents.
+ */
 export const SAMPLE_ROOMS: Room[] = [
   {
-    id: "std-01",
-    name: "Standard Room",
+    id: "room-a-twin",
+    name: "Premium Twin Room",
     category: "transient",
-    capacity: 2,
-    capacityLabel: "2 guests",
-    rate: 1500,
-    ratePeriod: "night",
-    formattedRate: "₱1,500 / night",
-    sampleQuantity: 60,
-    description: "A cozy and practical room ideal for solo travelers or couples looking for a refreshing Baguio stay.",
-    image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
-    features: [
-      "1 Queen or 2 Single Beds",
-      "Hot & Cold Shower",
-      "High-speed Free Wi-Fi",
-      "Work Desk & Chair",
-      "Clean Towels & Linen"
-    ],
-    popular: false
-  },
-  {
-    id: "dlx-02",
-    name: "Deluxe Room",
-    category: "transient",
-    capacity: 3,
-    capacityLabel: "3 guests",
+    capacity: 4,
+    capacityLabel: "4 Pax",
     rate: 2000,
     ratePeriod: "night",
     formattedRate: "₱2,000 / night",
-    sampleQuantity: 40,
-    description: "More spacious accommodations featuring enhanced comfort, ideal for small groups of friends or small families.",
-    image: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=800&q=80",
+    sampleQuantity: 4,
+    vibe: "Premium, modern minimalist, cozy Baguio feels with white walls, dark wood accents, matte black industrial fixtures, and red accents.",
+    description: "Spacious and cozy Baguio retreat equipped with two single beds, crisp white sheets, and warm red blankets. Features wooden vanity desk, closed wardrobe, and scenic mountain views.",
+    image: "/premium-twin-room.jpg",
     features: [
-      "1 Double Bed + 1 Single Bed",
-      "Hot & Cold Shower",
-      "High-speed Free Wi-Fi",
-      "Comfortable Seating Area & Desk",
-      "Air Conditioning",
-      "Complimentary Toiletries"
+      "Two (2) single beds with solid white box base & crisp white sheets",
+      "Thick warm red blankets",
+      "Wooden vanity desk with chair and mirror",
+      "Closed wooden wardrobe cabinet",
+      "Warm bedside lamp",
+      "Matte black electric stand fan",
+      "Glass sliding window with red pull-cord roller blinds",
+      "Scenic panoramic view of Baguio"
+    ],
+    sharedAmenities: [
+      "Lounge Area with black leather armchairs & warm lighting",
+      "Dining Area with rectangular table & red mantel",
+      "Kitchenette with white mini-fridge, electric kettle, plates & cups",
+      "Wall-mounted flat-screen TV in unit common area",
+      "Clean comfort room with steady water supply & water heater",
+      "Solid white paneled doors & 24/7 CCTV surveillance"
     ],
     popular: true
   },
   {
-    id: "fam-03",
-    name: "Family Room",
+    id: "room-b-large",
+    name: "Premium Large Room",
     category: "transient",
-    capacity: 4,
-    capacityLabel: "4 guests",
-    rate: 2800,
+    capacity: 2,
+    capacityLabel: "2 Pax",
+    rate: 1500,
     ratePeriod: "night",
-    formattedRate: "₱2,800 / night",
-    sampleQuantity: 30,
-    description: "Designed for family vacationers with ample room to unwind together after exploring Baguio's sights.",
-    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
+    formattedRate: "₱1,500 / night",
+    sampleQuantity: 6,
+    vibe: "Cozy modern minimalist with dark wood accents and Baguio city views.",
+    description: "Ideal for couples or solo travelers looking for refined comfort. Features one queen size bed with solid white box base, dedicated vanity desk, closed wardrobe, and red roller blinds.",
+    image: "/premium-large-room.jpg",
     features: [
-      "2 Double Beds",
-      "Private Bathroom with Hot Shower",
-      "High-speed Free Wi-Fi",
-      "Dedicated Work & Dining Table",
-      "Wardrobe & Luggage Rack",
-      "Electric Kettle & Refrigerator Access"
+      "One (1) queen size bed with solid white box base & crisp white sheets",
+      "Thick warm red blanket",
+      "Wooden vanity desk with chair and mirror",
+      "Closed wooden wardrobe cabinet",
+      "Warm bedside lamp",
+      "Matte black electric stand fan",
+      "Glass sliding window with red pull-cord roller blinds",
+      "Scenic view of Baguio"
+    ],
+    sharedAmenities: [
+      "Lounge Area with black leather armchairs & warm lighting",
+      "Dining Area with rectangular table & red mantel",
+      "Kitchenette with white mini-fridge, electric kettle, plates & cups",
+      "Wall-mounted flat-screen TV in unit common area",
+      "Clean comfort room with steady water supply & water heater",
+      "Solid white paneled doors & 24/7 CCTV surveillance"
     ],
     popular: true
   },
   {
-    id: "ste-04",
-    name: "Family Suite",
+    id: "room-c-solo",
+    name: "Compact Solo Room",
     category: "transient",
-    capacity: 6,
-    capacityLabel: "6 guests",
-    rate: 3500,
+    capacity: 2,
+    capacityLabel: "1 - 2 Pax",
+    rate: 800,
     ratePeriod: "night",
-    formattedRate: "₱3,500 / night",
-    sampleQuantity: 15,
-    description: "Our premier short-term lodging space offering generous space, multiple bed arrangements, and dining comfort.",
-    image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=800&q=80",
+    formattedRate: "₱800 / night",
+    sampleQuantity: 5,
+    vibe: "Modern minimalist, compact, budget-friendly and cozy Baguio stay.",
+    description: "An affordable, private solo or couple lodging space with solid white box base, compact wooden desk, narrow closed wardrobe, and mountain view window with red blinds.",
+    image: "/compact-solo-room.jpg",
     features: [
-      "Multiple Bed Configurations (Up to 6 guests)",
-      "Spacious Living / Lounge Corner",
-      "Hot & Cold Shower",
-      "High-speed Free Wi-Fi",
-      "Dining Nook & Refrigerator Access",
-      "Dedicated Clothes Storage"
+      "One (1) small bed with solid white box base & crisp white sheets",
+      "Thick warm red blanket",
+      "Compact wooden vanity desk and chair",
+      "Narrow closed wooden wardrobe cabinet",
+      "Matte black electric stand fan",
+      "Glass sliding window with red pull-cord roller blinds",
+      "Scenic view of Baguio"
+    ],
+    sharedAmenities: [
+      "Lounge Area with black leather armchairs & warm lighting",
+      "Dining Area with rectangular table & red mantel",
+      "Kitchenette with white mini-fridge, electric kettle, plates & cups",
+      "Wall-mounted flat-screen TV in unit common area",
+      "Clean comfort room with steady water supply & water heater",
+      "Solid white paneled doors & 24/7 CCTV surveillance"
     ],
     popular: false
   },
   {
-    id: "dor-05",
-    name: "Dormitory Room",
+    id: "dor-shared",
+    name: "Dormitory Room (Shared Bedspace)",
     category: "dormitory",
-    capacity: 6,
-    capacityLabel: "4–6 guests",
-    rate: 8000,
+    capacity: 4,
+    capacityLabel: "4 Pax per room",
+    rate: 3000,
     ratePeriod: "month/person",
-    formattedRate: "₱8,000 / month / person",
-    sampleQuantity: 5,
-    description: "Cost-effective, secure monthly rental option tailored for Baguio students, board examinees, and working professionals.",
-    image: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
+    formattedRate: "₱3,000 / month / person",
+    sampleQuantity: 8,
+    vibe: "Clean, peaceful, and conducive for students and board examinees.",
+    description: "Peaceful and conducive monthly dormitory bedspaces designed for SLU, UB, and UP Baguio students and board examinees. Features sturdy wooden double-deck bunk beds and study desks.",
+    image: "/dormitory-room.jpg",
     features: [
-      "Bunk Beds with Sturdy Lockers",
-      "Study Desk & Reading Lamps",
-      "Shared Hot & Cold Shower",
-      "High-speed Free Wi-Fi",
-      "Secure Personal Storage",
-      "Quiet Study Environment",
-      "24/7 Security & CCTV Monitoring"
+      "Sturdy wooden double-deck (bunk) beds with white sheets & red blankets",
+      "Two (2) minimalist wooden study desks with chair",
+      "Closed wooden cabinets for dormers' belongings",
+      "Matte black electric stand fan",
+      "High-speed Free Wi-Fi for academic research",
+      "Quiet, peaceful study environment"
+    ],
+    sharedAmenities: [
+      "Shared Lounge Area with black leather armchairs",
+      "Dining Area with rectangular dining table",
+      "Pantry with white mini-refrigerator, kettle, plates & cups",
+      "Comfort room with steady water supply & water heater",
+      "Solid white paneled doors & 24/7 CCTV security"
     ],
     popular: false
   }
 ];
 
+export interface SharedUnitAmenity {
+  id: string;
+  title: string;
+  description: string;
+  details?: string[];
+  icon: string;
+  category: 'Lounge' | 'Dining & Kitchen' | 'Comfort' | 'Security';
+}
+
 /**
- * SAMPLE AMENITIES (DEMO DATA ONLY - Core Verified Amenities)
- * Replace with API endpoint: GET /api/amenities
+ * SHARED AMENITIES (Common Area per Unit)
+ */
+export const SHARED_UNIT_AMENITIES: SharedUnitAmenity[] = [
+  {
+    id: "sh-lounge",
+    title: "Lounge Area",
+    description: "Black leather armchairs and warm ambient lighting designed for restful conversations.",
+    icon: "Armchair",
+    category: "Lounge"
+  },
+  {
+    id: "sh-dining",
+    title: "Dining Area",
+    description: "Rectangular dining table with red mantel cover and comfortable metal chairs.",
+    icon: "Utensils",
+    category: "Dining & Kitchen"
+  },
+  {
+    id: "sh-pantry",
+    title: "Pantry / Kitchenette",
+    description: "Equipped with white mini-refrigerator, electric kettle, and basic plates & cups.",
+    details: ["White mini-refrigerator", "Electric kettle", "Basic dining plates & cups"],
+    icon: "Coffee",
+    category: "Dining & Kitchen"
+  },
+  {
+    id: "sh-entertainment",
+    title: "Entertainment TV",
+    description: "Wall-mounted flat-screen TV located in the common unit lounge for leisure viewing.",
+    icon: "Tv",
+    category: "Lounge"
+  },
+  {
+    id: "sh-bathroom",
+    title: "Bathroom / Comfort Room",
+    description: "Clean and well-maintained comfort room featuring steady water supply and water heater.",
+    icon: "Droplets",
+    category: "Comfort"
+  },
+  {
+    id: "sh-security",
+    title: "Security & Private Entry",
+    description: "Solid white paneled doors for every room with 24/7 CCTV surveillance in common areas.",
+    icon: "ShieldCheck",
+    category: "Security"
+  }
+];
+
+/**
+ * SAMPLE AMENITIES (DEMO DATA ONLY - Core Property Inclusions)
  */
 export const SAMPLE_AMENITIES: Amenity[] = [
   {
     id: "am-wifi",
-    name: "Free Wi-Fi",
-    description: "High-speed internet throughout the property for leisure, remote work, or academic study.",
+    name: "High-Speed Free Wi-Fi",
+    description: "Reliable internet throughout the unit for leisure, remote work, or academic study.",
     icon: "Wifi",
     category: "Convenience"
   },
   {
+    id: "am-tv",
+    name: "Wall-Mounted Flat-Screen TV",
+    description: "High-definition entertainment in the common unit lounge for leisure viewing, news, and streaming.",
+    icon: "Tv",
+    category: "Comfort"
+  },
+  {
     id: "am-frontdesk",
     name: "24-Hour Front Desk / Caretaker",
-    description: "Friendly on-site caretaker assistance available around the clock to support your stay.",
+    description: "On-site caretaker assistance available around the clock to assist guests and tenants.",
     icon: "Clock",
     category: "Safety & Facilities"
   },
   {
     id: "am-parking",
-    name: "Parking Area",
-    description: "Designated on-site parking spaces for staying guests' vehicles.",
+    name: "On-Site Parking Area",
+    description: "Designated parking spaces for staying guests traveling with private vehicles.",
     icon: "Car",
     category: "Convenience"
   },
   {
     id: "am-shower",
-    name: "Hot and Cold Shower",
-    description: "Essential hot water heaters installed in every bathroom for Baguio's cool mornings.",
+    name: "Hot & Cold Shower",
+    description: "Steady water supply and instant water heater installed in every comfort room.",
     icon: "Droplets",
     category: "Comfort"
   },
   {
-    id: "am-ac",
-    name: "Air Conditioning",
-    description: "Climate-controlled rooms available for customized personal comfort.",
+    id: "am-fan",
+    name: "Matte Black Stand Fans",
+    description: "Electric stand fans in every room for crisp, adjustable mountain ventilation.",
     icon: "Wind",
     category: "Comfort"
   },
   {
     id: "am-security",
-    name: "CCTV / Security",
-    description: "24/7 surveillance cameras in common areas ensuring peace of mind.",
+    name: "24/7 CCTV & Solid Doors",
+    description: "Solid white paneled doors for every room and continuous 24/7 CCTV security monitoring.",
     icon: "ShieldCheck",
     category: "Safety & Facilities"
   }
@@ -188,28 +276,27 @@ export const SAMPLE_AMENITIES: Amenity[] = [
 
 /**
  * SAMPLE FAQ & POLICIES (DEMO DATA ONLY)
- * Replace with API endpoint: GET /api/faq
  */
 export const SAMPLE_FAQS: FAQItem[] = [
   {
     id: "faq-1",
-    question: "How much is a room?",
-    answer: "Our room rates start at ₱1,500/night for a Standard Room (2 guests), ₱2,000/night for a Deluxe Room (3 guests), ₱2,800/night for a Family Room (4 guests), and ₱3,500/night for a Family Suite (6 guests). Monthly dormitory rentals start at ₱8,000/month/person."
+    question: "How much are the transient and dormitory rates?",
+    answer: "Our short-term transient room rates are: ₱800/night for Compact Solo Room (1-2 Pax), ₱1,500/night for Premium Large Room (2 Pax), and ₱2,000/night for Premium Twin Room (4 Pax). For long-term students and board examinees, our peaceful Dormitory Room (Shared Bedspace) is ₱3,000/month per head/bedspace (4 Pax per room)."
   },
   {
     id: "faq-2",
     question: "What time is check-in and check-out?",
-    answer: "Standard check-in time is 2:00 PM and check-out time is 12:00 PM (noon). If you require early check-in or late check-out, please coordinate with our 24-hour caretaker assistance in advance, subject to room availability."
+    answer: "Standard check-in time is 2:00 PM and check-out time is 12:00 PM (noon). Early check-in or late check-out can be requested in advance through our 24-hour caretaker assistance, subject to room availability."
   },
   {
     id: "faq-3",
-    question: "Do you have parking?",
-    answer: "Yes, Dragon Treasure provides an on-site parking area for guests traveling with private vehicles. Parking slots are allotted on a first-come, first-served basis, so please let us know during your booking request."
+    question: "What shared amenities are included in each unit?",
+    answer: "Each unit features a cozy common area with a Lounge Area (black leather armchairs and warm lighting), a Dining Area with a rectangular table and red mantel, a Pantry/Kitchenette with a white mini-refrigerator, electric kettle, and basic plates & cups, a wall-mounted flat-screen TV, a clean comfort room with water heater, and 24/7 CCTV monitoring."
   },
   {
     id: "faq-4",
-    question: "How many people can stay in a family room?",
-    answer: "Our Family Room accommodates up to 4 guests comfortably with 2 double beds. If you have a larger group of up to 6 guests, we recommend our Family Suite or reserving multiple adjacent rooms."
+    question: "What is the bed setup and capacity for each room?",
+    answer: "Premium Twin Room features two (2) single beds with solid white box base, crisp white sheets, and thick red blankets for up to 4 guests. Premium Large Room has one (1) queen bed for 2 guests. Compact Solo Room has one (1) small bed for 1-2 guests. The Dormitory room features sturdy wooden double-deck bunk beds with dedicated study desks and closed cabinets for 4 dormers per room."
   },
   {
     id: "faq-5",
@@ -251,9 +338,59 @@ export const DEMO_CONTACT: ContactInfo = {
  * NEARBY BAGUIO LANDMARKS (FROM ENGINEERS' HILL)
  */
 export const BAGUIO_LANDMARKS = [
-  { name: "SM City Baguio & Session Road", distance: "5-8 mins walk", desc: "Premier shopping, dining hub, and vibrant Session Road" },
-  { name: "Victory Liner Bus Terminal", distance: "3-5 mins walk", desc: "Key transit terminal for effortless arrival and departure" },
-  { name: "Burnham Park", distance: "8-10 mins drive", desc: "Historic swan boat lake, cycling lanes, and garden walks" },
-  { name: "Camp John Hay", distance: "10-12 mins drive", desc: "Towering pine forest trails, Bell Amphitheater, and cafes" },
-  { name: "Mines View Park & The Mansion", distance: "15 mins drive", desc: "Panoramic mountain outlook, Cordillera crafts, and souvenirs" }
+  { 
+    id: "sm-baguio",
+    name: "SM City Baguio & Session Road", 
+    category: "Shopping & Dining",
+    distance: "5-8 mins walk", 
+    travelTime: "5-8 mins",
+    travelMode: "walk" as const,
+    desc: "Premier shopping, dining terraces, and the vibrant Session Road promenade.",
+    image: "/sm-city-baguio.jpg",
+    coordinates: [120.5995, 16.4095] as [number, number]
+  },
+  { 
+    id: "victory-liner",
+    name: "Victory Liner Passenger Terminal", 
+    category: "Major Transit Hub",
+    distance: "3-5 mins walk", 
+    travelTime: "3-5 mins",
+    travelMode: "walk" as const,
+    desc: "Key transit terminal for effortless arrival and departure from Metro Manila.",
+    image: "/victory-liner-passengers-line.jpg",
+    coordinates: [120.6030, 16.4055] as [number, number]
+  },
+  { 
+    id: "burnham-park",
+    name: "Burnham Park", 
+    category: "Park & Recreation",
+    distance: "8-10 mins drive", 
+    travelTime: "8-10 mins",
+    travelMode: "drive" as const,
+    desc: "Historic swan boat lake, rose gardens, bicycle tracks, and picnic grounds.",
+    image: "/burnham-park.avif",
+    coordinates: [120.5931, 16.4116] as [number, number]
+  },
+  { 
+    id: "camp-john-hay",
+    name: "Camp John Hay", 
+    category: "Scenic Pine Forest",
+    distance: "10-12 mins drive", 
+    travelTime: "10-12 mins",
+    travelMode: "drive" as const,
+    desc: "Towering pine forest trails, Bell Amphitheater, and artisan mountain cafes.",
+    image: "/camp-john-hay.jpg",
+    coordinates: [120.6152, 16.3980] as [number, number]
+  },
+  { 
+    id: "mines-view",
+    name: "Mines View Park", 
+    category: "Mountain Overlook",
+    distance: "15 mins drive", 
+    travelTime: "15 mins",
+    travelMode: "drive" as const,
+    desc: "Panoramic mountain outlook, Cordillera cultural attire, and artisan souvenirs.",
+    image: "/mines-view-park.jpg",
+    coordinates: [120.6272, 16.4178] as [number, number]
+  }
 ];

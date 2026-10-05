@@ -5,6 +5,7 @@ export type RoomCategory = 'all' | 'transient' | 'dormitory';
 export interface Room {
   id: string;
   name: string;
+  code?: string;
   category: 'transient' | 'dormitory';
   capacity: number;
   capacityLabel: string;
@@ -14,7 +15,10 @@ export interface Room {
   sampleQuantity: number; // Demo quantity for prototype
   description: string;
   image: string;
+  bedSetup?: string;
+  vibe?: string;
   features: string[];
+  sharedAmenities?: string[];
   popular?: boolean;
 }
 

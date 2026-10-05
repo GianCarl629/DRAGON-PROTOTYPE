@@ -61,9 +61,10 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
 
   return (
     <section id="home" className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden bg-radial-luxury">
+
       {/* Background Atmospheric Glows */}
-      <div className="absolute top-0 right-0 z-0 w-[550px] h-[550px] bg-gradient-to-br from-gold-200/40 via-pine-100/30 to-transparent rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/4 pointer-events-none" />
-      <div className="absolute top-1/3 left-0 z-0 w-[500px] h-[500px] bg-gradient-to-tr from-cedar-200/40 via-gold-100/30 to-transparent rounded-full blur-3xl transform -translate-x-1/3 pointer-events-none" />
+      <div className="absolute top-0 right-0 z-0 w-[550px] h-[550px] bg-gradient-to-br from-gold-200/35 via-pine-100/25 to-transparent rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/4 pointer-events-none" />
+      <div className="absolute top-1/3 left-0 z-0 w-[500px] h-[500px] bg-gradient-to-tr from-cedar-200/35 via-gold-100/25 to-transparent rounded-full blur-3xl transform -translate-x-1/3 pointer-events-none" />
 
       {/* Oriental Golden Wave Pattern Motif in Bottom Right */}
       <div 
@@ -180,11 +181,12 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
             {/* Visual Photography Card */}
             <div className="group relative rounded-3xl overflow-hidden shadow-luxury border-4 border-white/90 bg-stone-900">
               <img
-                src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=900&q=80"
-                alt="Dragon Treasure Transient & Condotel Baguio"
-                className="w-full h-64 sm:h-72 object-cover transform group-hover:scale-105 transition-transform duration-700"
+                src="/front.view.jpg"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/front-view.jpg'; }}
+                alt="Dragon Treasure Transient & Condotel Baguio Exterior"
+                className="w-full h-64 sm:h-72 object-cover object-[center_35%] transform group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-pine-950/80 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-pine-950/80 via-black/15 to-transparent" />
 
               {/* Regal Crest Badge Overlay */}
               <div className="absolute top-4 right-4 w-12 h-12 rounded-full overflow-hidden border-2 border-gold-400 shadow-glow-gold bg-pine-950/95 backdrop-blur-md z-10 transition-transform group-hover:scale-110 duration-300">

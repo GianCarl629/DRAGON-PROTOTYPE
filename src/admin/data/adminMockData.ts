@@ -95,6 +95,7 @@ export interface AdminInquiry {
 }
 
 // Initial Admin Mock Data aligned directly with index.html (SAMPLE_ROOMS & PROPERTY_INFO)
+// Initial Admin Mock Data aligned directly with updated units
 export const INITIAL_ADMIN_RESERVATIONS: AdminReservation[] = [
   {
     id: 'res-dt-001',
@@ -102,18 +103,18 @@ export const INITIAL_ADMIN_RESERVATIONS: AdminReservation[] = [
     guestName: 'Juan Dela Cruz',
     email: 'juan.delacruz@gmail.com',
     phone: '0917-123-4567',
-    roomName: 'Deluxe Room',
-    roomType: 'Deluxe Room',
+    roomName: 'Premium Twin Room',
+    roomType: 'Premium Twin Room',
     category: 'transient',
     checkIn: '2026-10-01',
     checkOut: '2026-10-03',
-    guests: 2,
+    guests: 4,
     rate: 2000,
     ratePeriod: 'night',
     totalAmount: 4000,
     status: 'Confirmed',
     paymentStatus: 'Paid',
-    specialRequests: 'High floor preferred with mountain view if available',
+    specialRequests: 'Prefer mountain view window with red blinds; arriving 3 PM',
     bookedAt: 'Sep 28, 2026'
   },
   {
@@ -122,18 +123,18 @@ export const INITIAL_ADMIN_RESERVATIONS: AdminReservation[] = [
     guestName: 'Maria Santos',
     email: 'maria.santos@yahoo.com',
     phone: '0918-987-6543',
-    roomName: 'Family Room',
-    roomType: 'Family Room',
+    roomName: 'Premium Twin Room',
+    roomType: 'Premium Twin Room',
     category: 'transient',
     checkIn: '2026-10-04',
     checkOut: '2026-10-07',
     guests: 4,
-    rate: 2800,
+    rate: 2000,
     ratePeriod: 'night',
-    totalAmount: 8400,
+    totalAmount: 6000,
     status: 'Pending Review',
     paymentStatus: 'Unpaid',
-    specialRequests: 'Arriving late at 7:00 PM; need extra blanket',
+    specialRequests: 'Arriving late at 7:00 PM; extra red blanket requested',
     bookedAt: 'Sep 29, 2026'
   },
   {
@@ -142,8 +143,8 @@ export const INITIAL_ADMIN_RESERVATIONS: AdminReservation[] = [
     guestName: 'Kevin Lim',
     email: 'k.lim@techworks.ph',
     phone: '0920-555-8899',
-    roomName: 'Standard Room',
-    roomType: 'Standard Room',
+    roomName: 'Premium Large Room',
+    roomType: 'Premium Large Room',
     category: 'transient',
     checkIn: '2026-10-02',
     checkOut: '2026-10-04',
@@ -153,7 +154,7 @@ export const INITIAL_ADMIN_RESERVATIONS: AdminReservation[] = [
     totalAmount: 3000,
     status: 'Pending Review',
     paymentStatus: 'Unpaid',
-    specialRequests: 'Need stable Wi-Fi connection for remote work',
+    specialRequests: 'Need wooden vanity desk and stable Wi-Fi for remote work',
     bookedAt: 'Sep 30, 2026'
   },
   {
@@ -162,18 +163,18 @@ export const INITIAL_ADMIN_RESERVATIONS: AdminReservation[] = [
     guestName: 'Grace Bautista',
     email: 'grace.b@outlook.com',
     phone: '0995-333-1212',
-    roomName: 'Family Suite',
-    roomType: 'Family Suite',
+    roomName: 'Compact Solo Room',
+    roomType: 'Compact Solo Room',
     category: 'transient',
     checkIn: '2026-10-08',
     checkOut: '2026-10-10',
-    guests: 5,
-    rate: 3500,
+    guests: 1,
+    rate: 800,
     ratePeriod: 'night',
-    totalAmount: 7000,
+    totalAmount: 1600,
     status: 'Confirmed',
     paymentStatus: 'Paid',
-    specialRequests: 'Quiet room with scenic view',
+    specialRequests: 'Quiet solo room with scenic view',
     bookedAt: 'Sep 27, 2026'
   },
   {
@@ -182,18 +183,18 @@ export const INITIAL_ADMIN_RESERVATIONS: AdminReservation[] = [
     guestName: 'Eduardo Ramos',
     email: 'ed.ramos@corp.ph',
     phone: '0919-444-2233',
-    roomName: 'Dormitory Room',
-    roomType: 'Dormitory Room',
+    roomName: 'Dormitory Room (Shared Bedspace)',
+    roomType: 'Dormitory Room (Shared Bedspace)',
     category: 'dormitory',
     checkIn: '2026-10-01',
     checkOut: '2026-10-31',
     guests: 1,
-    rate: 8000,
+    rate: 3000,
     ratePeriod: 'month/person',
-    totalAmount: 8000,
+    totalAmount: 3000,
     status: 'Confirmed',
     paymentStatus: 'Paid',
-    specialRequests: 'SLU graduate student; lower bunk requested',
+    specialRequests: 'SLU graduate student; lower bunk requested with study desk',
     bookedAt: 'Sep 25, 2026'
   },
   {
@@ -202,15 +203,15 @@ export const INITIAL_ADMIN_RESERVATIONS: AdminReservation[] = [
     guestName: 'Patricia Tan',
     email: 'pat.tan@gmail.com',
     phone: '0908-111-9988',
-    roomName: 'Standard Room',
-    roomType: 'Standard Room',
+    roomName: 'Compact Solo Room',
+    roomType: 'Compact Solo Room',
     category: 'transient',
     checkIn: '2026-10-12',
     checkOut: '2026-10-14',
     guests: 2,
-    rate: 1500,
+    rate: 800,
     ratePeriod: 'night',
-    totalAmount: 3000,
+    totalAmount: 1600,
     status: 'Cancelled',
     paymentStatus: 'Unpaid',
     cancellationReason: 'Change in travel plans or dates',
@@ -220,120 +221,205 @@ export const INITIAL_ADMIN_RESERVATIONS: AdminReservation[] = [
 
 export const INITIAL_ADMIN_ROOMS: AdminRoom[] = [
   {
-    id: 'room-101',
-    roomNumber: 'Room 101',
-    name: 'Standard Room 101',
+    id: 'room-a-101',
+    roomNumber: 'Room A-101',
+    name: 'Premium Twin Room',
     category: 'transient',
-    roomType: 'Standard Room',
-    capacity: 2,
-    price: 1500,
+    roomType: 'Premium Twin Room',
+    capacity: 4,
+    price: 2000,
     ratePeriod: 'night',
     status: 'Available',
     floor: '1st Floor',
-    amenities: ['1 Queen or 2 Single Beds', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Work Desk & Chair', 'Clean Towels & Linen']
+    amenities: [
+      'Two (2) single beds with solid white box base',
+      'Thick red blankets',
+      'Wooden vanity desk with chair and mirror',
+      'Closed wooden wardrobe cabinet',
+      'Warm bedside lamp',
+      'Matte black electric stand fan',
+      'Glass sliding window with red pull-cord roller blinds',
+      'View of Baguio'
+    ]
   },
   {
-    id: 'room-102',
-    roomNumber: 'Room 102',
-    name: 'Standard Room 102',
+    id: 'room-a-102',
+    roomNumber: 'Room A-102',
+    name: 'Premium Twin Room',
     category: 'transient',
-    roomType: 'Standard Room',
-    capacity: 2,
-    price: 1500,
+    roomType: 'Premium Twin Room',
+    capacity: 4,
+    price: 2000,
     ratePeriod: 'night',
     status: 'Occupied',
     floor: '1st Floor',
-    amenities: ['1 Queen or 2 Single Beds', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Work Desk & Chair', 'Clean Towels & Linen']
+    amenities: [
+      'Two (2) single beds with solid white box base',
+      'Thick red blankets',
+      'Wooden vanity desk with chair and mirror',
+      'Closed wooden wardrobe cabinet',
+      'Warm bedside lamp',
+      'Matte black electric stand fan',
+      'Glass sliding window with red pull-cord roller blinds',
+      'View of Baguio'
+    ]
   },
   {
-    id: 'room-201',
-    roomNumber: 'Room 201',
-    name: 'Deluxe Room 201',
+    id: 'room-b-201',
+    roomNumber: 'Room B-201',
+    name: 'Premium Large Room',
     category: 'transient',
-    roomType: 'Deluxe Room',
-    capacity: 3,
-    price: 2000,
+    roomType: 'Premium Large Room',
+    capacity: 2,
+    price: 1500,
     ratePeriod: 'night',
     status: 'Reserved',
     floor: '2nd Floor',
-    amenities: ['1 Double Bed + 1 Single Bed', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Comfortable Seating Area & Desk', 'Air Conditioning', 'Complimentary Toiletries']
+    amenities: [
+      'One (1) queen size bed with solid white box base',
+      'Thick red blanket',
+      'Wooden vanity desk with chair and mirror',
+      'Closed wooden wardrobe cabinet',
+      'Warm bedside lamp',
+      'Matte black electric stand fan',
+      'Glass sliding window with red pull-cord roller blinds',
+      'View of Baguio'
+    ]
   },
   {
-    id: 'room-202',
-    roomNumber: 'Room 202',
-    name: 'Deluxe Room 202',
+    id: 'room-b-202',
+    roomNumber: 'Room B-202',
+    name: 'Premium Large Room',
     category: 'transient',
-    roomType: 'Deluxe Room',
-    capacity: 3,
-    price: 2000,
+    roomType: 'Premium Large Room',
+    capacity: 2,
+    price: 1500,
     ratePeriod: 'night',
     status: 'Available',
     floor: '2nd Floor',
-    amenities: ['1 Double Bed + 1 Single Bed', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Comfortable Seating Area & Desk', 'Air Conditioning', 'Complimentary Toiletries']
+    amenities: [
+      'One (1) queen size bed with solid white box base',
+      'Thick red blanket',
+      'Wooden vanity desk with chair and mirror',
+      'Closed wooden wardrobe cabinet',
+      'Warm bedside lamp',
+      'Matte black electric stand fan',
+      'Glass sliding window with red pull-cord roller blinds',
+      'View of Baguio'
+    ]
   },
   {
-    id: 'room-301',
-    roomNumber: 'Room 301',
-    name: 'Family Room 301',
+    id: 'room-c-301',
+    roomNumber: 'Room C-301',
+    name: 'Compact Solo Room',
     category: 'transient',
-    roomType: 'Family Room',
-    capacity: 4,
-    price: 2800,
+    roomType: 'Compact Solo Room',
+    capacity: 2,
+    price: 800,
     ratePeriod: 'night',
     status: 'Occupied',
     floor: '3rd Floor',
-    amenities: ['2 Double Beds', 'Private Bathroom with Hot Shower', 'High-speed Free Wi-Fi', 'Dedicated Work & Dining Table', 'Wardrobe & Luggage Rack', 'Electric Kettle & Refrigerator Access']
+    amenities: [
+      'One (1) small bed with solid white box base',
+      'Thick red blanket',
+      'Compact wooden vanity desk and chair',
+      'Narrow closed wooden wardrobe cabinet',
+      'Matte black electric stand fan',
+      'Glass sliding window with red pull-cord roller blinds',
+      'View of Baguio'
+    ]
   },
   {
-    id: 'room-302',
-    roomNumber: 'Room 302',
-    name: 'Family Suite 302',
+    id: 'room-c-302',
+    roomNumber: 'Room C-302',
+    name: 'Compact Solo Room',
     category: 'transient',
-    roomType: 'Family Suite',
-    capacity: 6,
-    price: 3500,
+    roomType: 'Compact Solo Room',
+    capacity: 2,
+    price: 800,
     ratePeriod: 'night',
     status: 'Maintenance',
     floor: '3rd Floor',
-    amenities: ['Multiple Bed Configurations (Up to 6 guests)', 'Spacious Living / Lounge Corner', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Dining Nook & Refrigerator Access', 'Dedicated Clothes Storage']
+    amenities: [
+      'One (1) small bed with solid white box base',
+      'Thick red blanket',
+      'Compact wooden vanity desk and chair',
+      'Narrow closed wooden wardrobe cabinet',
+      'Matte black electric stand fan',
+      'Glass sliding window with red pull-cord roller blinds',
+      'View of Baguio'
+    ]
   },
   {
-    id: 'room-401',
-    roomNumber: 'Room 401',
-    name: 'Family Suite 401 (Highland View)',
+    id: 'room-c-401',
+    roomNumber: 'Room C-401',
+    name: 'Compact Solo Room',
     category: 'transient',
-    roomType: 'Family Suite',
-    capacity: 6,
-    price: 3500,
+    roomType: 'Compact Solo Room',
+    capacity: 2,
+    price: 800,
     ratePeriod: 'night',
     status: 'Available',
     floor: '4th Floor (Top Floor)',
-    amenities: ['Multiple Bed Configurations (Up to 6 guests)', 'Spacious Living / Lounge Corner', 'Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Dining Nook & Refrigerator Access', 'Dedicated Clothes Storage']
+    amenities: [
+      'One (1) small bed with solid white box base',
+      'Thick red blanket',
+      'Compact wooden vanity desk and chair',
+      'Narrow closed wooden wardrobe cabinet',
+      'Matte black electric stand fan',
+      'Glass sliding window with red pull-cord roller blinds',
+      'Scenic view of Baguio'
+    ]
   },
   {
     id: 'room-dorm-101',
     roomNumber: 'Dorm 101',
-    name: 'Dormitory Room 101 (6-Bed Unit)',
+    name: 'Dormitory Room (Shared Bedspace)',
     category: 'dormitory',
-    roomType: 'Dormitory Room',
-    capacity: 6,
-    price: 8000,
+    roomType: 'Dormitory Room (Shared Bedspace)',
+    capacity: 4,
+    price: 3000,
     ratePeriod: 'month',
     status: 'Available',
     floor: '1st Floor',
-    amenities: ['Bunk Beds with Sturdy Lockers', 'Study Desk & Reading Lamps', 'Shared Hot & Cold Shower', 'High-speed Free Wi-Fi', 'Secure Personal Storage', 'Quiet Study Environment', '24/7 Security & CCTV Monitoring']
+    amenities: [
+      'Sturdy wooden double-deck (bunk) beds',
+      'Two (2) minimalist wooden study desks with chair',
+      'Closed wooden cabinets for dormers belongings',
+      'Matte black electric stand fan',
+      'High-speed Free Wi-Fi'
+    ]
+  },
+  {
+    id: 'room-dorm-201',
+    roomNumber: 'Dorm 201',
+    name: 'Dormitory Room (Shared Bedspace)',
+    category: 'dormitory',
+    roomType: 'Dormitory Room (Shared Bedspace)',
+    capacity: 4,
+    price: 3000,
+    ratePeriod: 'month',
+    status: 'Occupied',
+    floor: '2nd Floor',
+    amenities: [
+      'Sturdy wooden double-deck (bunk) beds',
+      'Two (2) minimalist wooden study desks with chair',
+      'Closed wooden cabinets for dormers belongings',
+      'Matte black electric stand fan',
+      'High-speed Free Wi-Fi'
+    ]
   }
 ];
 
 export const INITIAL_ADMIN_DORM_SLOTS: AdminDormSlot[] = [
   {
     id: 'dorm-101-a',
-    dormRoom: 'Dormitory Room 101 — Highland Wing (6-Bed Unit)',
+    dormRoom: 'Dormitory Room 101 — Highland Wing (4-Bed Unit)',
     wing: 'Male Wing',
-    bedSlot: 'Bed A (Lower Bunk)',
+    bedSlot: 'Bed 1 (Lower Bunk)',
     tenantName: 'Juan Dela Cruz',
     tenantPhone: '0917-123-4567',
-    monthlyRate: 8000,
+    monthlyRate: 3000,
     dueDate: '2026-10-05',
     status: 'Occupied',
     utilityStatus: 'Inclusive of Wi-Fi, Water & Security; sub-metered power',
@@ -341,12 +427,12 @@ export const INITIAL_ADMIN_DORM_SLOTS: AdminDormSlot[] = [
   },
   {
     id: 'dorm-101-b',
-    dormRoom: 'Dormitory Room 101 — Highland Wing (6-Bed Unit)',
+    dormRoom: 'Dormitory Room 101 — Highland Wing (4-Bed Unit)',
     wing: 'Male Wing',
-    bedSlot: 'Bed B (Upper Bunk)',
+    bedSlot: 'Bed 2 (Upper Bunk)',
     tenantName: 'Mark Santos',
     tenantPhone: '0928-888-7711',
-    monthlyRate: 8000,
+    monthlyRate: 3000,
     dueDate: '2026-10-05',
     status: 'Occupied',
     utilityStatus: 'Inclusive of Wi-Fi, Water & Security; sub-metered power',
@@ -354,72 +440,72 @@ export const INITIAL_ADMIN_DORM_SLOTS: AdminDormSlot[] = [
   },
   {
     id: 'dorm-101-c',
-    dormRoom: 'Dormitory Room 101 — Highland Wing (6-Bed Unit)',
+    dormRoom: 'Dormitory Room 101 — Highland Wing (4-Bed Unit)',
     wing: 'Male Wing',
-    bedSlot: 'Bed C (Lower Bunk)',
+    bedSlot: 'Bed 3 (Lower Bunk)',
     tenantName: null,
-    monthlyRate: 8000,
+    monthlyRate: 3000,
     dueDate: null,
     status: 'Available',
-    utilityStatus: 'Ready for occupancy; includes study table & locker'
+    utilityStatus: 'Ready for occupancy; includes study table & cabinet'
   },
   {
     id: 'dorm-101-d',
-    dormRoom: 'Dormitory Room 101 — Highland Wing (6-Bed Unit)',
+    dormRoom: 'Dormitory Room 101 — Highland Wing (4-Bed Unit)',
     wing: 'Male Wing',
-    bedSlot: 'Bed D (Upper Bunk)',
+    bedSlot: 'Bed 4 (Upper Bunk)',
     tenantName: null,
-    monthlyRate: 8000,
+    monthlyRate: 3000,
     dueDate: null,
     status: 'Available',
-    utilityStatus: 'Ready for occupancy; includes study table & locker'
+    utilityStatus: 'Ready for occupancy; includes study table & cabinet'
   },
   {
-    id: 'dorm-102-a',
-    dormRoom: 'Dormitory Room 102 — Pine Blossom Wing (6-Bed Unit)',
+    id: 'dorm-201-a',
+    dormRoom: 'Dormitory Room 201 — Pine Blossom Wing (4-Bed Unit)',
     wing: 'Female Wing',
-    bedSlot: 'Bed A (Lower Bunk)',
+    bedSlot: 'Bed 1 (Lower Bunk)',
     tenantName: 'Camille Reyes',
     tenantPhone: '0917-999-1234',
-    monthlyRate: 8000,
+    monthlyRate: 3000,
     dueDate: '2026-10-10',
     status: 'Occupied',
     utilityStatus: 'Inclusive of Wi-Fi, Water & Security; sub-metered power',
     contractEnd: 'Nov 2026'
   },
   {
-    id: 'dorm-102-b',
-    dormRoom: 'Dormitory Room 102 — Pine Blossom Wing (6-Bed Unit)',
+    id: 'dorm-201-b',
+    dormRoom: 'Dormitory Room 201 — Pine Blossom Wing (4-Bed Unit)',
     wing: 'Female Wing',
-    bedSlot: 'Bed B (Upper Bunk)',
+    bedSlot: 'Bed 2 (Upper Bunk)',
     tenantName: 'Angela Lopez',
     tenantPhone: '0939-222-3344',
-    monthlyRate: 8000,
+    monthlyRate: 3000,
     dueDate: '2026-10-10',
     status: 'Occupied',
     utilityStatus: 'Inclusive of Wi-Fi, Water & Security; sub-metered power',
     contractEnd: 'Mar 2027'
   },
   {
-    id: 'dorm-102-c',
-    dormRoom: 'Dormitory Room 102 — Pine Blossom Wing (6-Bed Unit)',
+    id: 'dorm-201-c',
+    dormRoom: 'Dormitory Room 201 — Pine Blossom Wing (4-Bed Unit)',
     wing: 'Female Wing',
-    bedSlot: 'Bed C (Lower Bunk)',
+    bedSlot: 'Bed 3 (Lower Bunk)',
     tenantName: 'Rhea Villareal',
     tenantPhone: '0998-777-6655',
-    monthlyRate: 8000,
+    monthlyRate: 3000,
     dueDate: '2026-10-15',
     status: 'Reserved',
     utilityStatus: 'Move-in scheduled Oct 5; deposit cleared',
     contractEnd: 'Apr 2027'
   },
   {
-    id: 'dorm-102-d',
-    dormRoom: 'Dormitory Room 102 — Pine Blossom Wing (6-Bed Unit)',
+    id: 'dorm-201-d',
+    dormRoom: 'Dormitory Room 201 — Pine Blossom Wing (4-Bed Unit)',
     wing: 'Female Wing',
-    bedSlot: 'Bed D (Upper Bunk)',
+    bedSlot: 'Bed 4 (Upper Bunk)',
     tenantName: null,
-    monthlyRate: 8000,
+    monthlyRate: 3000,
     dueDate: null,
     status: 'Under Cleaning',
     utilityStatus: 'Maintenance deep clean & mattress sanitizing'
@@ -617,7 +703,7 @@ export const INITIAL_ADMIN_INQUIRIES: AdminInquiry[] = [
   }
 ];
 
-const ADMIN_STORAGE_KEY = 'dragon_treasure_admin_data_store_v3';
+const ADMIN_STORAGE_KEY = 'dragon_treasure_admin_data_store_v5';
 const ADMIN_SESSION_KEY = 'dragon_treasure_admin_session';
 
 export interface AdminStoreState {
@@ -635,13 +721,15 @@ export const AdminDataManager = {
       // Purge any legacy non-aligned stores
       localStorage.removeItem('dragon_treasure_admin_data_store');
       localStorage.removeItem('dragon_treasure_admin_data_store_v2');
+      localStorage.removeItem('dragon_treasure_admin_data_store_v3');
+      localStorage.removeItem('dragon_treasure_admin_data_store_v4');
 
       const stored = localStorage.getItem(ADMIN_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (
-          parsed.reservations &&
-          parsed.reservations.some((r: any) => r.roomType === 'Deluxe Room' || r.roomType === 'Standard Room')
+          parsed.rooms &&
+          parsed.rooms.some((r: any) => r.roomType === 'Premium Twin Room' || r.name === 'Premium Twin Room')
         ) {
           return parsed;
         }

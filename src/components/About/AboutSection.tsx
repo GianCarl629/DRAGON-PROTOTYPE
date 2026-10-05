@@ -15,9 +15,9 @@ export const AboutSection: React.FC = () => {
           <div className="lg:col-span-6 relative">
             <div className="relative rounded-3xl overflow-hidden shadow-luxury border-4 border-white bg-stone-900 group">
               <img
-                src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=900&q=80"
-                alt="Dragon Treasure Lodging Atmosphere"
-                className="w-full h-84 sm:h-[420px] object-cover group-hover:scale-105 transition-transform duration-700"
+                src="/lions-head.jpg"
+                alt="Lion's Head Baguio Landmark - Dragon Treasure Lodging"
+                className="w-full h-84 sm:h-[420px] object-cover object-[center_35%] group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-pine-950/85 via-black/25 to-transparent" />
               

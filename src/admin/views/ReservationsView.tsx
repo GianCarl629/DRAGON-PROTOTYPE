@@ -31,6 +31,7 @@ interface ReservationsViewProps {
   onUpdateReservation: (updated: AdminReservation) => void;
   onAddReservation: (newRes: AdminReservation) => void;
   onDeleteReservation: (id: string) => void;
+  initialFilter?: string;
 }
 
 export const ReservationsView: React.FC<ReservationsViewProps> = ({
@@ -40,11 +41,20 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
   onUpdatePayment,
   onUpdateReservation,
   onAddReservation,
-  onDeleteReservation
+  onDeleteReservation,
+  initialFilter
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'All' | 'Pending Review' | 'Confirmed' | 'Cancelled' | 'Completed'>('All');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Pending Review' | 'Confirmed' | 'Cancelled' | 'Completed'>(
+    (initialFilter as any) || 'All'
+  );
   const [categoryFilter, setCategoryFilter] = useState<'All' | 'transient' | 'dormitory'>('All');
+
+  React.useEffect(() => {
+    if (initialFilter) {
+      setStatusFilter(initialFilter as any);
+    }
+  }, [initialFilter]);
 
   // Modals state
   const [selectedReservation, setSelectedReservation] = useState<AdminReservation | null>(null);

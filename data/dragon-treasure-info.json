@@ -2,52 +2,85 @@
   "property": {
     "name": "Dragon Treasure Transient & Condotel",
     "location": "95-B Vergara 2 Alley, Engineers' Hill, Baguio City, Philippines, 2600",
-    "description": "Dragon Treasure Transient & Condotel is a lodging property in Baguio City that offers short-term accommodations and monthly dormitory rentals."
+    "description": "Dragon Treasure Transient & Condotel offers premium, modern minimalist accommodations with cozy Baguio feels, white walls, dark wood accents, matte black industrial fixtures, and red accents. Features short-term transient rooms and peaceful student dormitory bedspaces."
   },
   "rooms": [
     {
-      "name": "Standard Room",
-      "capacity": "2 guests",
-      "rate": "₱1,500/night",
-      "sampleQuantity": 60,
-      "type": "Short-term transient"
-    },
-    {
-      "name": "Deluxe Room",
-      "capacity": "3 guests",
+      "name": "Premium Twin Room",
+      "capacity": "4 Pax",
       "rate": "₱2,000/night",
-      "sampleQuantity": 40,
-      "type": "Short-term transient"
+      "type": "Short-term transient",
+      "amenities": [
+        "Wooden vanity desk with chair and mirror",
+        "Closed wooden wardrobe cabinet",
+        "Warm bedside lamp",
+        "Matte black electric stand fan",
+        "Glass sliding window with red pull-cord roller blinds",
+        "Scenic view of Baguio"
+      ]
     },
     {
-      "name": "Family Room",
-      "capacity": "4 guests",
-      "rate": "₱2,800/night",
-      "sampleQuantity": 30,
-      "type": "Short-term transient"
+      "name": "Premium Large Room",
+      "capacity": "2 Pax",
+      "rate": "₱1,500/night",
+      "type": "Short-term transient",
+      "amenities": [
+        "Wooden vanity desk with chair and mirror",
+        "Closed wooden wardrobe cabinet",
+        "Warm bedside lamp",
+        "Matte black electric stand fan",
+        "Glass sliding window with red pull-cord roller blinds",
+        "Scenic view of Baguio"
+      ]
     },
     {
-      "name": "Family Suite",
-      "capacity": "6 guests",
-      "rate": "₱3,500/night",
-      "sampleQuantity": 15,
-      "type": "Short-term transient"
+      "name": "Compact Solo Room",
+      "capacity": "1 - 2 Pax",
+      "rate": "₱800/night",
+      "type": "Short-term transient",
+      "amenities": [
+        "Compact wooden vanity desk and chair",
+        "Narrow closed wooden wardrobe cabinet",
+        "Matte black electric stand fan",
+        "Glass sliding window with red pull-cord roller blinds",
+        "Scenic view of Baguio"
+      ]
     },
     {
-      "name": "Dormitory Room",
-      "capacity": "4–6 guests",
-      "rate": "₱8,000/month/person",
-      "sampleQuantity": 5,
-      "type": "Monthly dormitory rental"
+      "name": "Dormitory Room (Shared Bedspace)",
+      "capacity": "4 Pax per room",
+      "rate": "₱3,000/month/person",
+      "type": "Monthly dormitory rental",
+      "amenities": [
+        "Two (2) minimalist wooden study desks with chair",
+        "Closed wooden cabinets for dormers' things",
+        "Matte black electric stand fan"
+      ]
     }
   ],
+  "sharedUnitAmenities": {
+    "loungeArea": "Black leather armchairs and warm lighting for resting",
+    "diningArea": "Rectangular dining table with red mantel and metal chairs",
+    "pantryKitchenette": [
+      "White mini-refrigerator",
+      "Electric kettle",
+      "Basic plates and cups"
+    ],
+    "entertainment": "Wall-mounted flat-screen TV in common lounge",
+    "bathroom": "Clean and well-maintained comfort room with steady water supply and water heater",
+    "security": "Solid white paneled doors (Room A, B, C) and 24/7 CCTV surveillance"
+  },
   "amenities": [
-    "Free Wi-Fi",
+    "High-speed Free Wi-Fi",
+    "Wall-mounted flat-screen TV in common unit lounge",
     "24-hour front desk/caretaker assistance",
-    "Parking area",
-    "Hot and cold shower",
-    "Air conditioning",
-    "CCTV/security"
+    "On-site parking area",
+    "Hot & cold shower with water heater",
+    "Matte black electric stand fans",
+    "24/7 CCTV security & solid white paneled doors",
+    "Shared unit lounge with leather armchairs",
+    "Shared unit dining area with red mantel",
+    "Shared kitchenette with mini-fridge & electric kettle"
   ],
   "checkInTime": "2:00 PM",
   "checkOutTime": "12:00 PM",

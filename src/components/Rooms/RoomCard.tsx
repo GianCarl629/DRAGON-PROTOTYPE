@@ -61,7 +61,7 @@ export const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, onBook }) =>
       {/* Content Area */}
       <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
         <div>
-          <h3 className="font-serif font-bold text-xl text-pine-950 group-hover:text-pine-800 transition-colors">
+          <h3 className="font-serif font-bold text-lg sm:text-xl text-pine-950 group-hover:text-pine-800 transition-colors">
             {room.name}
           </h3>
 
@@ -70,20 +70,19 @@ export const RoomCard: React.FC<RoomCardProps> = ({ room, onSelect, onBook }) =>
           </p>
 
           {/* Key Feature Bullets */}
-          <div className="mt-4 pt-4 border-t border-stone-100 space-y-2">
+          <div className="mt-3.5 pt-3 border-t border-stone-100 space-y-1.5">
             {room.features.slice(0, 3).map((feat, idx) => (
-              <div key={idx} className="flex items-center gap-2.5 text-xs text-slate-600">
+              <div key={idx} className="flex items-center gap-2 text-xs text-slate-600">
                 <div className="w-4 h-4 rounded-full bg-pine-50 text-pine-700 flex items-center justify-center flex-shrink-0 border border-pine-200/50">
                   <Check className="w-2.5 h-2.5" strokeWidth={3} />
                 </div>
                 <span className="truncate font-medium">{feat}</span>
               </div>
             ))}
-            {room.features.length > 3 && (
-              <p className="text-[11px] text-gold-700 font-semibold pl-6">
-                + {room.features.length - 3} more room inclusions
-              </p>
-            )}
+            <div className="pt-1 text-[11px] text-gold-700 font-semibold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-gold-500" />
+              <span>Includes Shared Lounge, Dining, Kitchenette & CR</span>
+            </div>
           </div>
         </div>
 

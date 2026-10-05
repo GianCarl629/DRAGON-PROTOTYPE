@@ -20,25 +20,35 @@ interface BillingViewProps {
   billingRecords: AdminBillingRecord[];
   onUpdateStatus: (id: string, newStatus: 'Paid' | 'Pending' | 'Overdue') => void;
   onAddRecord: (newRec: AdminBillingRecord) => void;
+  initialFilter?: string;
 }
 
 export const BillingView: React.FC<BillingViewProps> = ({
   billingRecords,
   onUpdateStatus,
-  onAddRecord
+  onAddRecord,
+  initialFilter
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'All' | 'Paid' | 'Pending' | 'Overdue'>('All');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Paid' | 'Pending' | 'Overdue'>(
+    (initialFilter as any) || 'All'
+  );
+
+  React.useEffect(() => {
+    if (initialFilter) {
+      setStatusFilter(initialFilter as any);
+    }
+  }, [initialFilter]);
   const [selectedRecord, setSelectedRecord] = useState<AdminBillingRecord | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // New Invoice Form
   const [invoiceForm, setInvoiceForm] = useState({
     tenantOrGuest: '',
-    roomOrBed: 'Deluxe King Condotel',
+    roomOrBed: 'Dormitory Room (Shared Bedspace) - Bed 1',
     type: 'Monthly Dorm Rent' as AdminBillingRecord['type'],
     billingPeriod: 'October 2026',
-    rentAmount: 4500,
+    rentAmount: 3000,
     waterAmount: 150,
     electricityAmount: 350,
     depositAmount: 0,
