@@ -1,14 +1,4 @@
-/**
- * ==============================================================================
- * Production Authentication & User Profile Service
- * ==============================================================================
- * Purpose:
- * 1. Manages visitor and client authentication (Sign In, Sign Up, Profile, Session).
- * 2. Integrates directly with Supabase Auth when configured.
- * 3. Provides graceful local session persistence for development/offline testing.
- * ==============================================================================
- */
-
+// Authentication and user profile service for Supabase Auth and local session
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { AuthUser, UserReservation } from '../types/auth';
 import { getLocalReservations, saveLocalReservation } from './db/reservationService';
@@ -19,9 +9,7 @@ export const AuthService = {
   // In-memory active session user
   currentUser: null as AuthUser | null,
 
-  /**
-   * Restores active user from persistent storage or Supabase session.
-   */
+  // Get stored user from session or local storage
   getStoredUser(): AuthUser | null {
     if (this.currentUser) return this.currentUser;
 
@@ -38,9 +26,7 @@ export const AuthService = {
     return null;
   },
 
-  /**
-   * Sets or clears current session user.
-   */
+  // Set stored user
   setStoredUser(user: AuthUser | null): void {
     this.currentUser = user;
     try {
@@ -54,23 +40,17 @@ export const AuthService = {
     }
   },
 
-  /**
-   * Retrieve user's reservation history.
-   */
+  // Get user reservations
   getStoredReservations(): UserReservation[] {
     return getLocalReservations();
   },
 
-  /**
-   * Add a newly booked reservation.
-   */
+  // Add reservation
   addReservation(reservation: UserReservation): void {
     saveLocalReservation(reservation);
   },
 
-  /**
-   * Cancel an active reservation with an audit reason.
-   */
+  // Cancel reservation
   cancelReservation(id: string, reason?: string): void {
     const today = new Date().toLocaleDateString('en-US', {
       month: 'short',
@@ -95,9 +75,7 @@ export const AuthService = {
     }
   },
 
-  /**
-   * Dismiss/delete reservation from user view.
-   */
+  // Delete reservation
   deleteReservation(id: string): void {
     const reservations = getLocalReservations();
     const updated = reservations.filter((r) => r.id !== id);
@@ -108,10 +86,7 @@ export const AuthService = {
     }
   },
 
-  /**
-   * Authenticate user with Email and Password.
-   * Connects to Supabase Auth when configured, with seamless local fallback.
-   */
+  // Login with email and password
   async login(email: string, password: string): Promise<AuthUser> {
     const trimmedEmail = email.trim().toLowerCase();
 
@@ -182,9 +157,7 @@ export const AuthService = {
     return user;
   },
 
-  /**
-   * Register a new user account.
-   */
+  // Register new user account
   async register(data: {
     name: string;
     email: string;
@@ -269,9 +242,7 @@ export const AuthService = {
     return user;
   },
 
-  /**
-   * Log out active user and clear session.
-   */
+  // Logout user
   async logout(): Promise<void> {
     if (isSupabaseConfigured()) {
       try {
@@ -290,6 +261,6 @@ export const AuthService = {
   }
 };
 
-// Aliased export so existing components can use AuthService seamlessly
+// Export auth service
 export const MockAuthService = AuthService;
 export default AuthService;

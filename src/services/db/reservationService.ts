@@ -1,16 +1,4 @@
-/**
- * ==============================================================================
- * Centralized Live Calendar & Reservation Service (Objective 1)
- * ==============================================================================
- * Purpose:
- * 1. Checks real-time room availability across short-term and long-term dates.
- * 2. Automatically prevents double-booking conflicts across all stay types.
- * 3. Syncs seamlessly with Supabase Database when connected, with reliable
- *    local fallback for offline development.
- * 4. Enables Supabase Realtime subscriptions for instantaneous calendar updates.
- * ==============================================================================
- */
-
+// Live calendar and reservation service for Supabase and double booking checks
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { UserReservation } from '../../types/auth';
 
@@ -26,9 +14,7 @@ export interface AvailabilityResult {
   message: string;
 }
 
-/**
- * Checks whether dates overlap: [startA, endA) and [startB, endB)
- */
+// Helper to check if two date ranges overlap
 export const doDateRangesOverlap = (
   startA: string,
   endA: string,
@@ -43,9 +29,7 @@ export const doDateRangesOverlap = (
   return aStart < bEnd && aEnd > bStart;
 };
 
-/**
- * Checks room availability in real-time to prevent double bookings (Objective 1).
- */
+// Check room availability in Supabase or local storage
 export const checkRoomAvailability = async (
   query: RoomAvailabilityQuery
 ): Promise<AvailabilityResult> => {
@@ -99,9 +83,7 @@ export const checkRoomAvailability = async (
   };
 };
 
-/**
- * Creates and submits a new reservation request to Supabase.
- */
+// Create and submit reservation request
 export const createReservationRequest = async (
   reservation: UserReservation
 ): Promise<{ success: boolean; data?: UserReservation; error?: string }> => {
@@ -145,9 +127,7 @@ export const createReservationRequest = async (
   return { success: true, data: reservation };
 };
 
-/**
- * Subscribes to real-time calendar and reservation changes via Supabase Realtime.
- */
+// Subscribe to live calendar changes in Supabase
 export const subscribeToLiveCalendar = (
   onUpdate: (payload: any) => void
 ): (() => void) => {
@@ -171,9 +151,7 @@ export const subscribeToLiveCalendar = (
   };
 };
 
-// ------------------------------------------------------------------------------
-// Local Storage Persistence Helpers
-// ------------------------------------------------------------------------------
+// Local storage helpers for reservations
 const RESERVATIONS_STORAGE_KEY = 'dragon_treasure_reservations';
 
 export const getLocalReservations = (): UserReservation[] => {

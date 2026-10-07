@@ -1,15 +1,4 @@
-/**
- * ==============================================================================
- * Automated Billing & Utility Management Service (Objective 2)
- * ==============================================================================
- * Purpose:
- * 1. Automatically computes rental rates and utility readings (water and electric).
- * 2. Generates itemized invoices without manual calculation errors.
- * 3. Connects to Supabase Database with full offline local fallback.
- * 4. Handles online payment proofs and transaction reference recording (Objective 4).
- * ==============================================================================
- */
-
+// Billing and utility service for computing rent and utilities
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 export interface UtilityRates {
@@ -90,10 +79,7 @@ export interface OnlinePaymentSubmission {
   amount: number;
 }
 
-/**
- * Automatically computes utility costs based on meter readings.
- * Ensures accurate billing without manual calculation errors (Objective 2).
- */
+// Compute water and electric utility consumption
 export const computeUtilityReadings = (
   input: UtilityReadingInput
 ): ComputedUtilities => {
@@ -115,9 +101,7 @@ export const computeUtilityReadings = (
   };
 };
 
-/**
- * Automatically creates an itemized invoice with computed utilities.
- */
+// Generate invoice with utility breakdown
 export const generateAutomatedInvoice = async (
   input: InvoiceGenerationInput
 ): Promise<ClientInvoice> => {
@@ -192,9 +176,7 @@ export const generateAutomatedInvoice = async (
   return newInvoice;
 };
 
-/**
- * Submits an online payment transaction with reference proof (Objective 4).
- */
+// Submit online payment proof
 export const submitOnlinePayment = async (
   payment: OnlinePaymentSubmission
 ): Promise<{ success: boolean; message: string }> => {
@@ -243,9 +225,7 @@ export const submitOnlinePayment = async (
   return { success: true, message: 'Payment recorded and queued for verification.' };
 };
 
-// ------------------------------------------------------------------------------
-// Local Storage Persistence Helpers for Billing
-// ------------------------------------------------------------------------------
+// Local storage helpers for invoices
 const INVOICES_STORAGE_KEY = 'dragon_treasure_invoices';
 
 export const getLocalInvoices = (): ClientInvoice[] => {

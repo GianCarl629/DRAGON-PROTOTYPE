@@ -1,22 +1,9 @@
-/**
- * ==============================================================================
- * Live Room Inventory Service (Objective 1)
- * ==============================================================================
- * Purpose:
- * 1. Fetches real-time room listings, rates, and capacities from Supabase (`public.rooms`).
- * 2. Falls back seamlessly to baseline room fixtures when Supabase is not yet connected.
- * 3. Allows the database admin to update room rates or add units in Supabase,
- *    instantly reflecting on the website without code changes.
- * ==============================================================================
- */
-
+// Room inventory service for Supabase rooms table and fallback
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { SAMPLE_ROOMS } from '../../data/mockData';
 import { Room } from '../../types';
 
-/**
- * Fetches all available rooms from Supabase, or returns baseline rooms if offline.
- */
+// Fetch rooms from Supabase or fallback
 export const fetchRooms = async (): Promise<Room[]> => {
   if (isSupabaseConfigured()) {
     try {

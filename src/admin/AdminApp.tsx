@@ -67,7 +67,7 @@ export const AdminApp: React.FC = () => {
     });
   };
 
-  // --- Handlers for Admin Operations ---
+  // Handlers for admin operations
 
   const handleLoginSuccess = (user: string) => {
     AdminDataManager.setAdminSession(user);

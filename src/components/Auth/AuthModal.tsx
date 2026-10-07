@@ -206,9 +206,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           )}
 
-          {/* ============================================================ */}
-          {/* MODE 1: PROMPT MODE (Login Required Banner)                   */}
-          {/* ============================================================ */}
+          {/* Login prompt */}
           {mode === 'prompt' && (
             <div className="space-y-5 py-2">
               <div className="text-center space-y-2">
@@ -258,9 +256,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           )}
 
-          {/* ============================================================ */}
-          {/* MODE 2: LOGIN FORM                                           */}
-          {/* ============================================================ */}
+          {/* Login form */}
           {mode === 'login' && (
             <div className="space-y-4">
               <div>
@@ -369,9 +365,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           )}
 
-          {/* ============================================================ */}
-          {/* MODE 3: REGISTER FORM                                        */}
-          {/* ============================================================ */}
+          {/* Register form */}
           {mode === 'register' && (
             <div className="space-y-4">
               <div>
@@ -516,9 +510,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           )}
 
-          {/* ============================================================ */}
-          {/* MODE 4: FORGOT PASSWORD                                      */}
-          {/* ============================================================ */}
+          {/* Forgot password form */}
           {mode === 'forgot' && (
             <div className="space-y-4">
               <div>

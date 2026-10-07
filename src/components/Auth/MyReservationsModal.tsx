@@ -1,20 +1,4 @@
-/**
- * ==============================================================================
- * Unified Client Dashboard & Management Portal (Objective 4)
- * ==============================================================================
- * Purpose:
- * Provides a single, integrated customer web portal where all clients can:
- * 1. Monitor live booking status & stay details in real-time (Objective 1).
- * 2. View automated invoices with itemized water & electric meter computations (Objective 2).
- * 3. Upload online payments (GCash, Maya, Bank Transfer) with reference verification (Objective 4).
- * 
- * Supabase Integration:
- * - Table `public.reservations`: Real-time booking history & cancellation
- * - Table `public.invoices`: Automated rent & utility readings breakdown
- * - Table `public.payments`: Payment transaction proof submissions
- * ==============================================================================
- */
-
+// Client dashboard modal for bookings, invoices, and online payments
 import React, { useState, useEffect } from 'react';
 import { 
   X, 
@@ -141,7 +125,7 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
 
   if (!isOpen) return null;
 
-  // --- Handlers: Bookings Tab ---
+  // Handlers for bookings tab
   const toggleDetails = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
@@ -183,7 +167,7 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
     setTimeout(() => setCancelFeedback(null), 4000);
   };
 
-  // --- Handlers: Online Payment Tab ---
+  // Handlers for online payment tab
   const handleInitiatePaymentForInvoice = (inv: ClientInvoice) => {
     setSelectedInvoiceForPayment(inv.id);
     setPaymentAmount(inv.totalAmount);
@@ -315,7 +299,7 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
           </button>
         </div>
 
-        {/* Tab 1: Stays & Bookings (Objective 1) */}
+        {/* Bookings tab */}
         {activeTab === 'bookings' && (
           <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
             {cancelFeedback && (
@@ -513,7 +497,7 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
           </div>
         )}
 
-        {/* Tab 2: Automated Invoices & Utility Readings (Objective 2) */}
+        {/* Invoices tab */}
         {activeTab === 'billing' && (
           <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
             <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-2xl text-xs text-amber-950 flex items-center justify-between gap-2">
@@ -639,7 +623,7 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
           </div>
         )}
 
-        {/* Tab 3: Upload Online Payment Portal (Objective 4) */}
+        {/* Online payment tab */}
         {activeTab === 'payment' && (
           <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
             {paymentSuccessMsg && (

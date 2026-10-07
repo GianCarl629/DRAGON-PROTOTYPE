@@ -1,11 +1,4 @@
-/**
- * Dragon Treasure Transient & Condotel - System Data & Baseline Fixtures
- * 
- * Purpose:
- * Provides official property information, standard room inventory,
- * amenities list, policies, and Baguio landmark coordinates.
- * Structured to sync directly with Supabase Database tables (`rooms`, `profiles`, `utility_rates`).
- */
+// Property information, room inventory, and policies
 
 import { Room, Amenity, FAQItem, ContactInfo } from '../types';
 
@@ -18,11 +11,7 @@ export const PROPERTY_INFO = {
   aboutStory: "Nestled in the cool heights of Baguio City, Dragon Treasure Transient & Condotel serves both vacationers seeking a peaceful mountain getaway and students or reviewees needing long-term dormitory living. Combining home-style warmth with condotel conveniences, we provide an accessible, secure, and relaxing haven in the City of Pines."
 };
 
-/**
- * Property Room Inventory & Rates
- * Mapped to Supabase table: `public.rooms`
- * White walls, white square floor tiles, dark wood accents, matte black industrial fixtures, and red accents.
- */
+// Room inventory and rates
 export const SAMPLE_ROOMS: Room[] = [
   {
     id: "room-a-twin",
@@ -163,9 +152,7 @@ export interface SharedUnitAmenity {
   category: 'Lounge' | 'Dining & Kitchen' | 'Comfort' | 'Security';
 }
 
-/**
- * SHARED AMENITIES (Common Area per Unit)
- */
+// Shared amenities for common areas
 export const SHARED_UNIT_AMENITIES: SharedUnitAmenity[] = [
   {
     id: "sh-lounge",
@@ -212,9 +199,7 @@ export const SHARED_UNIT_AMENITIES: SharedUnitAmenity[] = [
   }
 ];
 
-/**
- * PROPERTY AMENITIES & INCLUSIONS
- */
+// Property amenities and inclusions
 export const SAMPLE_AMENITIES: Amenity[] = [
   {
     id: "am-wifi",
@@ -267,9 +252,7 @@ export const SAMPLE_AMENITIES: Amenity[] = [
   }
 ];
 
-/**
- * PROPERTY FREQUENTLY ASKED QUESTIONS
- */
+// Frequently asked questions
 export const SAMPLE_FAQS: FAQItem[] = [
   {
     id: "faq-1",
@@ -298,9 +281,7 @@ export const SAMPLE_FAQS: FAQItem[] = [
   }
 ];
 
-/**
- * PROPERTY POLICIES & GUIDELINES
- */
+// Property policies and guidelines
 export const PROPERTY_POLICIES = {
   checkInTime: "2:00 PM",
   checkOutTime: "12:00 PM",
@@ -312,10 +293,7 @@ export const PROPERTY_POLICIES = {
   bookingProcess: "Guests select a room, choose check-in/check-out dates, enter their name and contact information, and submit a reservation request. The booking is confirmed after approval."
 };
 
-/**
- * OFFICIAL PROPERTY CONTACT INFORMATION
- * Dragon Treasure Transient & Condotel Front Desk
- */
+// Contact information
 export const PROPERTY_CONTACT: ContactInfo = {
   phone: "0907 861 4267",
   email: "sannycariaso24@gmail.com",
@@ -329,9 +307,7 @@ export const PROPERTY_CONTACT: ContactInfo = {
 
 export const DEMO_CONTACT: ContactInfo = PROPERTY_CONTACT;
 
-/**
- * NEARBY BAGUIO LANDMARKS (FROM ENGINEERS' HILL)
- */
+// Nearby landmarks in Baguio
 export const BAGUIO_LANDMARKS = [
   { 
     id: "sm-baguio",
