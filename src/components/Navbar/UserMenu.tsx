@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, CalendarCheck, LogOut, ChevronDown, Award, MousePointer2 } from 'lucide-react';
+import { User, CalendarCheck, LogOut, ChevronDown, Award, MousePointer2, MessageSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { CursorPreference, getCursorPreference, setCursorPreference } from '../../services/cursorService';
 
@@ -124,6 +124,19 @@ export const UserMenu: React.FC = () => {
             >
               <User className="w-4 h-4 text-pine-700 group-hover:text-gold-600 transition-colors" />
               <span>My Profile</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                const el = document.getElementById('inquire');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:text-pine-950 hover:bg-stone-100/80 transition-colors flex items-center gap-2 group cursor-pointer"
+            >
+              <MessageSquare className="w-4 h-4 text-pine-700 group-hover:text-gold-600 transition-colors" />
+              <span>Send Concierge Inquiry</span>
             </button>
           </div>
 

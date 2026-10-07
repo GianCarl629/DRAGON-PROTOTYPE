@@ -21,8 +21,9 @@ import {
   MapPin
 } from 'lucide-react';
 import { AdminStoreState } from '../data/adminMockData';
-import { getAttentionItems } from '../data/adminAnalytics';
 import { CursorSettingsDropdown } from '../../components/UI/CursorSettingsDropdown';
+import { RealtimeCalendarDropdown } from './RealtimeCalendarDropdown';
+import { AdminNotificationsDropdown } from './AdminNotificationsDropdown';
 
 interface AdminLayoutProps {
   activeTab: string;
@@ -54,7 +55,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   children
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Dynamic counts for notification badges
@@ -62,13 +62,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   const newInquiriesCount = store.inquiries.filter(i => i.status === 'New').length;
   const overdueBillingCount = store.billing.filter(b => b.paymentStatus === 'Pending' || b.paymentStatus === 'Overdue').length;
 
-  const attentionItems = getAttentionItems(store);
-  const totalNotifications = attentionItems.length;
-
   const handleNavClick = (tabId: string, filter?: string) => {
     onSelectTab(tabId, filter);
     setIsMobileMenuOpen(false);
-    setIsNotificationsOpen(false);
   };
 
   // Grouped Navigation Structure as required in Section 23
@@ -333,68 +329,19 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             </div>
           </div>
 
-          {/* Right Header Controls: Date, Attention Notification Bell, Cursor, Admin Profile */}
-          <div className="flex items-center gap-2.5 sm:gap-4 text-xs">
-            {/* Current Operational Date (October 5, 2026) */}
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold-50/80 border border-gold-300 text-pine-950 text-[11px] font-medium shadow-2xs">
-              <Calendar className="w-3.5 h-3.5 text-pine-700" />
-              <span>October 5, 2026</span>
-            </div>
+          {/* Right Header Controls: Realtime PHT Calendar, 10x Notifications, Cursor, Admin Profile */}
+          <div className="flex items-center gap-2 sm:gap-3.5 text-xs">
+            {/* Real-time Philippine Standard Time Calendar & Clock Widget */}
+            <RealtimeCalendarDropdown
+              reservations={store.reservations}
+              onSelectDateFilter={(d) => onSelectTab('reservations', d)}
+            />
 
-            {/* Notification Indicator with Dropdown */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="relative w-9 h-9 rounded-xl bg-stone-100 hover:bg-stone-200 text-pine-950 flex items-center justify-center cursor-pointer border border-stone-200 transition-colors"
-                aria-label="View notifications"
-              >
-                <Bell className="w-4 h-4 text-slate-700" />
-                {totalNotifications > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center border border-white animate-pulse">
-                    {totalNotifications}
-                  </span>
-                )}
-              </button>
-
-              {/* Notification Popover Dropdown */}
-              {isNotificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#fffdfa] rounded-2xl border-2 border-gold-300 shadow-xl p-4 space-y-3 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="flex items-center justify-between pb-2 border-b border-gold-200">
-                    <span className="font-serif font-bold text-sm text-pine-950">
-                      Operational Alerts
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                      {totalNotifications} Pending
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    {attentionItems.length === 0 ? (
-                      <p className="text-xs text-slate-500 py-3 text-center">
-                        All pending actions are completed.
-                      </p>
-                    ) : (
-                      attentionItems.map((item) => (
-                        <div
-                          key={item.id}
-                          onClick={() => handleNavClick(item.targetTab, item.targetFilter)}
-                          className="p-2.5 rounded-xl bg-stone-50 hover:bg-gold-50/70 border border-stone-200 hover:border-gold-300 transition-all cursor-pointer flex items-center justify-between text-xs"
-                        >
-                          <div>
-                            <div className="font-bold text-slate-900">{item.title}</div>
-                            <div className="text-[11px] text-slate-500">{item.count} items require review</div>
-                          </div>
-                          <span className="font-bold text-[11px] text-pine-800 hover:underline">
-                            {item.actionLabel} →
-                          </span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* 10x Operational Alerts & Notification Dropdown */}
+            <AdminNotificationsDropdown
+              store={store}
+              onNavigateTab={(tab, filter) => onSelectTab(tab, filter)}
+            />
 
             {/* Quick Cursor Control */}
             <CursorSettingsDropdown />

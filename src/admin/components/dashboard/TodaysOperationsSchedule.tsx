@@ -10,6 +10,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { AdminReservation } from '../../data/adminMockData';
+import { getPhilippineNow } from '../../../utils/philippineTime';
 
 interface TodaysOperationsScheduleProps {
   reservations: AdminReservation[];
@@ -37,8 +38,9 @@ export const TodaysOperationsSchedule: React.FC<TodaysOperationsScheduleProps> =
 }) => {
   const [filterType, setFilterType] = useState<'all' | 'check-in' | 'check-out'>('all');
 
-  // Derive schedule items from reservations (reference date: 2026-10-05)
-  const todayDateStr = '2026-10-05';
+  // Real-time Philippine date
+  const pht = getPhilippineNow();
+  const todayDateStr = pht.isoDateStr;
 
   const scheduleItems: ScheduleItem[] = [];
 
@@ -104,7 +106,7 @@ export const TodaysOperationsSchedule: React.FC<TodaysOperationsScheduleProps> =
               </h3>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Scheduled arrivals, front-desk key releases, and room check-outs
+              Scheduled arrivals, front-desk key releases, and room check-outs for {pht.shortDateStr}
             </p>
           </div>
 

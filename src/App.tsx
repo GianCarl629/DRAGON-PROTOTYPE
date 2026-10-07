@@ -15,6 +15,8 @@ import { ChatbotWidget } from './components/Chatbot/ChatbotWidget';
 import { AuthModal } from './components/Auth/AuthModal';
 import { MyReservationsModal } from './components/Auth/MyReservationsModal';
 import { MyProfileModal } from './components/Auth/MyProfileModal';
+import { InquirySection } from './components/Inquiry/InquirySection';
+import { InquiryModal } from './components/Inquiry/InquiryModal';
 import { BookingFormData } from './types';
 
 function AppContent() {
@@ -44,6 +46,21 @@ function AppContent() {
   // Success modal state
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
   const [submittedBooking, setSubmittedBooking] = useState<BookingFormData | null>(null);
+
+  // Inquiry modal state (only for logged-in or registered accounts)
+  const [isInquiryOpen, setIsInquiryOpen] = useState(false);
+  const [inquiryRoomType, setInquiryRoomType] = useState<string | undefined>(undefined);
+  const [inquiryTopic, setInquiryTopic] = useState<string | undefined>(undefined);
+
+  const handleOpenInquiry = (roomType?: string, topic?: string) => {
+    if (!isLoggedIn) {
+      openAuthModal('login');
+      return;
+    }
+    setInquiryRoomType(roomType);
+    setInquiryTopic(topic);
+    setIsInquiryOpen(true);
+  };
 
   // Chatbot trigger state
   const [chatTrigger, setChatTrigger] = useState(false);
@@ -111,7 +128,10 @@ function AppContent() {
   return (
     <div className="min-h-screen flex flex-col bg-cream-50 text-slate-800 font-sans selection:bg-pine-200 selection:text-pine-900 relative">
       {/* Top Navigation with Auth state and user menu */}
-      <Navbar onOpenBooking={handleOpenBooking} />
+      <Navbar 
+        onOpenBooking={handleOpenBooking} 
+        onOpenInquiry={handleOpenInquiry} 
+      />
 
       {/* Main Page Content - Publicly accessible without restrictions */}
       <main className="flex-1">
@@ -119,11 +139,16 @@ function AppContent() {
           onOpenBooking={handleOpenBooking}
           onOpenChat={handleOpenChat}
         />
-        <RoomSection onOpenBooking={handleOpenBooking} />
+        <RoomSection 
+          onOpenBooking={handleOpenBooking} 
+          onOpenInquiry={isLoggedIn ? handleOpenInquiry : undefined} 
+        />
         <AmenitiesSection />
         <WhyChooseUs />
         <AboutSection />
         <LocationSection />
+        {/* Inquiry Section: Only visible for logged-in or registered accounts */}
+        {isLoggedIn && <InquirySection />}
         <FAQSection />
       </main>
 
@@ -169,6 +194,16 @@ function AppContent() {
         onClose={() => setIsSuccessOpen(false)}
         bookingData={submittedBooking}
       />
+
+      {/* Guest Inquiry Modal: Only accessible for logged-in accounts */}
+      {isLoggedIn && (
+        <InquiryModal
+          isOpen={isInquiryOpen}
+          onClose={() => setIsInquiryOpen(false)}
+          preSelectedRoom={inquiryRoomType}
+          preSelectedTopic={inquiryTopic}
+        />
+      )}
 
       {/* Floating Chatbot Widget (Independent & Abstracted) */}
       <ChatbotWidget externalOpenTrigger={chatTrigger} />

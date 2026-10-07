@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
-import { 
-  CalendarCheck2, 
-  Search, 
-  Filter, 
-  CheckCircle2, 
-  Clock, 
-  XCircle, 
-  Eye, 
-  Edit3, 
-  Plus, 
-  Trash2, 
-  User, 
-  Phone, 
-  Mail, 
-  Calendar, 
-  BedDouble, 
+import {
+  CalendarCheck2,
+  Search,
+  Filter,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  Eye,
+  Edit3,
+  Plus,
+  Trash2,
+  User,
+  Phone,
+  Mail,
+  Calendar,
+  BedDouble,
   CreditCard,
   AlertTriangle,
   X,
@@ -54,31 +54,31 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
   //PARA KUMUHA NG LIVE DATA FROM SUPABASE
   const [liveReservations, setLiveReservations] = useState<any[]>([]);
 
-const fetchReservations = async () => {
+  const fetchReservations = async () => {
     const { data, error } = await supabase.from('reservations').select('*');
-    
+
     if (data) {
       const formattedData = data.map((res: any) => ({
         ...res,
         // Dito natin itinutugma ang pangalan mula sa Supabase papunta sa UI mo
         reservationCode: String(res.reservation_code || ''),
         guestName: String(res.guest_name || ''),
-        roomName: String(res.room_id || ''), 
-        email: String(res.guest_email || ''), 
-        phone: String(res.guest_phone || ''), 
-        checkIn: String(res.check_in_date || ''), 
-        checkOut: String(res.check_out_date || ''), 
+        roomName: String(res.room_id || ''),
+        email: String(res.guest_email || ''),
+        phone: String(res.guest_phone || ''),
+        checkIn: String(res.check_in_date || ''),
+        checkOut: String(res.check_out_date || ''),
         status: String(res.status || 'Pending Review'),
         paymentStatus: 'Pending', // Default muna dahil walang payment status column
         ratePeriod: 'night',
-        category: String(res.stay_type || ''), 
+        category: String(res.stay_type || ''),
         specialRequests: String(res.special_requests || ''),
         cancellationReason: String(res.cancellation_reason || ''),
-        
+
         // Mga numero
-        rate: Number(res.rate_applied) || 0, 
-        guests: Number(res.number_of_guests) || 1, 
-        totalAmount: Number(res.total_price) || 0 
+        rate: Number(res.rate_applied) || 0,
+        guests: Number(res.number_of_guests) || 1,
+        totalAmount: Number(res.total_price) || 0
       }));
       setLiveReservations(formattedData);
     }
@@ -246,14 +246,14 @@ const fetchReservations = async () => {
 
   return (
     <div className="space-y-6">
-      
+
       {/* Top Header & New Reservation Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="font-serif font-bold text-2xl text-pine-950 flex items-center gap-2">
             <span>Reservation Management</span>
             <span className="text-xs font-sans font-bold px-2.5 py-0.5 rounded-full bg-gold-100 text-pine-900 border border-gold-300">
-              
+
               {liveReservations.length} Bookings
             </span>
           </h2>
@@ -275,7 +275,7 @@ const fetchReservations = async () => {
       {/* Filter and Search Bar */}
       <div className="p-4 rounded-3xl bg-[#fffdfa] border border-gold-200/90 shadow-card space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-          
+
           {/* Search Box */}
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -297,17 +297,15 @@ const fetchReservations = async () => {
                 key={tab}
                 type="button"
                 onClick={() => setStatusFilter(tab)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                  statusFilter === tab
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${statusFilter === tab
                     ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:text-pine-900 hover:bg-gold-50'
-                }`}
+                  }`}
               >
                 {tab}
                 {tab === 'Pending Review' && (
-                  <span className={`ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                    statusFilter === tab ? 'bg-pine-950 text-gold-300' : 'bg-amber-100 text-amber-900'
-                  }`}>
+                  <span className={`ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${statusFilter === tab ? 'bg-pine-950 text-gold-300' : 'bg-amber-100 text-amber-900'
+                    }`}>
                     {liveReservations.filter(r => r.status === 'Pending Review').length}
                   </span>
                 )}
@@ -355,7 +353,7 @@ const fetchReservations = async () => {
               ) : (
                 filteredReservations.map((res) => (
                   <tr key={res.id} className="hover:bg-gold-50/40 transition-colors">
-                    
+
                     {/* ID */}
                     <td className="py-3.5 px-4 font-mono font-bold text-pine-900 whitespace-nowrap">
                       {res.reservationCode}
@@ -412,13 +410,12 @@ const fetchReservations = async () => {
                       <select
                         value={res.paymentStatus}
                         onChange={(e) => onUpdatePayment(res.id, e.target.value as any)}
-                        className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border cursor-pointer focus:outline-none bg-stone-50 ${
-                          res.paymentStatus === 'Paid'
+                        className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border cursor-pointer focus:outline-none bg-stone-50 ${res.paymentStatus === 'Paid'
                             ? 'text-emerald-800 border-emerald-300 bg-emerald-50/70'
                             : res.paymentStatus === 'Pending' || res.paymentStatus === 'Partial'
-                            ? 'text-amber-800 border-amber-300 bg-amber-50/70'
-                            : 'text-rose-800 border-rose-300 bg-rose-50/70'
-                        }`}
+                              ? 'text-amber-800 border-amber-300 bg-amber-50/70'
+                              : 'text-rose-800 border-rose-300 bg-rose-50/70'
+                          }`}
                       >
                         <option value="Paid">Paid</option>
                         <option value="Pending">Pending</option>
@@ -430,7 +427,7 @@ const fetchReservations = async () => {
                     {/* Admin Actions */}
                     <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="inline-flex items-center gap-1.5">
-                        
+
                         {/* Quick Approve if Pending */}
                         {res.status === 'Pending Review' && (
                           <button
@@ -589,7 +586,7 @@ const fetchReservations = async () => {
                 <button
                   type="button"
                   onClick={() => {
-                    onConfirm(handleLiveConfirm.id);
+                    handleLiveConfirm(selectedReservation.id);
                     setIsViewModalOpen(false);
                   }}
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer"

@@ -17,9 +17,10 @@ import { CursorSettingsDropdown } from '../UI/CursorSettingsDropdown';
 
 interface NavbarProps {
   onOpenBooking: (roomType?: string) => void;
+  onOpenInquiry?: (roomType?: string, topic?: string) => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking, onOpenInquiry }) => {
   const {
     isLoggedIn,
     user,
@@ -39,7 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
       setIsScrolled(window.scrollY > 20);
 
       // Simple active section detection
-      const sections = ['home', 'rooms', 'amenities', 'why-us', 'about', 'location', 'faq'];
+      const sections = ['home', 'rooms', 'amenities', 'why-us', 'about', 'location', 'inquire', 'faq'];
       const scrollPosition = window.scrollY + 100;
       for (const section of sections) {
         const el = document.getElementById(section);
@@ -64,6 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
     { name: 'Why Us', href: '#why-us', id: 'why-us' },
     { name: 'About', href: '#about', id: 'about' },
     { name: 'Location', href: '#location', id: 'location' },
+    ...(isLoggedIn ? [{ name: 'Inquire', href: '#inquire', id: 'inquire' }] : []),
     { name: 'FAQs', href: '#faq', id: 'faq' },
   ];
 

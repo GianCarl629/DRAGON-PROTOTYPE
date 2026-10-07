@@ -8,9 +8,10 @@ import { fetchRooms } from '../../services/db/roomService';
 
 interface RoomSectionProps {
   onOpenBooking: (roomType?: string) => void;
+  onOpenInquiry?: (roomType?: string) => void;
 }
 
-export const RoomSection: React.FC<RoomSectionProps> = ({ onOpenBooking }) => {
+export const RoomSection: React.FC<RoomSectionProps> = ({ onOpenBooking, onOpenInquiry }) => {
   const [rooms, setRooms] = useState<Room[]>(SAMPLE_ROOMS);
   const [activeCategory, setActiveCategory] = useState<RoomCategory>('all');
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
@@ -133,12 +134,21 @@ export const RoomSection: React.FC<RoomSectionProps> = ({ onOpenBooking }) => {
             >
               Call {PROPERTY_CONTACT.phone}
             </a>
-            <button
-              onClick={() => onOpenBooking()}
-              className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-pine-950 bg-white hover:bg-gold-300 active:scale-95 shadow-md border border-white/90 transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>Direct Inquiry</span>
-            </button>
+            {onOpenInquiry ? (
+              <button
+                onClick={() => onOpenInquiry()}
+                className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-pine-950 bg-white hover:bg-gold-300 active:scale-95 shadow-md border border-white/90 transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Direct Inquiry</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => onOpenBooking()}
+                className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-pine-950 bg-white hover:bg-gold-300 active:scale-95 shadow-md border border-white/90 transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Book Reservation</span>
+              </button>
+            )}
           </div>
         </div>
 

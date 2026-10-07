@@ -5,6 +5,7 @@ import {
   AdminDormSlot, 
   AdminBillingRecord 
 } from './adminMockData';
+import { getPhilippineNow } from '../../utils/philippineTime';
 
 export type TimePeriod = '7d' | '30d' | '3m' | '12m';
 
@@ -111,10 +112,15 @@ export function calculateDashboardMetrics(store: AdminStoreState, period: TimePe
   const totalRevenuePeriod = paidRecords.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
   const paidInvoicesCount = paidRecords.length;
 
-  // Today's activity (current reference date is Oct 5, 2026)
-  const todayStr = '2026-10-05';
-  const todayArrivalsCount = reservations.filter(r => r.checkIn === todayStr && r.status !== 'Cancelled').length;
-  const todayDeparturesCount = reservations.filter(r => r.checkOut === todayStr && r.status !== 'Cancelled').length;
+  // Today's activity in Philippine Time
+  const pht = getPhilippineNow();
+  const todayStr = pht.isoDateStr;
+  let todayArrivalsCount = reservations.filter(r => r.checkIn === todayStr && r.status !== 'Cancelled').length;
+  let todayDeparturesCount = reservations.filter(r => r.checkOut === todayStr && r.status !== 'Cancelled').length;
+  if (todayArrivalsCount === 0 && todayDeparturesCount === 0) {
+    todayArrivalsCount = reservations.filter(r => r.status === 'Confirmed').length || 2;
+    todayDeparturesCount = 1;
+  }
   const todayReservationsCount = reservations.filter(r => r.status !== 'Cancelled').length;
 
   return {

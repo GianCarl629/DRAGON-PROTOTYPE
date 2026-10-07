@@ -1,8 +1,10 @@
 import React from 'react';
 import { Phone, Mail, Clock, MapPin, ExternalLink, ShieldCheck, Heart, ArrowUp, Sparkles } from 'lucide-react';
 import { DEMO_CONTACT, PROPERTY_INFO } from '../../data/mockData';
+import { useAuth } from '../../context/AuthContext';
 
 export const Footer: React.FC = () => {
+  const { isLoggedIn } = useAuth();
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -60,6 +62,9 @@ export const Footer: React.FC = () => {
               <li><a href="#why-us" className="hover:text-gold-300 transition-colors block py-0.5">Why Choose Us</a></li>
               <li><a href="#about" className="hover:text-gold-300 transition-colors block py-0.5">About Property</a></li>
               <li><a href="#location" className="hover:text-gold-300 transition-colors block py-0.5">Location & Map</a></li>
+              {isLoggedIn && (
+                <li><a href="#inquire" className="hover:text-gold-300 transition-colors block py-0.5">Concierge & Inquiries</a></li>
+              )}
               <li><a href="#faq" className="hover:text-gold-300 transition-colors block py-0.5">Frequently Asked Questions</a></li>
             </ul>
           </div>
