@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { AdminReservation } from '../data/adminMockData';
 import { SAMPLE_ROOMS } from '../../data/mockData';
+import { supabase } from '../../lib/supabase';
 
 interface ReservationsViewProps {
   reservations: AdminReservation[];
@@ -49,6 +50,60 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
     (initialFilter as any) || 'All'
   );
   const [categoryFilter, setCategoryFilter] = useState<'All' | 'transient' | 'dormitory'>('All');
+
+  //PARA KUMUHA NG LIVE DATA FROM SUPABASE
+  const [liveReservations, setLiveReservations] = useState<any[]>([]);
+
+const fetchReservations = async () => {
+    const { data, error } = await supabase.from('reservations').select('*');
+    
+    if (data) {
+      const formattedData = data.map((res: any) => ({
+        ...res,
+        // Dito natin itinutugma ang pangalan mula sa Supabase papunta sa UI mo
+        reservationCode: String(res.reservation_code || ''),
+        guestName: String(res.guest_name || ''),
+        roomName: String(res.room_id || ''), 
+        email: String(res.guest_email || ''), 
+        phone: String(res.guest_phone || ''), 
+        checkIn: String(res.check_in_date || ''), 
+        checkOut: String(res.check_out_date || ''), 
+        status: String(res.status || 'Pending Review'),
+        paymentStatus: 'Pending', // Default muna dahil walang payment status column
+        ratePeriod: 'night',
+        category: String(res.stay_type || ''), 
+        specialRequests: String(res.special_requests || ''),
+        cancellationReason: String(res.cancellation_reason || ''),
+        
+        // Mga numero
+        rate: Number(res.rate_applied) || 0, 
+        guests: Number(res.number_of_guests) || 1, 
+        totalAmount: Number(res.total_price) || 0 
+      }));
+      setLiveReservations(formattedData);
+    }
+  };
+
+  // --- LIVE UPDATE FUNCTIONS PARA SA BUTTONS ---
+  const handleLiveConfirm = async (id: string) => {
+    await supabase.from('reservations').update({ status: 'Confirmed' }).eq('id', id);
+    fetchReservations(); // Para mag-refresh agad ang table
+  };
+
+  const handleLiveCancel = async (id: string, reason: string) => {
+    await supabase.from('reservations').update({ status: 'Cancelled', cancellation_reason: reason }).eq('id', id);
+    fetchReservations();
+  };
+
+  const handleLiveDelete = async (id: string) => {
+    await supabase.from('reservations').delete().eq('id', id);
+    fetchReservations();
+  };
+  // ---------------------------------------------
+
+  React.useEffect(() => {
+    fetchReservations(); // Hugutin ang data pagka-load ng page
+  }, []);
 
   React.useEffect(() => {
     if (initialFilter) {
@@ -100,8 +155,8 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
     }));
   };
 
-  // Filtered reservations
-  const filteredReservations = reservations.filter((r) => {
+  // Filtered reservations, GINAWANG LIVERESERVATIONS ANG RESERVATIONS
+  const filteredReservations = liveReservations.filter((r) => {
     const matchesSearch =
       r.reservationCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -183,7 +238,7 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
 
   const handleConfirmCancelSubmit = () => {
     if (cancellingRes) {
-      onCancel(cancellingRes.id, cancelReason || 'Cancelled by staff administrator');
+      handleLiveCancel(cancellingRes.id, cancelReason || 'Cancelled by staff administrator');
       setCancellingRes(null);
       setCancelReason('');
     }
@@ -198,7 +253,8 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
           <h2 className="font-serif font-bold text-2xl text-pine-950 flex items-center gap-2">
             <span>Reservation Management</span>
             <span className="text-xs font-sans font-bold px-2.5 py-0.5 rounded-full bg-gold-100 text-pine-900 border border-gold-300">
-              {reservations.length} Bookings
+              
+              {liveReservations.length} Bookings
             </span>
           </h2>
           <p className="text-xs text-slate-600">
@@ -252,7 +308,7 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                   <span className={`ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                     statusFilter === tab ? 'bg-pine-950 text-gold-300' : 'bg-amber-100 text-amber-900'
                   }`}>
-                    {reservations.filter(r => r.status === 'Pending Review').length}
+                    {liveReservations.filter(r => r.status === 'Pending Review').length}
                   </span>
                 )}
               </button>
@@ -379,7 +435,7 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                         {res.status === 'Pending Review' && (
                           <button
                             type="button"
-                            onClick={() => onConfirm(res.id)}
+                            onClick={() => handleLiveConfirm(res.id)}
                             className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1"
                             title="Confirm reservation request"
                           >
@@ -421,7 +477,7 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                         ) : (
                           <button
                             type="button"
-                            onClick={() => onDeleteReservation(res.id)}
+                            onClick={() => handleLiveDelete(res.id)}
                             className="p-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer border border-stone-200"
                             title="Remove Record"
                           >
@@ -533,7 +589,7 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    onConfirm(selectedReservation.id);
+                    onConfirm(handleLiveConfirm.id);
                     setIsViewModalOpen(false);
                   }}
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer"

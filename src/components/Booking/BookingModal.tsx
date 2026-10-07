@@ -138,6 +138,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
    * 2. Checks live room availability to prevent double-booking conflicts (Objective 1).
    * 3. Submits reservation record to Supabase database (`public.reservations`).
    */
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
@@ -162,8 +163,20 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         return;
       }
 
+      // --- BAGONG CODE: COMPUTATION NG NIGHTS AT TOTAL PRICE ---
+      const checkIn = new Date(formData.checkInDate);
+      const checkOut = new Date(formData.checkOutDate);
+      let nights = 1; // Default ay 1 night
+      if (!isNaN(checkIn.getTime()) && !isNaN(checkOut.getTime())) {
+        const diffTime = checkOut.getTime() - checkIn.getTime();
+        // I-convert ang milliseconds to days
+        nights = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+      }
+      const computedTotal = (selectedRoomObj.rate || 0) * nights;
+      // --------------------------------------------------------
+
       // Create a confirmed/pending reservation record
-      const newReservation: UserReservation = {
+      const newReservation: any = { // Nilagyan ko ng 'any' muna para hindi mag-error kung wala sa lumang type definition ang totalAmount
         id: `res-${Date.now()}`,
         reservationCode: `DT-2026-${Math.floor(1000 + Math.random() * 9000)}`,
         roomName: formData.roomType,
@@ -171,6 +184,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         roomImage: selectedRoomObj.image,
         rate: selectedRoomObj.rate,
         ratePeriod: selectedRoomObj.ratePeriod,
+        totalAmount: computedTotal, // <-- DITO NATIN IPAPASA ANG COMPUTED TOTAL
         checkInDate: formData.checkInDate,
         checkOutDate: formData.checkOutDate,
         numberOfGuests: formData.numberOfGuests,

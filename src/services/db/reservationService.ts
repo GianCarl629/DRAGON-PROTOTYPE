@@ -87,6 +87,19 @@ export const checkRoomAvailability = async (
 export const createReservationRequest = async (
   reservation: UserReservation
 ): Promise<{ success: boolean; data?: UserReservation; error?: string }> => {
+  
+  // --- BULLETPROOF COMPUTATION (Awtomatikong binibilang ang gabi) ---
+  const checkIn = new Date(reservation.checkInDate);
+  const checkOut = new Date(reservation.checkOutDate);
+  let nights = 1; // Default
+  if (!isNaN(checkIn.getTime()) && !isNaN(checkOut.getTime())) {
+    const diffTime = checkOut.getTime() - checkIn.getTime();
+    nights = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  }
+  // Kung may pinasa na totalAmount mula sa modal, yun ang gagamitin. Kung wala, icocompute niya dito.
+  const finalTotalPrice = (reservation as any).totalAmount || (reservation.rate * nights);
+  // ------------------------------------------------------------------
+
   if (isSupabaseConfigured()) {
     try {
       const { data, error } = await supabase
@@ -103,7 +116,7 @@ export const createReservationRequest = async (
             check_out_date: reservation.checkOutDate,
             number_of_guests: reservation.numberOfGuests,
             rate_applied: reservation.rate,
-            total_price: reservation.rate,
+            total_price: finalTotalPrice, // <--- DITO NA PAPASOK ANG TAMANG TOTAL!
             special_requests: reservation.specialRequests || '',
             status: reservation.status
           }
