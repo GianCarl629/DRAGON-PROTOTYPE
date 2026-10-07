@@ -4,6 +4,7 @@ import { SAMPLE_ROOMS } from '../../data/mockData';
 import { BookingFormData } from '../../types';
 import { UserReservation } from '../../types/auth';
 import { useAuth } from '../../context/AuthContext';
+import { checkRoomAvailability, createReservationRequest } from '../../services/db/reservationService';
 import { RoomDropdown } from '../UI/RoomDropdown';
 import { GuestDropdown } from '../UI/GuestDropdown';
 import { DatePickerInput } from '../UI/DatePickerInput';
@@ -131,16 +132,37 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  /**
+   * Handles booking form submission:
+   * 1. Validates guest inputs, dates, and room capacity.
+   * 2. Checks live room availability to prevent double-booking conflicts (Objective 1).
+   * 3. Submits reservation record to Supabase database (`public.reservations`).
+   */
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
 
-      // Create a pending review reservation record for user's booking history
+    try {
+      // Objective 1: Check Live Calendar availability and prevent double bookings
       const selectedRoomObj = SAMPLE_ROOMS.find((r) => r.name === formData.roomType) || SAMPLE_ROOMS[0];
+      const availability = await checkRoomAvailability({
+        roomId: selectedRoomObj.id || formData.roomType.toLowerCase().replace(/\s+/g, '-'),
+        checkInDate: formData.checkInDate,
+        checkOutDate: formData.checkOutDate
+      });
+
+      if (!availability.isAvailable) {
+        setIsSubmitting(false);
+        setErrors((prev) => ({
+          ...prev,
+          checkInDate: availability.message
+        }));
+        return;
+      }
+
+      // Create a confirmed/pending reservation record
       const newReservation: UserReservation = {
         id: `res-${Date.now()}`,
         reservationCode: `DT-2026-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -159,20 +181,29 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         status: 'Pending Review',
         bookedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       };
-      addReservation(newReservation);
 
+      // Persist to database & active user session
+      await createReservationRequest(newReservation);
+      addReservation(newReservation);
+      setIsSubmitting(false);
       onSubmitSuccess(formData);
-    }, 450);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setErrors((prev) => ({
+        ...prev,
+        fullName: 'An error occurred while creating your reservation. Please try again.'
+      }));
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in overflow-hidden">
-      <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] shadow-2xl border border-stone-200/90 flex flex-col overflow-hidden transform-gpu">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in overflow-hidden">
+      <div className="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] sm:max-h-[90vh] shadow-2xl border border-stone-200/90 flex flex-col overflow-hidden transform-gpu">
         
         {/* Pinned Header */}
-        <div className="p-5 sm:p-6 pb-4 border-b border-stone-100 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-gold-500 shadow-glow-gold flex-shrink-0 bg-pine-950">
+        <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-stone-100 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3.5">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden border-2 border-gold-500 shadow-glow-gold flex-shrink-0 bg-pine-950">
               <img
                 src="/dragon-treasure-logo.jpg"
                 alt="Dragon Treasure Logo"
@@ -180,10 +211,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               />
             </div>
             <div>
-              <h2 className="font-serif font-bold text-xl text-pine-950">
+              <h2 className="font-serif font-bold text-lg sm:text-xl text-pine-950 leading-tight">
                 Reservation Request
               </h2>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
                 Dragon Treasure Transient & Condotel • Baguio City
               </p>
             </div>
@@ -191,7 +222,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer flex-shrink-0"
             aria-label="Close modal"
           >
             <X className="w-4 h-4" strokeWidth={2.5} />
@@ -199,19 +230,19 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         </div>
 
         {/* Pinned Selected Room Summary Pill */}
-        <div className="px-5 sm:px-6 py-2.5 bg-gradient-to-r from-pine-50 via-cream-100 to-pine-50 border-b border-pine-100 flex items-center justify-between text-xs text-pine-950 font-semibold flex-shrink-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <BedDouble className="w-4 h-4 text-pine-700" strokeWidth={2} />
-            <span>Selected: {currentRoom.name}</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-gold-300/80 text-gold-900 shadow-2xs">
-              Capacity: {currentRoom.capacityLabel}
+        <div className="px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-pine-50 via-cream-100 to-pine-50 border-b border-pine-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 text-xs text-pine-950 font-semibold flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <BedDouble className="w-3.5 h-3.5 text-pine-700 flex-shrink-0" strokeWidth={2} />
+            <span className="truncate max-w-[200px] sm:max-w-none">Selected: {currentRoom.name}</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-gold-300/80 text-gold-900 shadow-2xs whitespace-nowrap">
+              {currentRoom.capacityLabel}
             </span>
           </div>
-          <span className="text-pine-800 font-bold font-serif">{currentRoom.formattedRate}</span>
+          <span className="text-pine-800 font-bold font-serif whitespace-nowrap">{currentRoom.formattedRate}</span>
         </div>
 
         {/* Scrollable Form Body (Scrollbar strictly contained inside white body) */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 overscroll-contain flex flex-col justify-between">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3.5 sm:space-y-4 overscroll-contain flex flex-col justify-between">
           <div className="space-y-4">
           
           {/* Staff Review Workflow Notice */}

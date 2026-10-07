@@ -107,7 +107,7 @@ export const UserMenu: React.FC = () => {
             >
               <div className="flex items-center gap-2">
                 <CalendarCheck className="w-4 h-4 text-pine-700 group-hover:text-gold-600 transition-colors" />
-                <span>My Reservations</span>
+                <span>Client Dashboard</span>
               </div>
               <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-pine-100 text-pine-900">
                 {reservations.length}

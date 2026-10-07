@@ -28,6 +28,7 @@ function AppContent() {
     setPendingBookingIntent,
     clearPendingBookingIntent,
     isReservationsModalOpen,
+    reservationsModalTab,
     closeReservationsModal,
     isProfileModalOpen,
     closeProfileModal
@@ -76,7 +77,7 @@ function AppContent() {
     setIsBookingOpen(true);
   };
 
-  // Called immediately after demo user logs in or registers
+  // Called immediately after user logs in or registers
   const handleAuthSuccess = () => {
     // If user attempted to book beforehand, automatically resume their reservation
     if (pendingBookingIntent) {
@@ -140,6 +141,7 @@ function AppContent() {
       {/* My Reservations Modal */}
       <MyReservationsModal
         isOpen={isReservationsModalOpen}
+        initialTab={reservationsModalTab}
         onClose={closeReservationsModal}
         onBrowseRooms={handleScrollToRooms}
       />

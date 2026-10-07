@@ -1,20 +1,30 @@
-import React, { useState } from 'react';
-import { SAMPLE_ROOMS } from '../../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { SAMPLE_ROOMS, PROPERTY_CONTACT } from '../../data/mockData';
 import { Room, RoomCategory } from '../../types';
 import { RoomCard } from './RoomCard';
 import { RoomDetailModal } from './RoomDetailModal';
 import { Sparkles, BedDouble, Building, Layers, HelpCircle, PhoneCall } from 'lucide-react';
-import { DEMO_CONTACT } from '../../data/mockData';
+import { fetchRooms } from '../../services/db/roomService';
 
 interface RoomSectionProps {
   onOpenBooking: (roomType?: string) => void;
 }
 
 export const RoomSection: React.FC<RoomSectionProps> = ({ onOpenBooking }) => {
+  const [rooms, setRooms] = useState<Room[]>(SAMPLE_ROOMS);
   const [activeCategory, setActiveCategory] = useState<RoomCategory>('all');
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
 
-  const filteredRooms = SAMPLE_ROOMS.filter((room) => {
+  // Load real-time rooms from Supabase if connected
+  useEffect(() => {
+    fetchRooms().then((loaded) => {
+      if (loaded && loaded.length > 0) {
+        setRooms(loaded);
+      }
+    });
+  }, []);
+
+  const filteredRooms = rooms.filter((room) => {
     if (activeCategory === 'all') return true;
     return room.category === activeCategory;
   });
@@ -23,8 +33,8 @@ export const RoomSection: React.FC<RoomSectionProps> = ({ onOpenBooking }) => {
     onOpenBooking(room.name);
   };
 
-  const transientCount = SAMPLE_ROOMS.filter(r => r.category === 'transient').length;
-  const dormCount = SAMPLE_ROOMS.filter(r => r.category === 'dormitory').length;
+  const transientCount = rooms.filter(r => r.category === 'transient').length;
+  const dormCount = rooms.filter(r => r.category === 'dormitory').length;
 
   return (
     <section id="rooms" className="py-24 bg-stone-50/70 border-t border-stone-200/60 relative overflow-hidden">
@@ -50,42 +60,42 @@ export const RoomSection: React.FC<RoomSectionProps> = ({ onOpenBooking }) => {
         </div>
 
         {/* Category Tabs */}
-        <div className="mt-10 flex justify-center">
-          <div className="inline-flex p-1.5 rounded-full bg-white border border-stone-200 shadow-sm gap-1">
+        <div className="mt-8 sm:mt-10 flex justify-center max-w-full overflow-x-auto no-scrollbar px-2">
+          <div className="inline-flex p-1 sm:p-1.5 rounded-full bg-white border border-stone-200 shadow-sm gap-1 whitespace-nowrap flex-shrink-0">
             <button
               onClick={() => setActiveCategory('all')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
                 activeCategory === 'all'
                   ? 'bg-pine-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-pine-950 hover:bg-stone-50'
               }`}
             >
-              <Layers className="w-3.5 h-3.5" strokeWidth={2} />
+              <Layers className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2} />
               <span>All Rooms ({SAMPLE_ROOMS.length})</span>
             </button>
 
             <button
               onClick={() => setActiveCategory('transient')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
                 activeCategory === 'transient'
                   ? 'bg-pine-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-pine-950 hover:bg-stone-50'
               }`}
             >
-              <BedDouble className="w-3.5 h-3.5" strokeWidth={2} />
-              <span>Transient Lodging ({transientCount})</span>
+              <BedDouble className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2} />
+              <span>Transient ({transientCount})</span>
             </button>
 
             <button
               onClick={() => setActiveCategory('dormitory')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
                 activeCategory === 'dormitory'
                   ? 'bg-pine-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-pine-950 hover:bg-stone-50'
               }`}
             >
-              <Building className="w-3.5 h-3.5" strokeWidth={2} />
-              <span>Monthly Dorms ({dormCount})</span>
+              <Building className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2} />
+              <span>Dormitory ({dormCount})</span>
             </button>
           </div>
         </div>
@@ -118,10 +128,10 @@ export const RoomSection: React.FC<RoomSectionProps> = ({ onOpenBooking }) => {
 
           <div className="flex items-center gap-3 flex-shrink-0">
             <a
-              href={`tel:${DEMO_CONTACT.phone.replace(/\s+/g, '')}`}
+              href={`tel:${PROPERTY_CONTACT.phone.replace(/\s+/g, '')}`}
               className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 transition-colors"
             >
-              Call {DEMO_CONTACT.phone}
+              Call {PROPERTY_CONTACT.phone}
             </a>
             <button
               onClick={() => onOpenBooking()}

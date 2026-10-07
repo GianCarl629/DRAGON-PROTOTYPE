@@ -44,7 +44,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-24 right-4 sm:right-6 z-40 w-[calc(100vw-2rem)] sm:w-[390px] max-w-sm h-[540px] bg-white rounded-3xl shadow-2xl border border-stone-200/90 flex flex-col overflow-hidden animate-fade-in">
+    <div className="fixed bottom-20 sm:bottom-24 right-3 sm:right-6 z-40 w-[calc(100vw-1.5rem)] sm:w-[390px] max-w-sm h-[min(540px,calc(100vh-6.5rem))] bg-white rounded-3xl shadow-2xl border border-stone-200/90 flex flex-col overflow-hidden animate-fade-in">
       
       {/* Header */}
       <div className="bg-gradient-to-r from-pine-950 via-pine-900 to-pine-950 text-white p-4 flex items-center justify-between shadow-xs border-b border-gold-500/30">

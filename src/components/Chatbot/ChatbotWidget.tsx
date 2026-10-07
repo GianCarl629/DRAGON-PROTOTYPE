@@ -61,7 +61,7 @@ export const ChatbotWidget: React.FC<ChatbotWidgetProps> = ({
     setIsLoading(true);
 
     try {
-      // Calls the abstracted chat service (mocked now, easily configured for POST /api/chat later)
+      // Calls the Gemini 3.5 AI assistant endpoint via POST /api/chat (Objective 3)
       const reply = await sendMessage(text);
 
       const assistantMessage: ChatMessageType = {

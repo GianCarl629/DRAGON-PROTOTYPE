@@ -1,22 +1,16 @@
-# Dragon Treasure Project Rules
+# Dragon Treasure Project Architecture & Rules
 
-## Important
-This is a capstone project for Dragon Treasure Transient & Condotel.
+## System Overview
+Dragon Treasure Transient & Condotel Property Management & Online Booking System.
 
-## Current stage
-Prototype only.
+## Primary System Objectives
+1. **Centralized Live Calendar**: Automatically update room availability in real-time, preventing double-booking conflicts across both short-term transient and long-term dormitory stays.
+2. **Automate the Billing Process**: Automatically compute rental rates and utility readings (water and electricity meters), ensuring accurate invoice generation for all occupants without manual calculation.
+3. **Integrate an AI Chat Assistant**: Provide a 24/7 virtual assistant that instantly handles inquiries regarding room rates, availability, and property policies.
+4. **Build a Unified User Dashboard**: Single, integrated portal where all clients can monitor their booking status, inspect automated bills, and upload online payment proofs, paired with a secure administrative portal.
 
-## Demo data
-All room prices, contact details, amenities, policies, and room counts are temporary demonstration data until replaced with verified client information.
-
-## Development principles
-- Do not expose API keys.
-- Do not invent business information.
-- Keep frontend and backend separate.
-- Keep chatbot reusable.
-- Keep business logic outside the AI model.
-- Prefer free/open-source or free-tier services.
-- Avoid unnecessary dependencies.
-- Keep the code understandable.
-- Test changes in the browser.
-- Do not implement features that were not requested.
+## Technical Architecture
+- **Database**: Supabase PostgreSQL with real-time replication and double-booking protection.
+- **Frontend**: Vite + React 18 + TypeScript + Tailwind CSS with high-DPI custom cursor system.
+- **Backend**: Express API server with Google Gemini 3.5 Flash Lite assistant endpoint.
+- **Security**: Strict environment isolation, masked secrets, and Row Level Security (RLS) enforcement.

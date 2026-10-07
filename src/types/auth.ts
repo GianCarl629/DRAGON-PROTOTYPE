@@ -1,4 +1,4 @@
-// Authentication TypeScript Definitions for Dragon Treasure Prototype
+// Authentication TypeScript Definitions for Dragon Treasure Platform
 
 export interface AuthUser {
   id: string;

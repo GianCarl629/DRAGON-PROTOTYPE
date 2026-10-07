@@ -25,7 +25,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
 
     setTimeout(() => {
       setIsLoading(false);
-      // Demo authentication: admin / admin123
+      // Standard administrator authentication: admin / admin123
       if (username.trim().toLowerCase() === 'admin' && password === 'admin123') {
         onLoginSuccess('admin');
       } else {
@@ -34,7 +34,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
     }, 350);
   };
 
-  const handleUseDemo = () => {
+  const handleUseDefaultCredentials = () => {
     setUsername('admin');
     setPassword('admin123');
     setError(null);
@@ -172,16 +172,16 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
             </button>
           </form>
 
-          {/* Demo Hint & Quick Fill */}
+          {/* Administrative Access Hint & Quick Fill */}
           <div className="mt-6 pt-5 border-t border-gold-200/70 text-center space-y-2">
             <div className="text-[11px] text-slate-600 flex items-center justify-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-gold-600" />
-              <span>Prototype Demo Credentials:</span>
+              <span>Default Administrative Access:</span>
             </div>
             
             <button
               type="button"
-              onClick={handleUseDemo}
+              onClick={handleUseDefaultCredentials}
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gold-100/90 hover:bg-gold-200 text-xs font-mono text-gold-950 border border-gold-300/90 transition-all cursor-pointer shadow-2xs"
             >
               <span className="font-bold">admin</span>

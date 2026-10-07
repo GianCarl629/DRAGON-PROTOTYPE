@@ -37,7 +37,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onResetData }) => {
           </span>
         </h2>
         <p className="text-xs text-slate-600">
-          Configure property contact details, front desk reception shift schedules, and prototype data persistence.
+          Configure property contact details, front desk reception shift schedules, and operational parameters.
         </p>
       </div>
 
@@ -121,45 +121,45 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onResetData }) => {
         </div>
       </form>
 
-      {/* Security & Prototype Architecture Notice (Sections 20 & 21) */}
+      {/* Security & System Architecture Notice */}
       <div className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl p-6 space-y-3 shadow-card">
         <h3 className="font-serif font-bold text-base text-pine-950 flex items-center gap-2 pb-2 border-b border-stone-100">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>Security & System Architecture Notice</span>
+          <span>Security & System Architecture</span>
         </h3>
 
         <div className="text-xs text-slate-600 space-y-2 leading-relaxed">
           <p>
-            <strong className="text-pine-950 font-bold">Prototype Separation:</strong> This administrative portal operates as an independent, unlinked frontend route (<code className="text-pine-900 bg-gold-50 border border-gold-200 px-1.5 py-0.5 rounded font-mono">/admin.html</code>) separated from the customer experience.
+            <strong className="text-pine-950 font-bold">Portal Architecture:</strong> This administrative portal operates as an independent, secured route (<code className="text-pine-900 bg-gold-50 border border-gold-200 px-1.5 py-0.5 rounded font-mono">/admin.html</code>) separated from the public customer experience.
           </p>
           <p className="text-slate-500">
-            For production deployment, this interface will connect to server-side role-based authorization (Manager, Receptionist, Administrator) with JWT/session cookies, password hashing, and encrypted database records.
+            Engineered to connect with Supabase for role-based authorization (Manager, Receptionist, Administrator), encrypted database records, live calendar sync, and automated utility calculation.
           </p>
         </div>
       </div>
 
-      {/* Demo Reset Card */}
+      {/* System Fixtures Restoration */}
       <div className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl p-6 space-y-3 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h4 className="font-bold text-sm text-pine-950 flex items-center gap-1.5">
             <RotateCcw className="w-4 h-4 text-rose-600" />
-            <span>Reset Demo Admin Data</span>
+            <span>Restore System Fixtures</span>
           </h4>
           <p className="text-xs text-slate-500 mt-0.5">
-            Restore initial mock reservations, room statuses, dorm slots, and billing records.
+            Reset administrative cache back to standard property inventory, room statuses, and baseline records.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => {
-            if (confirm('Reset admin database to original demo fixtures?')) {
+            if (confirm('Restore baseline system inventory and records?')) {
               onResetData();
             }
           }}
           className="px-4 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-900 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-xs"
         >
-          Reset Demo Data
+          Restore Baseline
         </button>
       </div>
 

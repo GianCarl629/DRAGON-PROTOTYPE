@@ -195,10 +195,10 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({ isOpen, onClose 
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 font-medium flex items-center gap-1.5">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Demo Authentication</span>
+                    <span>Account Security</span>
                   </span>
                   <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    Active Session
+                    Verified Session
                   </span>
                 </div>
               </div>

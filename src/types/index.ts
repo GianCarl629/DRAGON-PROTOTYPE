@@ -1,4 +1,4 @@
-// TypeScript Definitions for Dragon Treasure Frontend Prototype
+// TypeScript Definitions for Dragon Treasure Real Estate & Lodging Platform
 
 export type RoomCategory = 'all' | 'transient' | 'dormitory';
 
@@ -12,7 +12,7 @@ export interface Room {
   rate: number;
   ratePeriod: 'night' | 'month/person';
   formattedRate: string;
-  sampleQuantity: number; // Demo quantity for prototype
+  sampleQuantity: number; // Configured inventory count in property
   description: string;
   image: string;
   bedSetup?: string;

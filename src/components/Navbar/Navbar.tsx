@@ -294,10 +294,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
                   setIsMobileMenuOpen(false);
                   openReservationsModal();
                 }}
-                className="py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-700 bg-stone-50 hover:bg-stone-100 text-center border border-stone-200 flex items-center justify-center gap-1.5"
+                className="py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-700 bg-stone-50 hover:bg-stone-100 text-center border border-stone-200 flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <CalendarCheck className="w-3.5 h-3.5 text-pine-700" />
-                <span>My Bookings ({reservations.length})</span>
+                <span>Client Dashboard</span>
               </button>
               <button
                 type="button"
@@ -305,7 +305,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
                   setIsMobileMenuOpen(false);
                   openProfileModal();
                 }}
-                className="py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-700 bg-stone-50 hover:bg-stone-100 text-center border border-stone-200 flex items-center justify-center gap-1.5"
+                className="py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-700 bg-stone-50 hover:bg-stone-100 text-center border border-stone-200 flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <User className="w-3.5 h-3.5 text-pine-700" />
                 <span>My Profile</span>

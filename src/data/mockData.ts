@@ -1,11 +1,10 @@
 /**
- * MOCK DATA ONLY - Dragon Treasure Transient & Condotel
+ * Dragon Treasure Transient & Condotel - System Data & Baseline Fixtures
  * 
- * IMPORTANT:
- * All room prices, contact details, amenities, policies, and room counts
- * in this file are temporary demonstration data for the frontend prototype.
- * Structure has been designed so that it can easily be swapped with 
- * database queries (e.g. Supabase, Prisma, REST API) in future milestones.
+ * Purpose:
+ * Provides official property information, standard room inventory,
+ * amenities list, policies, and Baguio landmark coordinates.
+ * Structured to sync directly with Supabase Database tables (`rooms`, `profiles`, `utility_rates`).
  */
 
 import { Room, Amenity, FAQItem, ContactInfo } from '../types';
@@ -16,18 +15,12 @@ export const PROPERTY_INFO = {
   tagline: "Comfortable Mountain Lodging & Student Accommodations in the Summer Capital",
   location: "Baguio City, Benguet",
   description: "Dragon Treasure Transient & Condotel is a lodging property in Baguio City that offers short-term accommodations and monthly dormitory rentals.",
-  aboutStory: "Nestled in the cool heights of Baguio City, Dragon Treasure Transient & Condotel serves both vacationers seeking a peaceful mountain getaway and students or reviewees needing long-term dormitory living. Combining home-style warmth with condotel conveniences, we provide an accessible, secure, and relaxing haven in the City of Pines.",
-  isPrototype: true
+  aboutStory: "Nestled in the cool heights of Baguio City, Dragon Treasure Transient & Condotel serves both vacationers seeking a peaceful mountain getaway and students or reviewees needing long-term dormitory living. Combining home-style warmth with condotel conveniences, we provide an accessible, secure, and relaxing haven in the City of Pines."
 };
 
 /**
- * SAMPLE ROOM INVENTORY (DEMO DATA ONLY)
- * Replace with API / Database endpoint: GET /api/rooms
- */
-/**
- * SAMPLE ROOM INVENTORY (DEMO DATA ONLY - Updated Units)
- * 
- * Vibe: Premium, modern minimalist, cozy Baguio feels.
+ * Property Room Inventory & Rates
+ * Mapped to Supabase table: `public.rooms`
  * White walls, white square floor tiles, dark wood accents, matte black industrial fixtures, and red accents.
  */
 export const SAMPLE_ROOMS: Room[] = [
@@ -220,7 +213,7 @@ export const SHARED_UNIT_AMENITIES: SharedUnitAmenity[] = [
 ];
 
 /**
- * SAMPLE AMENITIES (DEMO DATA ONLY - Core Property Inclusions)
+ * PROPERTY AMENITIES & INCLUSIONS
  */
 export const SAMPLE_AMENITIES: Amenity[] = [
   {
@@ -275,7 +268,7 @@ export const SAMPLE_AMENITIES: Amenity[] = [
 ];
 
 /**
- * SAMPLE FAQ & POLICIES (DEMO DATA ONLY)
+ * PROPERTY FREQUENTLY ASKED QUESTIONS
  */
 export const SAMPLE_FAQS: FAQItem[] = [
   {
@@ -306,7 +299,7 @@ export const SAMPLE_FAQS: FAQItem[] = [
 ];
 
 /**
- * SAMPLE PROPERTY POLICIES (DEMO DATA ONLY)
+ * PROPERTY POLICIES & GUIDELINES
  */
 export const PROPERTY_POLICIES = {
   checkInTime: "2:00 PM",
@@ -320,10 +313,10 @@ export const PROPERTY_POLICIES = {
 };
 
 /**
- * DEMO CONTACT INFORMATION (DEMO DATA ONLY)
- * In accordance with PROJECT_RULES.md, these are placeholder demo details.
+ * OFFICIAL PROPERTY CONTACT INFORMATION
+ * Dragon Treasure Transient & Condotel Front Desk
  */
-export const DEMO_CONTACT: ContactInfo = {
+export const PROPERTY_CONTACT: ContactInfo = {
   phone: "0907 861 4267",
   email: "sannycariaso24@gmail.com",
   facebook: "facebook.com/profile.php?id=100063892871886",
@@ -333,6 +326,8 @@ export const DEMO_CONTACT: ContactInfo = {
   city: "Baguio City",
   province: "Benguet, Philippines, 2600"
 };
+
+export const DEMO_CONTACT: ContactInfo = PROPERTY_CONTACT;
 
 /**
  * NEARBY BAGUIO LANDMARKS (FROM ENGINEERS' HILL)

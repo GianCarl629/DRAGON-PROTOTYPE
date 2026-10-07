@@ -15,6 +15,7 @@ import {
   ShieldCheck 
 } from 'lucide-react';
 import { AdminBillingRecord } from '../data/adminMockData';
+import { saveLocalInvoice } from '../../services/db/billingService';
 
 interface BillingViewProps {
   billingRecords: AdminBillingRecord[];
@@ -96,6 +97,23 @@ export const BillingView: React.FC<BillingViewProps> = ({
     };
 
     onAddRecord(newRecord);
+    // Sync invoice to database and client portal (Objective 2 & 4)
+    saveLocalInvoice({
+      id: newRecord.id,
+      invoiceNumber: newRecord.invoiceNumber,
+      tenantOrGuestName: newRecord.tenantOrGuest,
+      roomOrBed: newRecord.roomOrBed,
+      stayType: newRecord.type,
+      billingPeriod: newRecord.billingPeriod,
+      rentAmount: newRecord.rentAmount,
+      waterAmount: newRecord.waterAmount,
+      electricityAmount: newRecord.electricityAmount,
+      depositAmount: newRecord.depositAmount,
+      totalAmount: newRecord.totalAmount,
+      dueDate: newRecord.dueDate,
+      paymentStatus: newRecord.paymentStatus,
+      createdAt: new Date().toISOString()
+    });
     setIsAddModalOpen(false);
   };
 

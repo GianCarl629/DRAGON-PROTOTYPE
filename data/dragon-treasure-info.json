@@ -94,6 +94,13 @@
     "upTo24Hours": "Up to 24 hours before check-in: no cancellation fee",
     "lessThan24Hours": "Less than 24 hours before check-in: may be subject to a cancellation fee"
   },
+  "dormitoryUtilityBilling": {
+    "monthlyRent": "₱3,000/month per occupant",
+    "waterBilling": "Calculated automatically from submeter consumption at ₱45.00 per cubic meter (m³)",
+    "electricityBilling": "Calculated automatically from submeter consumption at ₱14.50 per kilowatt-hour (kWh)",
+    "howDormersViewBills": "Dormers can view their automated monthly utility bill and itemized breakdown by logging into their account on the Dragon Treasure website, clicking their profile icon in the navigation bar, and opening 'Client Dashboard'.",
+    "howDormersPayBills": "Dormers can settle their bills directly online via GCash, Maya, or Bank Transfer by clicking 'Pay Online' inside their Invoices dashboard and submitting the transaction reference number."
+  },
   "contact": {
     "phone": "0907 861 4267",
     "email": "sannycariaso24@gmail.com",

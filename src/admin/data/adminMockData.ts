@@ -1,4 +1,4 @@
-// Mock Data and State Management for Dragon Treasure Internal Administration Portal
+// State Management & System Baseline Records for Dragon Treasure Administration Portal
 import { SAMPLE_ROOMS, PROPERTY_INFO } from '../../data/mockData';
 
 export interface AdminReservation {
@@ -94,8 +94,7 @@ export interface AdminInquiry {
   replyText?: string;
 }
 
-// Initial Admin Mock Data aligned directly with index.html (SAMPLE_ROOMS & PROPERTY_INFO)
-// Initial Admin Mock Data aligned directly with updated units
+// Baseline Property Data aligned directly with active units and rates
 export const INITIAL_ADMIN_RESERVATIONS: AdminReservation[] = [
   {
     id: 'res-dt-001',

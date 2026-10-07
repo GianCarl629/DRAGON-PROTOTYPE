@@ -117,8 +117,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setErrorMsg('Please enter a password.');
       return;
     }
-    if (regPassword.length < 4) {
-      setErrorMsg('Password should be at least 4 characters for this demo.');
+    if (regPassword.length < 6) {
+      setErrorMsg('Password must be at least 6 characters.');
       return;
     }
     if (regPassword !== regConfirmPassword) {
@@ -152,12 +152,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
     setErrorMsg('');
     setForgotSuccess(true);
-  };
-
-  const fillQuickDemo = () => {
-    setLoginEmail('guest@example.com');
-    setLoginPassword('123456');
-    setErrorMsg('');
   };
 
   return (
@@ -195,7 +189,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </div>
 
         {/* Scrollable Modal Content */}
-        <div className="p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
+        <div className="p-4 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
           
           {/* Reservation Intent Pill (Shown if user attempted to book before logging in) */}
           {pendingBookingIntent && (
@@ -352,19 +346,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </button>
               </form>
 
-              {/* Demo Helper Banner */}
-              <div className="p-3 bg-stone-100/80 rounded-xl border border-stone-200/80 text-[11px] text-slate-600 flex items-center justify-between gap-2">
-                <div>
-                  <strong className="text-pine-950 font-semibold block">Demo Prototype Mode:</strong>
-                  <span>Any email & password works (e.g. <code>guest@example.com</code> / <code>123456</code>).</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={fillQuickDemo}
-                  className="px-2.5 py-1 rounded bg-white border border-stone-200 text-pine-900 font-bold hover:bg-stone-50 text-[10px] flex-shrink-0 cursor-pointer shadow-2xs"
-                >
-                  Auto Fill
-                </button>
+              {/* Client Portal Security Notice */}
+              <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/80 text-[11px] text-slate-600 flex items-center gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-pine-700 flex-shrink-0" />
+                <span>Secure client access for reservation tracking, live calendar, and automated billing.</span>
               </div>
 
               {/* Switch to Register */}
@@ -532,7 +517,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           )}
 
           {/* ============================================================ */}
-          {/* MODE 4: FORGOT PASSWORD DEMO                                 */}
+          {/* MODE 4: FORGOT PASSWORD                                      */}
           {/* ============================================================ */}
           {mode === 'forgot' && (
             <div className="space-y-4">
@@ -541,7 +526,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   Reset Password
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 mt-1">
-                  Enter your email address and we'll send demo instructions to reset your password.
+                  Enter your email address and we'll send instructions to reset your password.
                 </p>
               </div>
 
@@ -549,7 +534,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2 text-center">
                   <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
                   <p className="text-xs font-semibold">
-                    Demo reset instructions have been sent to <strong>{forgotEmail}</strong>.
+                    Password reset instructions have been sent to <strong>{forgotEmail}</strong>.
                   </p>
                   <button
                     type="button"

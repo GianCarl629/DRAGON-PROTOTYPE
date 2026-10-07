@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthUser, AuthModalMode, PendingBookingIntent, UserReservation } from '../types/auth';
-import { MockAuthService } from '../services/mockAuth';
+import { AuthService } from '../services/authService';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -33,7 +33,8 @@ interface AuthContextType {
 
   // User Dashboard Modals
   isReservationsModalOpen: boolean;
-  openReservationsModal: () => void;
+  reservationsModalTab: 'bookings' | 'billing' | 'payment';
+  openReservationsModal: (tab?: 'bookings' | 'billing' | 'payment') => void;
   closeReservationsModal: () => void;
   isProfileModalOpen: boolean;
   openProfileModal: () => void;
@@ -43,9 +44,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Temporary demo account starts null on load/refresh
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [reservations, setReservations] = useState<UserReservation[]>([]);
+  // Initialize user from active session if present
+  const [user, setUser] = useState<AuthUser | null>(() => AuthService.getStoredUser());
+  const [reservations, setReservations] = useState<UserReservation[]>(() => AuthService.getStoredReservations());
 
   // Modal controls
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -53,6 +54,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [pendingBookingIntent, setPendingBookingIntent] = useState<PendingBookingIntent | null>(null);
 
   const [isReservationsModalOpen, setIsReservationsModalOpen] = useState(false);
+  const [reservationsModalTab, setReservationsModalTab] = useState<'bookings' | 'billing' | 'payment'>('bookings');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // Sync auth state if URL has #login or #register on load
@@ -75,9 +77,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const login = async (email: string, password: string): Promise<AuthUser> => {
-    const loggedInUser = await MockAuthService.login(email, password);
+    const loggedInUser = await AuthService.login(email, password);
     setUser(loggedInUser);
-    setReservations([]);
+    setReservations(AuthService.getStoredReservations());
     return loggedInUser;
   };
 
@@ -88,15 +90,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     password: string;
     confirmPassword: string;
   }): Promise<AuthUser> => {
-    const newUser = await MockAuthService.register(data);
+    const newUser = await AuthService.register(data);
     setUser(newUser);
-    // Clear any reservations from any previous temporary session
     setReservations([]);
     return newUser;
   };
 
   const logout = () => {
-    MockAuthService.logout();
+    AuthService.logout();
     setUser(null);
     setReservations([]);
     setPendingBookingIntent(null);
@@ -105,17 +106,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const updateUser = (updated: AuthUser) => {
-    MockAuthService.setStoredUser(updated);
+    AuthService.setStoredUser(updated);
     setUser(updated);
   };
 
   const addReservation = (reservation: UserReservation) => {
-    MockAuthService.addReservation(reservation);
+    AuthService.addReservation(reservation);
     setReservations((prev) => [reservation, ...prev]);
   };
 
   const cancelReservation = (id: string, reason?: string) => {
-    MockAuthService.cancelReservation(id, reason);
+    AuthService.cancelReservation(id, reason);
     const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     setReservations((prev) =>
       prev.map((r) =>
@@ -123,7 +124,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           ? {
               ...r,
               status: 'Cancelled',
-              cancellationReason: reason || 'Change in plans',
+              cancellationReason: reason || 'Customer request',
               cancelledAt: today
             }
           : r
@@ -132,7 +133,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteReservation = (id: string) => {
-    MockAuthService.deleteReservation(id);
+    AuthService.deleteReservation(id);
     setReservations((prev) => prev.filter((r) => r.id !== id));
   };
 
@@ -153,7 +154,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setPendingBookingIntent(null);
   };
 
-  const openReservationsModal = () => setIsReservationsModalOpen(true);
+  const openReservationsModal = (tab?: 'bookings' | 'billing' | 'payment') => {
+    if (tab) {
+      setReservationsModalTab(tab);
+    }
+    setIsReservationsModalOpen(true);
+  };
   const closeReservationsModal = () => setIsReservationsModalOpen(false);
 
   const openProfileModal = () => setIsProfileModalOpen(true);
@@ -180,6 +186,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setPendingBookingIntent,
         clearPendingBookingIntent,
         isReservationsModalOpen,
+        reservationsModalTab,
         openReservationsModal,
         closeReservationsModal,
         isProfileModalOpen,

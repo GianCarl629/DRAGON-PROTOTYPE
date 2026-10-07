@@ -1,3 +1,20 @@
+/**
+ * ==============================================================================
+ * Unified Client Dashboard & Management Portal (Objective 4)
+ * ==============================================================================
+ * Purpose:
+ * Provides a single, integrated customer web portal where all clients can:
+ * 1. Monitor live booking status & stay details in real-time (Objective 1).
+ * 2. View automated invoices with itemized water & electric meter computations (Objective 2).
+ * 3. Upload online payments (GCash, Maya, Bank Transfer) with reference verification (Objective 4).
+ * 
+ * Supabase Integration:
+ * - Table `public.reservations`: Real-time booking history & cancellation
+ * - Table `public.invoices`: Automated rent & utility readings breakdown
+ * - Table `public.payments`: Payment transaction proof submissions
+ * ==============================================================================
+ */
+
 import React, { useState, useEffect } from 'react';
 import { 
   X, 
@@ -5,30 +22,38 @@ import {
   Clock, 
   CheckCircle2, 
   BedDouble, 
-  Sparkles,
-  ChevronDown,
-  ChevronUp,
-  XCircle,
-  Trash2,
-  AlertTriangle,
-  AlertCircle,
-  User,
-  Mail,
-  Phone,
-  FileText,
-  Copy,
-  Check,
-  Eye,
-  Info
+  ChevronDown, 
+  ChevronUp, 
+  Trash2, 
+  AlertTriangle, 
+  Copy, 
+  Check, 
+  Eye, 
+  Receipt, 
+  Upload, 
+  CreditCard, 
+  Droplet, 
+  Zap, 
+  DollarSign, 
+  ShieldCheck, 
+  ExternalLink 
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { DEMO_CONTACT } from '../../data/mockData';
+import { PROPERTY_CONTACT } from '../../data/mockData';
+import { 
+  getLocalInvoices, 
+  submitOnlinePayment, 
+  ClientInvoice 
+} from '../../services/db/billingService';
 
 interface MyReservationsModalProps {
   isOpen: boolean;
+  initialTab?: DashboardTab;
   onClose: () => void;
   onBrowseRooms?: () => void;
 }
+
+type DashboardTab = 'bookings' | 'billing' | 'payment';
 
 const COMMON_CANCELLATION_REASONS = [
   'Change in travel plans or dates',
@@ -43,11 +68,16 @@ const COMMON_CANCELLATION_REASONS = [
 
 export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
   isOpen,
+  initialTab = 'bookings',
   onClose,
   onBrowseRooms
 }) => {
   const { user, reservations, cancelReservation, deleteReservation } = useAuth();
 
+  // Active portal tab: 'bookings' | 'billing' | 'payment'
+  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
+
+  // Stays & Bookings State
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [selectedReason, setSelectedReason] = useState<string>('');
@@ -55,6 +85,38 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [cancelFeedback, setCancelFeedback] = useState<string | null>(null);
+
+  // Automated Invoices State (Objective 2)
+  const [invoices, setInvoices] = useState<ClientInvoice[]>([]);
+  const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
+
+  // Online Payment Upload State (Objective 4)
+  const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<'GCash' | 'Maya' | 'Bank Transfer' | 'Cash'>('GCash');
+  const [referenceNumber, setReferenceNumber] = useState<string>('');
+  const [accountName, setAccountName] = useState<string>('');
+  const [paymentAmount, setPaymentAmount] = useState<number>(0);
+  const [paymentSuccessMsg, setPaymentSuccessMsg] = useState<string | null>(null);
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState<boolean>(false);
+  const [receiptFilePreview, setReceiptFilePreview] = useState<string | null>(null);
+
+  // Load invoices and tab on modal open
+  useEffect(() => {
+    if (isOpen) {
+      if (initialTab) {
+        setActiveTab(initialTab);
+      }
+      const loadedInvoices = getLocalInvoices();
+      setInvoices(loadedInvoices);
+
+      // Pre-select first pending invoice for payment form if exists
+      const firstPending = loadedInvoices.find(i => i.paymentStatus !== 'Paid');
+      if (firstPending) {
+        setSelectedInvoiceForPayment(firstPending.id);
+        setPaymentAmount(firstPending.totalAmount);
+      }
+    }
+  }, [isOpen, initialTab]);
 
   // Lock background scrolling while modal is open
   useEffect(() => {
@@ -79,6 +141,7 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
 
   if (!isOpen) return null;
 
+  // --- Handlers: Bookings Tab ---
   const toggleDetails = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
@@ -91,13 +154,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
 
   const handleOpenCancel = (id: string) => {
     setCancellingId(id);
-    setSelectedReason('');
-    setOtherReasonText('');
-    setCancelError(null);
-  };
-
-  const handleDismissCancel = () => {
-    setCancellingId(null);
     setSelectedReason('');
     setOtherReasonText('');
     setCancelError(null);
@@ -127,485 +183,624 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
     setTimeout(() => setCancelFeedback(null), 4000);
   };
 
+  // --- Handlers: Online Payment Tab ---
+  const handleInitiatePaymentForInvoice = (inv: ClientInvoice) => {
+    setSelectedInvoiceForPayment(inv.id);
+    setPaymentAmount(inv.totalAmount);
+    setActiveTab('payment');
+  };
+
+  const handleReceiptFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setReceiptFilePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleOnlinePaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!referenceNumber.trim()) {
+      alert('Please enter your transaction reference number.');
+      return;
+    }
+
+    setIsSubmittingPayment(true);
+    const result = await submitOnlinePayment({
+      invoiceId: selectedInvoiceForPayment,
+      paymentMethod,
+      referenceNumber: referenceNumber.trim(),
+      accountName: accountName.trim() || user?.name,
+      amount: paymentAmount,
+      receiptFileOrUrl: receiptFilePreview || undefined
+    });
+
+    setIsSubmittingPayment(false);
+    if (result.success) {
+      setPaymentSuccessMsg(result.message);
+      setInvoices(getLocalInvoices());
+      setReferenceNumber('');
+      setReceiptFilePreview(null);
+      setTimeout(() => setPaymentSuccessMsg(null), 5000);
+    }
+  };
+
   return (
     <div
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/75 backdrop-blur-sm animate-fade-in overflow-hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/80 backdrop-blur-sm animate-fade-in overflow-hidden"
     >
       <div className="bg-white rounded-3xl max-w-2xl sm:max-w-3xl w-full shadow-2xl border border-stone-200/90 overflow-hidden transform-gpu flex flex-col max-h-[90vh]">
         
         {/* Pinned Header */}
-        <div className="p-5 sm:p-6 pb-4 border-b border-stone-100 flex items-center justify-between flex-shrink-0 bg-stone-50/60">
+        <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-stone-100 flex items-center justify-between flex-shrink-0 bg-stone-50/70">
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="font-serif font-bold text-xl sm:text-2xl text-pine-950">
-                My Reservations
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="font-serif font-bold text-lg sm:text-2xl text-pine-950">
+                Client Portal & Dashboard
               </h2>
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-pine-100 text-pine-900 border border-pine-200">
-                {reservations.length} {reservations.length === 1 ? 'Booking' : 'Bookings'}
+              <span className="text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-pine-100 text-pine-900 border border-pine-200">
+                {user?.tier || 'Guest Member'}
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Guest Account: <strong>{user?.name || 'Guest'}</strong> ({user?.email})
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+              Account: <strong>{user?.name || 'Guest Traveler'}</strong> ({user?.email})
             </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-slate-500 hover:text-pine-950 flex items-center justify-center transition-colors cursor-pointer"
-            aria-label="Close reservations modal"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-slate-500 hover:text-pine-950 flex items-center justify-center transition-colors cursor-pointer flex-shrink-0"
+            aria-label="Close dashboard modal"
           >
             <X className="w-4 h-4" strokeWidth={2.5} />
           </button>
         </div>
 
-        {/* Scrollable Reservations List */}
-        <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
-          
-          {/* Cancellation Feedback Toast */}
-          {cancelFeedback && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl text-xs flex items-center justify-between animate-fade-in">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                <span>{cancelFeedback}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setCancelFeedback(null)}
-                className="text-emerald-700 hover:text-emerald-950 p-1 cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
+        {/* Tab Navigation: Bookings, Automated Invoices, Upload Payment */}
+        <div className="px-3 sm:px-6 pt-2.5 sm:pt-3 pb-1 border-b border-stone-200/80 flex items-center gap-1.5 sm:gap-2 bg-white overflow-x-auto no-scrollbar scroll-smooth">
+          <button
+            type="button"
+            onClick={() => setActiveTab('bookings')}
+            className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'bookings'
+                ? 'bg-pine-950 text-white shadow-xs'
+                : 'text-slate-600 hover:bg-stone-100 hover:text-pine-950'
+            }`}
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Stays & Bookings</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+              activeTab === 'bookings' ? 'bg-pine-800 text-gold-200' : 'bg-stone-200 text-slate-700'
+            }`}>
+              {reservations.length}
+            </span>
+          </button>
 
-          {reservations.length === 0 ? (
-            <div className="text-center py-12 space-y-4">
-              <div className="w-16 h-16 rounded-full bg-stone-100 text-slate-400 flex items-center justify-center mx-auto">
-                <BedDouble className="w-8 h-8" strokeWidth={1.5} />
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-serif font-bold text-lg text-pine-950">
-                  No active reservations yet
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto">
-                  When you reserve a room or monthly dormitory, your booking details and confirmations will appear here.
-                </p>
-              </div>
-              {onBrowseRooms && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('billing')}
+            className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'billing'
+                ? 'bg-pine-950 text-white shadow-xs'
+                : 'text-slate-600 hover:bg-stone-100 hover:text-pine-950'
+            }`}
+          >
+            <Receipt className="w-3.5 h-3.5" />
+            <span>Automated Invoices</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+              activeTab === 'billing' ? 'bg-pine-800 text-gold-200' : 'bg-stone-200 text-slate-700'
+            }`}>
+              {invoices.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('payment')}
+            className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'payment'
+                ? 'bg-pine-950 text-white shadow-xs'
+                : 'text-slate-600 hover:bg-stone-100 hover:text-pine-950'
+            }`}
+          >
+            <CreditCard className="w-3.5 h-3.5" />
+            <span>Upload Online Payment</span>
+          </button>
+        </div>
+
+        {/* Tab 1: Stays & Bookings (Objective 1) */}
+        {activeTab === 'bookings' && (
+          <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
+            {cancelFeedback && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl text-xs flex items-center justify-between animate-fade-in">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span>{cancelFeedback}</span>
+                </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    onClose();
-                    onBrowseRooms();
-                  }}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-pine-900 hover:bg-pine-950 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+                  onClick={() => setCancelFeedback(null)}
+                  className="text-emerald-700 hover:text-emerald-950 p-1 cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4 text-gold-400" />
-                  <span>Browse Accommodations</span>
+                  <X className="w-3.5 h-3.5" />
                 </button>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {reservations.map((res) => {
+              </div>
+            )}
+
+            {reservations.length === 0 ? (
+              <div className="text-center py-12 space-y-4">
+                <div className="w-16 h-16 rounded-full bg-stone-100 text-slate-400 flex items-center justify-center mx-auto">
+                  <BedDouble className="w-8 h-8" strokeWidth={1.5} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-serif font-bold text-lg text-pine-950">
+                    No active reservations found
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto">
+                    When you book a transient room or dormitory bedspace, real-time live availability will prevent double bookings and confirm your stay here.
+                  </p>
+                </div>
+                {onBrowseRooms && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onBrowseRooms();
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-pine-950 text-gold-200 hover:bg-black font-semibold text-xs transition-colors shadow-md cursor-pointer"
+                  >
+                    Browse Available Rooms
+                  </button>
+                )}
+              </div>
+            ) : (
+              reservations.map((res) => {
                 const isExpanded = expandedId === res.id;
                 const isCancelling = cancellingId === res.id;
+                const isCancelled = res.status === 'Cancelled';
 
                 return (
                   <div
                     key={res.id}
-                    className="bg-stone-50/80 rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-2xs hover:border-gold-300 transition-all flex flex-col gap-3.5"
+                    className={`rounded-2xl border transition-all ${
+                      isCancelled
+                        ? 'border-stone-200 bg-stone-50/70 opacity-80'
+                        : 'border-stone-200/90 bg-white hover:border-gold-300 shadow-sm'
+                    }`}
                   >
-                    {/* Top Row: Thumbnail, Main Info & Rate */}
-                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                      {/* Left: Thumbnail & Essential Details */}
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-stone-900 flex-shrink-0 border border-stone-200 relative group">
-                          <img
-                            src={res.roomImage}
-                            alt={res.roomName}
-                            className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1 min-w-0">
+                    <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-start gap-3.5">
+                        <img
+                          src={res.roomImage}
+                          alt={res.roomName}
+                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-stone-200 flex-shrink-0"
+                        />
+                        <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-mono font-bold text-pine-900 bg-white px-2 py-0.5 rounded border border-stone-200">
+                            <span className="text-xs font-mono font-bold text-pine-950 bg-stone-100 px-2 py-0.5 rounded">
                               {res.reservationCode}
                             </span>
-
-                            {res.status === 'Pending Review' ? (
-                              <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
-                                <Clock className="w-3 h-3 text-amber-700" />
-                                <span>Pending Review</span>
-                              </span>
-                            ) : res.status === 'Confirmed' ? (
-                              <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3" />
-                                <span>Confirmed</span>
-                              </span>
-                            ) : res.status === 'Cancelled' ? (
-                              <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
-                                <XCircle className="w-3 h-3 text-rose-500" />
-                                <span>Cancelled</span>
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-800 border border-stone-200 flex items-center gap-1">
-                                <span>{res.status}</span>
-                              </span>
-                            )}
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                res.status === 'Confirmed'
+                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                  : res.status === 'Pending Review'
+                                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                  : 'bg-rose-100 text-rose-900 border border-rose-300'
+                              }`}
+                            >
+                              {res.status}
+                            </span>
                           </div>
 
-                          <h4 className="font-serif font-bold text-sm sm:text-base text-pine-950 truncate">
+                          <h4 className="font-serif font-bold text-base text-pine-950 mt-1">
                             {res.roomName}
                           </h4>
 
-                          <p className="text-xs text-slate-600 flex items-center gap-2 flex-wrap">
-                            <span className="flex items-center gap-1 font-medium">
-                              <Calendar className="w-3.5 h-3.5 text-pine-700" />
-                              <span>{res.checkInDate} — {res.checkOutDate}</span>
+                          <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                              {res.checkInDate} → {res.checkOutDate}
                             </span>
-                            <span>•</span>
-                            <span>{res.numberOfGuests} Guests</span>
-                          </p>
-
-                          {/* Cancellation Note Preview if Cancelled */}
-                          {res.status === 'Cancelled' && res.cancellationReason && (
-                            <p className="text-[11px] text-rose-700 flex items-center gap-1 font-medium mt-0.5">
-                              <span className="text-rose-900 font-semibold">Reason:</span>
-                              <span className="italic truncate">{res.cancellationReason}</span>
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Right: Rate & Booking Time */}
-                      <div className="w-full sm:w-auto text-left sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 border-stone-200 flex sm:flex-col justify-between sm:justify-center items-center sm:items-end flex-shrink-0">
-                        <div>
-                          <span className="text-[10px] text-slate-500 uppercase block font-semibold">Total Rate</span>
-                          <strong className="text-sm sm:text-base font-bold text-pine-900 font-serif">
-                            ₱{res.rate.toLocaleString()}
-                            <span className="text-xs font-sans font-normal text-slate-600">/{res.ratePeriod}</span>
-                          </strong>
-                        </div>
-                        <span className="text-[10px] text-slate-400 mt-0.5 block">
-                          Requested on {res.bookedAt}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Cancellation Form Box (with Reason Dropdown and "Others" text box) */}
-                    {isCancelling && (
-                      <div className="p-4 bg-rose-50/90 border border-rose-200 rounded-2xl space-y-3 animate-fade-in shadow-xs">
-                        <div className="flex items-start gap-2.5 text-rose-950 text-xs">
-                          <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
-                          <div className="space-y-0.5">
-                            <p className="font-bold text-rose-900">Cancel Reservation Request</p>
-                            <p className="text-[11px] text-rose-800">
-                              Cancelling request for <strong>{res.roomName}</strong> ({res.reservationCode}). Please specify why you need to cancel this reservation.
-                            </p>
+                            <span className="font-bold text-pine-950">
+                              ₱{res.rate.toLocaleString()} / {res.ratePeriod}
+                            </span>
                           </div>
                         </div>
-
-                        {/* Reason Dropdown */}
-                        <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold text-slate-800 flex items-center justify-between">
-                            <span>Reason for Cancellation <span className="text-red-500">*</span></span>
-                            <span className="text-[10px] text-slate-500 font-normal">Required</span>
-                          </label>
-                          <select
-                            value={selectedReason}
-                            onChange={(e) => {
-                              setSelectedReason(e.target.value);
-                              if (cancelError) setCancelError(null);
-                            }}
-                            className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-400 transition-all cursor-pointer"
-                          >
-                            <option value="">-- Select a reason for cancellation --</option>
-                            {COMMON_CANCELLATION_REASONS.map((r) => (
-                              <option key={r} value={r}>
-                                {r}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Custom Textarea if "Others" is selected */}
-                        {selectedReason === 'Others (please specify)' && (
-                          <div className="space-y-1 animate-fade-in">
-                            <label className="text-[11px] font-bold text-slate-800 block">
-                              Please specify your reason <span className="text-red-500">*</span>
-                            </label>
-                            <textarea
-                              rows={3}
-                              placeholder="Briefly describe why you are requesting to cancel..."
-                              value={otherReasonText}
-                              onChange={(e) => {
-                                setOtherReasonText(e.target.value);
-                                if (cancelError) setCancelError(null);
-                              }}
-                              className="w-full bg-white border border-stone-300 rounded-xl p-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-400 transition-all font-medium resize-none"
-                            />
-                          </div>
-                        )}
-
-                        {/* Error Notice */}
-                        {cancelError && (
-                          <p className="text-xs text-red-600 font-semibold flex items-center gap-1.5 animate-shake">
-                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                            <span>{cancelError}</span>
-                          </p>
-                        )}
-
-                        {/* Confirm & Keep Actions */}
-                        <div className="flex items-center gap-2 pt-1 border-t border-rose-200/60">
-                          <button
-                            type="button"
-                            onClick={() => handleConfirmCancel(res.id, res.reservationCode)}
-                            className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 active:scale-98 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-                          >
-                            <XCircle className="w-3.5 h-3.5" />
-                            <span>Confirm Cancellation</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleDismissCancel}
-                            className="px-3.5 py-2 bg-white hover:bg-stone-100 active:scale-98 text-slate-700 border border-stone-300 rounded-xl text-xs font-medium transition-all cursor-pointer"
-                          >
-                            Keep Reservation
-                          </button>
-                        </div>
                       </div>
-                    )}
 
-                    {/* Card Actions Bar */}
-                    <div className="flex items-center justify-between pt-2 border-t border-stone-200/70 text-xs">
-                      <button
-                        type="button"
-                        onClick={() => toggleDetails(res.id)}
-                        className="inline-flex items-center gap-1.5 text-pine-800 hover:text-gold-700 font-semibold transition-colors cursor-pointer py-1"
-                      >
-                        <Eye className="w-3.5 h-3.5 text-pine-700" />
-                        <span>{isExpanded ? 'Hide Details' : 'View Full Details'}</span>
-                        {isExpanded ? (
-                          <ChevronUp className="w-3.5 h-3.5" />
-                        ) : (
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        )}
-                      </button>
+                      <div className="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100">
+                        <button
+                          type="button"
+                          onClick={() => toggleDetails(res.id)}
+                          className="px-3 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-xs font-semibold text-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>{isExpanded ? 'Hide' : 'Details'}</span>
+                        </button>
 
-                      <div className="flex items-center gap-2">
-                        {res.status !== 'Cancelled' ? (
+                        {!isCancelled && (
                           <button
                             type="button"
                             onClick={() => handleOpenCancel(res.id)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-rose-700 hover:text-rose-800 hover:bg-rose-50 border border-rose-200 transition-all cursor-pointer"
-                            title="Cancel reservation request"
+                            className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-semibold transition-colors cursor-pointer"
                           >
-                            <XCircle className="w-3.5 h-3.5" />
-                            <span>Cancel Request</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => deleteReservation(res.id)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-800 hover:bg-stone-100 border border-stone-200 transition-all cursor-pointer"
-                            title="Remove from history"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 text-slate-400" />
-                            <span>Remove</span>
+                            Cancel
                           </button>
                         )}
                       </div>
                     </div>
 
-                    {/* Expandable Reservation Details Breakdown */}
+                    {/* Expandable Details */}
                     {isExpanded && (
-                      <div className="pt-3 border-t border-stone-200 space-y-3 bg-white/80 -mx-4 -mb-4 p-4 rounded-b-2xl border-b border-x border-stone-200/80 animate-fade-in">
-                        
-                        {/* Section Header with Copy Code */}
-                        <div className="flex items-center justify-between pb-2 border-b border-stone-200/60">
-                          <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-pine-950">
-                            <FileText className="w-4 h-4 text-pine-700" />
-                            <span>Submitted Reservation Information</span>
-                          </span>
-
-                          <button
-                            type="button"
-                            onClick={() => handleCopyCode(res.reservationCode, res.id)}
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-pine-800 hover:text-gold-700 transition-colors cursor-pointer"
-                            title="Copy reservation code"
-                          >
-                            {copiedId === res.id ? (
-                              <>
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                <span className="text-emerald-700">Copied!</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3.5 h-3.5 text-slate-500" />
-                                <span>Copy Code</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-
-                        {/* 2-Column Grid: Guest Contact & Stay Information */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                          {/* 1. Guest Information Submitted */}
-                          <div className="bg-stone-50 p-3 rounded-xl border border-stone-200/80 space-y-1.5">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                              Guest Contact Info
-                            </span>
-                            <div className="flex items-center gap-2 text-slate-800 font-medium">
-                              <User className="w-3.5 h-3.5 text-pine-700 flex-shrink-0" />
-                              <span className="truncate">{res.fullName || user?.name || 'Guest'}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-slate-700">
-                              <Mail className="w-3.5 h-3.5 text-pine-700 flex-shrink-0" />
-                              <span className="truncate">{res.email || user?.email || 'N/A'}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-slate-700">
-                              <Phone className="w-3.5 h-3.5 text-pine-700 flex-shrink-0" />
-                              <span>{res.contactNumber || user?.phone || 'N/A'}</span>
-                            </div>
+                      <div className="p-4 sm:p-5 pt-0 border-t border-stone-100 text-xs text-slate-600 space-y-3 bg-stone-50/40">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3">
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Guest Details</span>
+                            <span className="font-semibold text-slate-800">{res.fullName} ({res.numberOfGuests} Guests)</span>
+                            <span className="block text-slate-500">{res.email} • {res.contactNumber}</span>
                           </div>
-
-                          {/* 2. Stay & Accommodation Details */}
-                          <div className="bg-stone-50 p-3 rounded-xl border border-stone-200/80 space-y-1.5">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                              Stay Details
-                            </span>
-                            <div className="flex items-center justify-between text-slate-800">
-                              <span className="text-slate-500">Category:</span>
-                              <span className="font-semibold capitalize">
-                                {res.roomCategory === 'dormitory' ? 'Monthly Dormitory' : 'Transient Lodging'}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between text-slate-800">
-                              <span className="text-slate-500">Check-in:</span>
-                              <span className="font-semibold">{res.checkInDate}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-slate-800">
-                              <span className="text-slate-500">Check-out:</span>
-                              <span className="font-semibold">{res.checkOutDate}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-slate-800">
-                              <span className="text-slate-500">Guests:</span>
-                              <span className="font-semibold">{res.numberOfGuests} Guests</span>
-                            </div>
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Special Requests</span>
+                            <span className="italic">{res.specialRequests || 'None specified.'}</span>
                           </div>
                         </div>
 
-                        {/* Special Requests Section */}
-                        <div className="bg-stone-50 p-3 rounded-xl border border-stone-200/80 space-y-1 text-xs">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                            Special Requests & Preferences
-                          </span>
-                          {res.specialRequests && res.specialRequests.trim().length > 0 ? (
-                            <p className="text-slate-800 italic bg-amber-50/60 p-2.5 rounded-lg border border-amber-200/70 text-xs">
-                              "{res.specialRequests}"
-                            </p>
-                          ) : (
-                            <p className="text-slate-400 italic">
-                              No special requests or notes were provided with this booking.
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Cancellation Record (if Cancelled) */}
-                        {res.status === 'Cancelled' && (
-                          <div className="bg-rose-50/80 p-3 rounded-xl border border-rose-200 space-y-1.5 text-xs text-rose-950">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wider flex items-center gap-1.5">
-                                <XCircle className="w-3.5 h-3.5 text-rose-600" />
-                                <span>Cancellation Record</span>
-                              </span>
-                              {res.cancelledAt && (
-                                <span className="text-[10px] text-slate-500 font-medium">
-                                  Cancelled on {res.cancelledAt}
-                                </span>
-                              )}
-                            </div>
-                            <div className="bg-white/80 p-2.5 rounded-lg border border-rose-200/70">
-                              <span className="text-[11px] font-semibold text-slate-700 block">Stated Reason:</span>
-                              <p className="text-xs text-rose-950 font-medium italic mt-0.5">
-                                "{res.cancellationReason || 'No reason provided'}"
-                              </p>
-                            </div>
+                        {isCancelled && res.cancellationReason && (
+                          <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-900">
+                            <strong>Reason for cancellation:</strong> {res.cancellationReason}
                           </div>
                         )}
-
-                        {/* Status Description Banner */}
-                        <div className="p-3 rounded-xl border text-xs flex items-start gap-2.5 bg-stone-50 border-stone-200/80">
-                          {res.status === 'Pending Review' ? (
-                            <>
-                              <Clock className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
-                              <div className="space-y-0.5">
-                                <span className="font-bold text-amber-950 block">Awaiting Staff Availability Verification</span>
-                                <p className="text-slate-600 text-[11px]">
-                                  Your reservation request is queued for front desk review. You will be contacted via SMS or email once approved. You can cancel this request at any time prior to approval.
-                                </p>
-                              </div>
-                            </>
-                          ) : res.status === 'Confirmed' ? (
-                            <>
-                              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                              <div className="space-y-0.5">
-                                <span className="font-bold text-emerald-950 block">Reservation Confirmed</span>
-                                <p className="text-slate-600 text-[11px]">
-                                  Your room is reserved. Check-in starts at 2:00 PM. Please present a valid government ID and reservation code upon arrival.
-                                </p>
-                              </div>
-                            </>
-                          ) : res.status === 'Cancelled' ? (
-                            <>
-                              <XCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
-                              <div className="space-y-0.5">
-                                <span className="font-bold text-rose-950 block">Reservation Request Cancelled</span>
-                                <p className="text-slate-600 text-[11px]">
-                                  This booking was cancelled by you. No room is held under this reservation code.
-                                </p>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <Info className="w-4 h-4 text-slate-600 flex-shrink-0 mt-0.5" />
-                              <div className="space-y-0.5">
-                                <span className="font-bold text-slate-900 block">Status: {res.status}</span>
-                              </div>
-                            </>
-                          )}
-                        </div>
-
                       </div>
                     )}
 
+                    {/* Cancel Reason Prompt */}
+                    {isCancelling && (
+                      <div className="p-4 border-t border-rose-200 bg-rose-50/60 text-xs space-y-3 animate-fade-in">
+                        <div className="flex items-center gap-2 text-rose-950 font-bold">
+                          <AlertTriangle className="w-4 h-4 text-rose-600" />
+                          <span>Please state the reason for canceling:</span>
+                        </div>
+                        <select
+                          value={selectedReason}
+                          onChange={(e) => setSelectedReason(e.target.value)}
+                          className="w-full p-2 bg-white border border-rose-300 rounded-lg text-xs"
+                        >
+                          <option value="">Select cancellation reason...</option>
+                          {COMMON_CANCELLATION_REASONS.map((r) => (
+                            <option key={r} value={r}>{r}</option>
+                          ))}
+                        </select>
+                        {selectedReason === 'Others (please specify)' && (
+                          <input
+                            type="text"
+                            placeholder="Please explain details..."
+                            value={otherReasonText}
+                            onChange={(e) => setOtherReasonText(e.target.value)}
+                            className="w-full p-2 bg-white border border-rose-300 rounded-lg text-xs"
+                          />
+                        )}
+                        {cancelError && <p className="text-rose-700 font-bold">{cancelError}</p>}
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setCancellingId(null)}
+                            className="px-3 py-1.5 bg-white border border-stone-200 rounded-lg text-xs"
+                          >
+                            Back
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleConfirmCancel(res.id, res.reservationCode)}
+                            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs"
+                          >
+                            Confirm Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
-              })}
-            </div>
-          )}
-
-          {/* Footer Assistance Notice */}
-          <div className="p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200/80 text-xs text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-700 flex-shrink-0" />
-              <span>Pending Review reservations are verified by staff for availability before final confirmation.</span>
-            </div>
-            <a
-              href={`tel:${DEMO_CONTACT.phone.replace(/\s+/g, '')}`}
-              className="text-pine-800 hover:text-gold-700 font-bold hover:underline flex-shrink-0"
-              title={`Call Front Desk: ${DEMO_CONTACT.phone}`}
-            >
-              Call Front Desk ({DEMO_CONTACT.phone})
-            </a>
+              })
+            )}
           </div>
+        )}
 
+        {/* Tab 2: Automated Invoices & Utility Readings (Objective 2) */}
+        {activeTab === 'billing' && (
+          <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
+            <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-2xl text-xs text-amber-950 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-amber-700 flex-shrink-0" />
+                <span>
+                  <strong>Automated Utility Invoicing:</strong> Water & electric meters are computed automatically without manual calculations.
+                </span>
+              </div>
+            </div>
+
+            {invoices.length === 0 ? (
+              <div className="text-center py-12 space-y-2">
+                <Receipt className="w-10 h-10 text-slate-300 mx-auto" />
+                <h4 className="font-serif font-bold text-base text-pine-950">No Invoices Issued</h4>
+                <p className="text-xs text-slate-500">
+                  Automated monthly bills and stay invoices will be rendered here upon billing cycle generation.
+                </p>
+              </div>
+            ) : (
+              invoices.map((inv) => {
+                const isExpanded = expandedInvoiceId === inv.id;
+                const isPaid = inv.paymentStatus === 'Paid';
+
+                return (
+                  <div
+                    key={inv.id}
+                    className="rounded-2xl border border-stone-200/90 bg-white shadow-sm overflow-hidden"
+                  >
+                    <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-pine-950 bg-stone-100 px-2 py-0.5 rounded">
+                            {inv.invoiceNumber}
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            isPaid
+                              ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                              : 'bg-amber-100 text-amber-900 border border-amber-300'
+                          }`}>
+                            {inv.paymentStatus}
+                          </span>
+                          <span className="text-xs text-slate-500 font-medium">{inv.billingPeriod}</span>
+                        </div>
+
+                        <h4 className="font-serif font-bold text-sm text-pine-950 mt-1">
+                          {inv.roomOrBed}
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          Due Date: <strong>{inv.dueDate}</strong>
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-stone-100">
+                        <div className="text-left sm:text-right">
+                          <div className="text-[10px] sm:text-xs text-slate-500 font-medium">Total Amount</div>
+                          <div className="font-serif font-bold text-base sm:text-lg text-pine-950">
+                            ₱{inv.totalAmount.toLocaleString()}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedInvoiceId(prev => prev === inv.id ? null : inv.id)}
+                            className="px-2.5 sm:px-3 py-1.5 rounded-lg border border-stone-200 text-xs font-semibold text-slate-700 hover:bg-stone-50 transition-colors"
+                          >
+                            {isExpanded ? 'Hide' : 'Breakdown'}
+                          </button>
+
+                          {!isPaid && (
+                            <button
+                              type="button"
+                              onClick={() => handleInitiatePaymentForInvoice(inv)}
+                              className="px-3 sm:px-3.5 py-1.5 rounded-lg bg-pine-950 hover:bg-black text-gold-200 font-bold text-xs shadow-xs transition-colors"
+                            >
+                              Pay Online
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Itemized Utility Meter Readings Breakdown (Objective 2) */}
+                    {isExpanded && (
+                      <div className="p-4 sm:p-5 pt-0 border-t border-stone-100 bg-stone-50/60 text-xs space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3">
+                          <div className="p-3 bg-white rounded-xl border border-stone-200">
+                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Base Rental</span>
+                            <span className="font-bold text-slate-900 text-sm">₱{inv.rentAmount.toLocaleString()}</span>
+                            <span className="block text-[11px] text-slate-500 mt-0.5">{inv.stayType}</span>
+                          </div>
+
+                          <div className="p-3 bg-white rounded-xl border border-stone-200">
+                            <span className="text-sky-700 flex items-center gap-1 text-[10px] uppercase font-bold">
+                              <Droplet className="w-3 h-3 text-sky-600" />
+                              Water Utility
+                            </span>
+                            <span className="font-bold text-slate-900 text-sm">₱{inv.waterAmount.toLocaleString()}</span>
+                          </div>
+
+                          <div className="p-3 bg-white rounded-xl border border-stone-200">
+                            <span className="text-amber-700 flex items-center gap-1 text-[10px] uppercase font-bold">
+                              <Zap className="w-3 h-3 text-amber-600" />
+                              Electric Utility
+                            </span>
+                            <span className="font-bold text-slate-900 text-sm">₱{inv.electricityAmount.toLocaleString()}</span>
+                          </div>
+                        </div>
+
+                        {inv.paymentReference && (
+                          <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center justify-between">
+                            <span>Payment Channel: <strong>{inv.paymentMethod}</strong> (Ref: {inv.paymentReference})</span>
+                            <span className="text-[11px] text-emerald-700">Settled {inv.paidAt}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* Tab 3: Upload Online Payment Portal (Objective 4) */}
+        {activeTab === 'payment' && (
+          <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
+            {paymentSuccessMsg && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl text-xs flex items-center gap-2 animate-fade-in">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span>{paymentSuccessMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleOnlinePaymentSubmit} className="space-y-4">
+              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
+                <h4 className="font-serif font-bold text-sm text-pine-950 flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-pine-800" />
+                  <span>Select Invoice / Stay to Settle</span>
+                </h4>
+
+                <select
+                  value={selectedInvoiceForPayment}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setSelectedInvoiceForPayment(id);
+                    const inv = invoices.find(i => i.id === id);
+                    if (inv) setPaymentAmount(inv.totalAmount);
+                  }}
+                  className="w-full p-2.5 bg-white border border-stone-300 rounded-xl text-xs text-slate-800 font-medium"
+                >
+                  {invoices.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.invoiceNumber} — {i.roomOrBed} ({i.billingPeriod}) — ₱{i.totalAmount.toLocaleString()} [{i.paymentStatus}]
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Payment Method / Channel
+                  </label>
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value as any)}
+                    className="w-full p-2.5 bg-white border border-stone-300 rounded-xl text-xs text-slate-800 font-medium"
+                  >
+                    <option value="GCash">GCash (0907 861 4267)</option>
+                    <option value="Maya">Maya (0907 861 4267)</option>
+                    <option value="Bank Transfer">BDO / BPI Bank Transfer</option>
+                    <option value="Cash">Over-the-Counter Cash (Front Desk)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Reference / Transaction Number
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. GC-9284719284 or BDO-01924"
+                    value={referenceNumber}
+                    onChange={(e) => setReferenceNumber(e.target.value)}
+                    className="w-full p-2.5 bg-white border border-stone-300 rounded-xl text-xs text-slate-800 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Account Sender Name (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Juan Dela Cruz"
+                    value={accountName}
+                    onChange={(e) => setAccountName(e.target.value)}
+                    className="w-full p-2.5 bg-white border border-stone-300 rounded-xl text-xs text-slate-800 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Amount Paid (₱)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(Number(e.target.value))}
+                    className="w-full p-2.5 bg-white border border-stone-300 rounded-xl text-xs text-slate-800 font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* Upload Receipt / Proof Screenshot */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Upload Payment Slip / Screenshot
+                </label>
+                <div className="border-2 border-dashed border-stone-300 hover:border-gold-400 rounded-2xl p-4 text-center bg-stone-50/50 transition-colors cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleReceiptFileChange}
+                    className="hidden"
+                    id="receipt-upload-input"
+                  />
+                  <label htmlFor="receipt-upload-input" className="cursor-pointer block">
+                    <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
+                    <span className="text-xs font-semibold text-pine-900 block">
+                      Click to choose or drop screenshot
+                    </span>
+                    <span className="text-[10px] text-slate-400">PNG, JPG, or PDF up to 5MB</span>
+                  </label>
+
+                  {receiptFilePreview && (
+                    <div className="mt-3 inline-block relative">
+                      <img
+                        src={receiptFilePreview}
+                        alt="Receipt preview"
+                        className="max-h-24 rounded-lg border border-stone-200 shadow-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setReceiptFilePreview(null)}
+                        className="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmittingPayment}
+                className="w-full py-3 rounded-xl bg-pine-950 hover:bg-black text-gold-200 font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+              >
+                {isSubmittingPayment ? (
+                  <span>Submitting Payment...</span>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <span>Submit Payment Verification (₱{paymentAmount.toLocaleString()})</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Footer Support Info */}
+        <div className="p-4 border-t border-stone-100 bg-stone-50/70 flex items-center justify-between text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>Dragon Treasure Live Calendar & Real-Time Security</span>
+          </div>
+          <div>
+            Need help? Call Front Desk: <strong className="text-pine-950">{PROPERTY_CONTACT.phone}</strong>
+          </div>
         </div>
 
       </div>

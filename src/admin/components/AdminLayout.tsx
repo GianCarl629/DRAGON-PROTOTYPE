@@ -155,7 +155,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       case 'settings':
         return {
           title: 'Property Settings',
-          subtitle: 'Administrative credentials, prototype data controls, and system parameters'
+          subtitle: 'Administrative credentials, database controls, and system parameters'
         };
       default:
         return {
