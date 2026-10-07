@@ -182,7 +182,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking, onOpenChat }) => {
             <div className="group relative rounded-3xl overflow-hidden shadow-luxury border-4 border-white/90 bg-stone-900">
               <img
                 src="/front.view.jpg"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/front-view.jpg'; }}
                 alt="Dragon Treasure Transient & Condotel Baguio Exterior"
                 className="w-full h-64 sm:h-72 object-cover object-[center_35%] transform group-hover:scale-105 transition-transform duration-700"
               />

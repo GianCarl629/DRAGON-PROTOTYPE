@@ -14,9 +14,7 @@
   html.cursor-dragon summary,
   html.cursor-dragon img {
     cursor: url("/assets/cursor/dragon-cursor-40.png") 4 4,
-            url("/dragon-cursor-40.png") 4 4,
-            url("/assets/cursor/dragon-cursor-neutral-48.png") 8 10,
-            url("/dragon-cursor-neutral-48.png") 8 10,
+            url("/assets/cursor/dragon-cursor-48.png") 6 6,
             auto !important;
   }
 
@@ -35,9 +33,7 @@
   html.cursor-dragon.cursor-active summary,
   html.cursor-dragon.cursor-active img {
     cursor: url("/assets/cursor/dragon-cursor-click-40.png") 5 5,
-            url("/dragon-cursor-click-40.png") 5 5,
-            url("/assets/cursor/dragon-cursor-click-48.png") 8 10,
-            url("/dragon-cursor-click-48.png") 8 10,
+            url("/assets/cursor/dragon-cursor-click-48.png") 6 6,
             auto !important;
   }
 }

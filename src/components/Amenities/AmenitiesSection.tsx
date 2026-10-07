@@ -159,7 +159,7 @@ export const AmenitiesSection: React.FC = () => {
                 Shared Amenities (Common Area per Unit)
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
-                Every unit is equipped with a cozy communal suite shared exclusively between staying guests (Room A, Room B, Room C) or dormitory boarders.
+                Every unit is equipped with a cozy communal suite shared exclusively between staying guests or dormitory boarders.
               </p>
             </div>
             <span className="px-4 py-1.5 rounded-xl bg-pine-950 text-gold-200 border border-gold-400/40 text-xs font-bold self-start md:self-auto">

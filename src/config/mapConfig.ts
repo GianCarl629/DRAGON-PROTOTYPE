@@ -1,11 +1,5 @@
 /**
  * Mapbox Configuration for Dragon Treasure Transient & Condotel
- * 
- * Instructions:
- * 1. Primary location: Paste your Mapbox Default Public Token into the .env file:
- *    MAPBOX_TOKEN=pk.eyJ1...
- * 
- * 2. Optional direct fallback: You can also paste it directly into DIRECT_MAPBOX_TOKEN below.
  */
 
 // Direct token fallback (keep empty in git, configure via .env or Vercel environment variables)
