@@ -171,7 +171,7 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
       {isLoading ? (
         <div className="py-20 text-center text-slate-500 font-semibold text-sm flex justify-center items-center gap-2">
           <div className="w-5 h-5 border-2 border-gold-500 border-t-transparent rounded-full animate-spin"></div>
-          Agur-uray, karkargaen dagiti record ti kuarto ken kama manipud database...
+          Loading room and bed records from database...
         </div>
       ) : (
         <div className="space-y-6">

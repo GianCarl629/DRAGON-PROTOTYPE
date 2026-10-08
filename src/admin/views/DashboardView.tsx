@@ -150,7 +150,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return (
       <div className="py-32 text-center text-slate-500 font-semibold text-sm flex justify-center items-center gap-3">
         <div className="w-6 h-6 border-2 border-gold-500 border-t-transparent rounded-full animate-spin"></div>
-        Karkargaen dagiti real-time analytics ken operations metrics manipud Supabase...
+        Loading real-time analytics and operations metrics from database...
       </div>
     );
   }
