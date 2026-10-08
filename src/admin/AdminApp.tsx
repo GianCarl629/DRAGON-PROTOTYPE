@@ -26,6 +26,13 @@ import { CustomersView } from './views/CustomersView';
 import { InquiriesView } from './views/InquiriesView';
 import { ReportsView } from './views/ReportsView';
 import { SettingsView } from './views/SettingsView';
+import { 
+  sendStaffReply, 
+  resolveInquiry, 
+  reopenInquiry, 
+  syncInquiriesWithSupabase, 
+  subscribeToInquiryChanges 
+} from '../services/db/inquiryService';
 
 export const AdminApp: React.FC = () => {
   // Admin Session State (Completely separated from customer authentication)
@@ -55,7 +62,28 @@ export const AdminApp: React.FC = () => {
     };
     handleHash();
     window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
+
+    // Sync inquiries from Supabase cloud on initial load
+    syncInquiriesWithSupabase().then(() => {
+      setStore(AdminDataManager.loadStore());
+    });
+
+    // Realtime channel listener for cloud updates
+    const unsubscribeRealtime = subscribeToInquiryChanges(() => {
+      setStore(AdminDataManager.loadStore());
+    });
+
+    // Sync inquiries when customer submits or replies locally
+    const handleInquirySync = () => {
+      setStore(AdminDataManager.loadStore());
+    };
+    window.addEventListener('dragon_treasure_inquiry_updated', handleInquirySync);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHash);
+      window.removeEventListener('dragon_treasure_inquiry_updated', handleInquirySync);
+      unsubscribeRealtime();
+    };
   }, []);
 
   // Save changes to localStorage whenever store updates
@@ -210,13 +238,19 @@ export const AdminApp: React.FC = () => {
   };
 
   // Inquiry actions
-  const handleReplyInquiry = (id: string, replyText: string) => {
-    updateStore((prev) => ({
-      ...prev,
-      inquiries: prev.inquiries.map((inq) =>
-        inq.id === id ? { ...inq, status: 'Replied' as const, replyText } : inq
-      )
-    }));
+  const handleReplyInquiry = async (id: string, replyText: string, markAsResolved?: boolean) => {
+    await sendStaffReply(id, replyText, adminUsername || 'Front Desk Concierge', markAsResolved);
+    setStore(AdminDataManager.loadStore());
+  };
+
+  const handleResolveInquiry = async (id: string) => {
+    await resolveInquiry(id, adminUsername || 'Front Desk Staff');
+    setStore(AdminDataManager.loadStore());
+  };
+
+  const handleReopenInquiry = async (id: string) => {
+    await reopenInquiry(id);
+    setStore(AdminDataManager.loadStore());
   };
 
   const handleMarkReadInquiry = (id: string) => {
@@ -327,6 +361,8 @@ export const AdminApp: React.FC = () => {
           onReply={handleReplyInquiry}
           onMarkRead={handleMarkReadInquiry}
           onArchive={handleArchiveInquiry}
+          onResolve={handleResolveInquiry}
+          onReopen={handleReopenInquiry}
           initialFilter={tabFilter}
         />
       )}

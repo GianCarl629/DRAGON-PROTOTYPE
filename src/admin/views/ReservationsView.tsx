@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { AdminReservation } from '../data/adminMockData';
 import { SAMPLE_ROOMS } from '../../data/mockData';
-import { supabase } from '../../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 interface ReservationsViewProps {
   reservations: AdminReservation[];
@@ -51,55 +51,80 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
   );
   const [categoryFilter, setCategoryFilter] = useState<'All' | 'transient' | 'dormitory'>('All');
 
-  //PARA KUMUHA NG LIVE DATA FROM SUPABASE
+  // Supabase live reservations state with fallback to local store
   const [liveReservations, setLiveReservations] = useState<any[]>([]);
 
+  // Active reservations: use Supabase if connected and populated, otherwise fallback to local reservations
+  const activeReservations = liveReservations.length > 0 ? liveReservations : reservations;
+
   const fetchReservations = async () => {
-    const { data, error } = await supabase.from('reservations').select('*');
+    if (!isSupabaseConfigured()) return;
+    try {
+      const { data, error } = await supabase.from('reservations').select('*');
 
-    if (data) {
-      const formattedData = data.map((res: any) => ({
-        ...res,
-        // Dito natin itinutugma ang pangalan mula sa Supabase papunta sa UI mo
-        reservationCode: String(res.reservation_code || ''),
-        guestName: String(res.guest_name || ''),
-        roomName: String(res.room_id || ''),
-        email: String(res.guest_email || ''),
-        phone: String(res.guest_phone || ''),
-        checkIn: String(res.check_in_date || ''),
-        checkOut: String(res.check_out_date || ''),
-        status: String(res.status || 'Pending Review'),
-        paymentStatus: 'Pending', // Default muna dahil walang payment status column
-        ratePeriod: 'night',
-        category: String(res.stay_type || ''),
-        specialRequests: String(res.special_requests || ''),
-        cancellationReason: String(res.cancellation_reason || ''),
-
-        // Mga numero
-        rate: Number(res.rate_applied) || 0,
-        guests: Number(res.number_of_guests) || 1,
-        totalAmount: Number(res.total_price) || 0
-      }));
-      setLiveReservations(formattedData);
+      if (data && data.length > 0) {
+        const formattedData = data.map((res: any) => ({
+          ...res,
+          reservationCode: String(res.reservation_code || ''),
+          guestName: String(res.guest_name || ''),
+          roomName: String(res.room_id || ''),
+          email: String(res.guest_email || ''),
+          phone: String(res.guest_phone || ''),
+          checkIn: String(res.check_in_date || ''),
+          checkOut: String(res.check_out_date || ''),
+          status: String(res.status || 'Pending Review'),
+          paymentStatus: 'Pending',
+          ratePeriod: 'night',
+          category: String(res.stay_type || ''),
+          specialRequests: String(res.special_requests || ''),
+          cancellationReason: String(res.cancellation_reason || ''),
+          rate: Number(res.rate_applied) || 0,
+          guests: Number(res.number_of_guests) || 1,
+          totalAmount: Number(res.total_price) || 0
+        }));
+        setLiveReservations(formattedData);
+      }
+    } catch (err) {
+      console.warn('Notice: Using local store reservations while Supabase is connecting:', err);
     }
   };
 
-  // --- LIVE UPDATE FUNCTIONS PARA SA BUTTONS ---
+  // Live update functions with local store synchronization
   const handleLiveConfirm = async (id: string) => {
-    await supabase.from('reservations').update({ status: 'Confirmed' }).eq('id', id);
-    fetchReservations(); // Para mag-refresh agad ang table
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('reservations').update({ status: 'Confirmed' }).eq('id', id);
+        fetchReservations();
+      } catch (e) {
+        console.warn('Supabase confirm notice:', e);
+      }
+    }
+    onConfirm(id);
   };
 
   const handleLiveCancel = async (id: string, reason: string) => {
-    await supabase.from('reservations').update({ status: 'Cancelled', cancellation_reason: reason }).eq('id', id);
-    fetchReservations();
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('reservations').update({ status: 'Cancelled', cancellation_reason: reason }).eq('id', id);
+        fetchReservations();
+      } catch (e) {
+        console.warn('Supabase cancel notice:', e);
+      }
+    }
+    onCancel(id, reason);
   };
 
   const handleLiveDelete = async (id: string) => {
-    await supabase.from('reservations').delete().eq('id', id);
-    fetchReservations();
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('reservations').delete().eq('id', id);
+        fetchReservations();
+      } catch (e) {
+        console.warn('Supabase delete notice:', e);
+      }
+    }
+    onDeleteReservation(id);
   };
-  // ---------------------------------------------
 
   React.useEffect(() => {
     fetchReservations(); // Hugutin ang data pagka-load ng page
@@ -155,8 +180,8 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
     }));
   };
 
-  // Filtered reservations, GINAWANG LIVERESERVATIONS ANG RESERVATIONS
-  const filteredReservations = liveReservations.filter((r) => {
+  // Filtered reservations using active reservations with fallback
+  const filteredReservations = activeReservations.filter((r) => {
     const matchesSearch =
       r.reservationCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -254,7 +279,7 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
             <span>Reservation Management</span>
             <span className="text-xs font-sans font-bold px-2.5 py-0.5 rounded-full bg-gold-100 text-pine-900 border border-gold-300">
 
-              {liveReservations.length} Bookings
+              {activeReservations.length} Bookings
             </span>
           </h2>
           <p className="text-xs text-slate-600">
@@ -306,7 +331,7 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                 {tab === 'Pending Review' && (
                   <span className={`ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${statusFilter === tab ? 'bg-pine-950 text-gold-300' : 'bg-amber-100 text-amber-900'
                     }`}>
-                    {liveReservations.filter(r => r.status === 'Pending Review').length}
+                    {activeReservations.filter(r => r.status === 'Pending Review').length}
                   </span>
                 )}
               </button>

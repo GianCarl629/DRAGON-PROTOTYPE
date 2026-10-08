@@ -20,7 +20,12 @@ import {
   Zap, 
   DollarSign, 
   ShieldCheck, 
-  ExternalLink 
+  ExternalLink,
+  MessageSquare,
+  Send,
+  Lock,
+  User,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PROPERTY_CONTACT } from '../../data/mockData';
@@ -29,6 +34,16 @@ import {
   submitOnlinePayment, 
   ClientInvoice 
 } from '../../services/db/billingService';
+import {
+  getCustomerInquiries,
+  sendCustomerReply,
+  markInquiryReadByCustomer,
+  getUnreadRepliesCountForCustomer,
+  ensureInquiryMessages,
+  syncInquiriesWithSupabase,
+  subscribeToInquiryChanges
+} from '../../services/db/inquiryService';
+import { AdminInquiry } from '../../admin/data/adminMockData';
 
 interface MyReservationsModalProps {
   isOpen: boolean;
@@ -37,7 +52,7 @@ interface MyReservationsModalProps {
   onBrowseRooms?: () => void;
 }
 
-type DashboardTab = 'bookings' | 'billing' | 'payment';
+type DashboardTab = 'bookings' | 'billing' | 'payment' | 'inquiries';
 
 const COMMON_CANCELLATION_REASONS = [
   'Change in travel plans or dates',
@@ -83,6 +98,70 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
   const [paymentSuccessMsg, setPaymentSuccessMsg] = useState<string | null>(null);
   const [isSubmittingPayment, setIsSubmittingPayment] = useState<boolean>(false);
   const [receiptFilePreview, setReceiptFilePreview] = useState<string | null>(null);
+
+  // Concierge Inquiries & Messages State
+  const [inquiries, setInquiries] = useState<AdminInquiry[]>([]);
+  const [inquiriesFilter, setInquiriesFilter] = useState<'All' | 'Active' | 'Resolved'>('All');
+  const [expandedInquiryId, setExpandedInquiryId] = useState<string | null>(null);
+  const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
+  const [isSubmittingReply, setIsSubmittingReply] = useState<string | null>(null);
+  const [replyFeedback, setReplyFeedback] = useState<Record<string, string>>({});
+
+  const loadInquiries = () => {
+    if (user?.email) {
+      const userInquiries = getCustomerInquiries(user.email);
+      setInquiries(userInquiries);
+      if (userInquiries.length > 0 && !expandedInquiryId) {
+        setExpandedInquiryId(userInquiries[0].id);
+      }
+    }
+  };
+
+  // Sync inquiries on open and when user updates
+  useEffect(() => {
+    if (isOpen && user?.email) {
+      loadInquiries();
+      syncInquiriesWithSupabase().then(() => {
+        if (user?.email) {
+          loadInquiries();
+        }
+      });
+    }
+  }, [isOpen, user?.email]);
+
+  // Real-time listener for inquiry updates from cloud & local
+  useEffect(() => {
+    const handleUpdate = () => {
+      if (user?.email) {
+        loadInquiries();
+      }
+    };
+    window.addEventListener('dragon_treasure_inquiry_updated', handleUpdate);
+
+    const unsubscribeRealtime = subscribeToInquiryChanges(() => {
+      if (user?.email) {
+        loadInquiries();
+      }
+    });
+
+    return () => {
+      window.removeEventListener('dragon_treasure_inquiry_updated', handleUpdate);
+      unsubscribeRealtime();
+    };
+  }, [user?.email]);
+
+  // Mark unread inquiries as read when viewing the inquiries tab
+  useEffect(() => {
+    if (activeTab === 'inquiries' && inquiries.length > 0) {
+      inquiries.forEach((inq) => {
+        if (inq.isReadByCustomer === false) {
+          markInquiryReadByCustomer(inq.id);
+        }
+      });
+    }
+  }, [activeTab, inquiries]);
+
+  const unreadInquiriesCount = user?.email ? getUnreadRepliesCountForCustomer(user.email) : 0;
 
   // Load invoices and tab on modal open
   useEffect(() => {
@@ -212,6 +291,36 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
     }
   };
 
+  // Handler for customer replying back to front desk
+  const handleCustomerReply = async (e: React.FormEvent, inquiryId: string) => {
+    e.preventDefault();
+    const text = (replyTexts[inquiryId] || '').trim();
+    if (!text) return;
+
+    setIsSubmittingReply(inquiryId);
+    try {
+      const res = await sendCustomerReply(inquiryId, text, user?.name || 'Guest');
+      if (res.success) {
+        setReplyTexts((prev) => ({ ...prev, [inquiryId]: '' }));
+        setReplyFeedback((prev) => ({ ...prev, [inquiryId]: 'Your reply has been sent to front-desk staff!' }));
+        loadInquiries();
+        setTimeout(() => {
+          setReplyFeedback((prev) => {
+            const next = { ...prev };
+            delete next[inquiryId];
+            return next;
+          });
+        }, 4000);
+      } else {
+        alert(res.message);
+      }
+    } catch (err: any) {
+      alert(err?.message || 'Could not send reply.');
+    } finally {
+      setIsSubmittingReply(null);
+    }
+  };
+
   return (
     <div
       onClick={(e) => {
@@ -296,6 +405,27 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
           >
             <CreditCard className="w-3.5 h-3.5" />
             <span>Upload Online Payment</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('inquiries')}
+            className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 relative ${
+              activeTab === 'inquiries'
+                ? 'bg-pine-950 text-white shadow-xs'
+                : 'text-slate-600 hover:bg-stone-100 hover:text-pine-950'
+            }`}
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>My Inquiries & Messages</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+              activeTab === 'inquiries' ? 'bg-pine-800 text-gold-200' : 'bg-stone-200 text-slate-700'
+            }`}>
+              {inquiries.length}
+            </span>
+            {unreadInquiriesCount > 0 && (
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="New staff response!" />
+            )}
           </button>
         </div>
 
@@ -773,6 +903,279 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
                 )}
               </button>
             </form>
+          </div>
+        )}
+
+        {/* Concierge Inquiries & Direct Messages tab */}
+        {activeTab === 'inquiries' && (
+          <div className="p-4 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
+            
+            {/* Header and Filter bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
+              <div>
+                <h3 className="font-serif font-bold text-base sm:text-lg text-pine-950">
+                  Concierge Inquiries & Messages
+                </h3>
+                <p className="text-xs text-slate-800 font-medium">
+                  Track questions submitted to front desk, receive answers, and reply to ongoing conversation threads.
+                </p>
+              </div>
+
+              {/* Filter pills */}
+              <div className="flex items-center gap-1.5 bg-stone-100 p-1 rounded-xl self-start sm:self-auto border border-stone-200">
+                {(['All', 'Active', 'Resolved'] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    onClick={() => setInquiriesFilter(filter)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition-all ${
+                      inquiriesFilter === filter
+                        ? 'bg-white text-pine-950 shadow-2xs border border-stone-300'
+                        : 'text-slate-700 hover:text-pine-950'
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Inquiries List */}
+            {inquiries.length === 0 ? (
+              <div className="py-12 px-4 text-center space-y-3 bg-stone-50/70 rounded-2xl border-2 border-stone-300">
+                <div className="w-12 h-12 rounded-2xl bg-gold-100 text-pine-900 flex items-center justify-center mx-auto border border-gold-300">
+                  <MessageSquare className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-pine-950">No Inquiries Found</h4>
+                  <p className="text-xs text-slate-800 font-medium max-w-sm mx-auto mt-1">
+                    Have questions about room availability, monthly dorm slots, or special arrangements?
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      const el = document.getElementById('inquire');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Send Concierge Inquiry</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {inquiries
+                  .filter((inq) => {
+                    if (inquiriesFilter === 'Active') return inq.status !== 'Resolved';
+                    if (inquiriesFilter === 'Resolved') return inq.status === 'Resolved';
+                    return true;
+                  })
+                  .map((inq) => {
+                    const isExpanded = expandedInquiryId === inq.id;
+                    const messages = ensureInquiryMessages(inq);
+                    const isResolved = inq.status === 'Resolved';
+                    const hasStaffReply = inq.status === 'Replied' || messages.some(m => m.sender === 'staff');
+
+                    return (
+                      <div
+                        key={inq.id}
+                        className={`rounded-2xl border transition-all overflow-hidden ${
+                          isResolved
+                            ? 'bg-[#fafbfa] border-stone-200'
+                            : inq.status === 'Replied'
+                            ? 'bg-[#fffdfa] border-emerald-300 shadow-sm ring-1 ring-emerald-200/60'
+                            : 'bg-white border-gold-200/90 shadow-2xs'
+                        }`}
+                      >
+                        {/* Thread Card Header */}
+                        <div
+                          onClick={() => setExpandedInquiryId(isExpanded ? null : inq.id)}
+                          className="p-4 flex items-center justify-between cursor-pointer select-none hover:bg-stone-50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                              isResolved
+                                ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                : inq.status === 'Replied'
+                                ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                : 'bg-gold-100 text-gold-950 border border-gold-300'
+                            }`}>
+                              <MessageSquare className="w-5 h-5" />
+                            </div>
+
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-bold text-sm text-pine-950">
+                                  {inq.topic}
+                                </span>
+                                <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-stone-200 text-slate-900 border border-stone-300">
+                                  {inq.id.toUpperCase()}
+                                </span>
+                              </div>
+                              <span className="text-xs text-slate-700 font-medium mt-0.5 block">
+                                Submitted <strong className="text-slate-900">{inq.receivedAt}</strong> • {messages.length} {messages.length === 1 ? 'message' : 'messages'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2.5">
+                            {/* Status badge */}
+                            {isResolved ? (
+                              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-400 flex items-center gap-1 shadow-2xs">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                                <span>Resolved</span>
+                              </span>
+                            ) : inq.status === 'Replied' ? (
+                              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-400 flex items-center gap-1.5 shadow-2xs">
+                                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
+                                <span>Staff Replied</span>
+                              </span>
+                            ) : (
+                              <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-950 border border-amber-400 shadow-2xs">
+                                Waiting for Staff
+                              </span>
+                            )}
+
+                            <div className="w-8 h-8 rounded-full bg-stone-200/80 flex items-center justify-center text-slate-800">
+                              {isExpanded ? (
+                                <ChevronUp className="w-4 h-4" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Thread Expanded Body */}
+                        {isExpanded && (
+                          <div className="px-4 pb-4 pt-1 border-t border-stone-200 space-y-3.5 animate-fade-in bg-stone-50/40">
+                            
+                            {/* Feedback Notice on reply */}
+                            {replyFeedback[inq.id] && (
+                              <div className="p-3 bg-emerald-100 border border-emerald-300 rounded-xl text-xs font-bold text-emerald-950 flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+                                <span>{replyFeedback[inq.id]}</span>
+                              </div>
+                            )}
+
+                            {/* Message History Stream */}
+                            <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                              {messages.map((m, idx) => {
+                                const isUser = m.sender === 'guest';
+                                return (
+                                  <div
+                                    key={m.id || idx}
+                                    className={`p-3.5 rounded-2xl text-xs space-y-1.5 shadow-xs ${
+                                      isUser
+                                        ? 'bg-white border-2 border-stone-300 text-slate-950 ml-4 sm:ml-8'
+                                        : 'bg-pine-950 border-2 border-pine-900 text-white mr-4 sm:mr-8'
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between text-xs pb-1.5 border-b border-black/10">
+                                      <span className="font-bold flex items-center gap-1.5">
+                                        {isUser ? (
+                                          <>
+                                            <User className="w-3.5 h-3.5 text-pine-900" />
+                                            <span className="text-pine-950 font-bold">You ({m.senderName})</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+                                            <span className="text-gold-300 font-bold">{m.senderName} (Staff Concierge)</span>
+                                          </>
+                                        )}
+                                      </span>
+                                      <span className={`text-[11px] font-semibold ${isUser ? 'text-slate-600' : 'text-gold-200/90'}`}>
+                                        {m.timestamp}
+                                      </span>
+                                    </div>
+                                    <p className={`whitespace-pre-line leading-relaxed font-sans text-xs ${isUser ? 'text-slate-900 font-medium' : 'text-stone-100 font-normal'}`}>
+                                      {m.message}
+                                    </p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {/* RESOLVED STATE BANNER: strictly locks replying */}
+                            {isResolved ? (
+                              <div className="p-4 bg-emerald-50 border-2 border-emerald-400 rounded-2xl space-y-2 shadow-xs">
+                                <div className="flex items-center gap-2 text-emerald-950 font-bold text-sm">
+                                  <CheckCircle2 className="w-5 h-5 text-emerald-700 flex-shrink-0" />
+                                  <span>Inquiry Resolved by Front Desk Staff</span>
+                                </div>
+                                <p className="text-xs text-emerald-950 font-medium leading-relaxed">
+                                  This inquiry was marked as resolved {inq.resolvedAt ? `on ${inq.resolvedAt}` : ''}. The conversation is now closed and you cannot send further replies to this thread.
+                                </p>
+                                <div className="pt-1 flex flex-wrap items-center gap-3">
+                                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-950 bg-white px-3 py-1 rounded-lg border border-emerald-300 shadow-2xs">
+                                    <Lock className="w-3.5 h-3.5 text-emerald-700" />
+                                    <span>Replies locked</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      onClose();
+                                      const el = document.getElementById('inquire');
+                                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                                    }}
+                                    className="text-xs font-bold text-pine-900 hover:text-gold-700 underline cursor-pointer"
+                                  >
+                                    Need something else? Send a new inquiry →
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              /* ACTIVE STATE: User can reply back */
+                              <form
+                                onSubmit={(e) => handleCustomerReply(e, inq.id)}
+                                className="pt-3 border-t border-stone-200 space-y-2"
+                              >
+                                <label className="text-xs font-bold text-pine-950 flex items-center justify-between">
+                                  <span>Reply Back to Front Desk:</span>
+                                  <span className="text-xs text-slate-700 font-semibold">
+                                    {hasStaffReply ? 'Active conversation thread' : 'Follow up on inquiry'}
+                                  </span>
+                                </label>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                  <textarea
+                                    rows={2}
+                                    value={replyTexts[inq.id] || ''}
+                                    onChange={(e) =>
+                                      setReplyTexts((prev) => ({ ...prev, [inq.id]: e.target.value }))
+                                    }
+                                    placeholder="Type your reply back to our front desk team..."
+                                    className="flex-1 bg-white border-2 border-stone-300 rounded-xl p-3 text-xs text-slate-950 font-medium placeholder:text-slate-500 focus:outline-none focus:border-pine-800 focus:ring-1 focus:ring-pine-800 resize-none shadow-2xs"
+                                  />
+                                  <button
+                                    type="submit"
+                                    disabled={
+                                      isSubmittingReply === inq.id || !(replyTexts[inq.id] || '').trim()
+                                    }
+                                    className="px-5 py-2.5 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center justify-center gap-1.5 flex-shrink-0 self-end sm:self-stretch"
+                                  >
+                                    <Send className="w-3.5 h-3.5" />
+                                    <span>
+                                      {isSubmittingReply === inq.id ? 'Sending...' : 'Send Reply'}
+                                    </span>
+                                  </button>
+                                </div>
+                              </form>
+                            )}
+
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+
           </div>
         )}
 

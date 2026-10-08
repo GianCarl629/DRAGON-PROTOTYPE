@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { AdminStoreState } from '../data/adminMockData';
 import { CursorSettingsDropdown } from '../../components/UI/CursorSettingsDropdown';
-import { RealtimeCalendarDropdown } from './RealtimeCalendarDropdown';
+import { getPhilippineNow } from '../../utils/philippineTime';
 import { AdminNotificationsDropdown } from './AdminNotificationsDropdown';
 
 interface AdminLayoutProps {
@@ -56,6 +56,20 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // Real-time Philippine date (display only)
+  const [philippineDate, setPhilippineDate] = useState(() => {
+    const now = getPhilippineNow();
+    return `${now.monthName} ${now.day}, ${now.year}`;
+  });
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      const now = getPhilippineNow();
+      setPhilippineDate(`${now.monthName} ${now.day}, ${now.year}`);
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Dynamic counts for notification badges
   const pendingReservationsCount = store.reservations.filter(r => r.status === 'Pending Review').length;
@@ -331,11 +345,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
           {/* Right Header Controls: Realtime PHT Calendar, 10x Notifications, Cursor, Admin Profile */}
           <div className="flex items-center gap-2 sm:gap-3.5 text-xs">
-            {/* Real-time Philippine Standard Time Calendar & Clock Widget */}
-            <RealtimeCalendarDropdown
-              reservations={store.reservations}
-              onSelectDateFilter={(d) => onSelectTab('reservations', d)}
-            />
+            {/* Real-time Philippine Date (Display only) */}
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold-50/80 border border-gold-300 text-pine-950 text-[11px] font-medium shadow-2xs">
+              <Calendar className="w-3.5 h-3.5 text-pine-700" />
+              <span>{philippineDate}</span>
+            </div>
 
             {/* 10x Operational Alerts & Notification Dropdown */}
             <AdminNotificationsDropdown

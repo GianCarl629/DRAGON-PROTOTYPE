@@ -129,12 +129,36 @@ Used by `src/services/db/roomService.ts` and `src/components/Rooms/RoomSection.t
 
 ---
 
+### Table 6: `inquiries` (Concierge Inquiries, Message History & Resolution)
+Used by `src/services/db/inquiryService.ts`, `src/components/Inquiry/InquiryModal.tsx`, `src/components/Inquiry/InquirySection.tsx`, `src/components/Auth/MyReservationsModal.tsx`, and `src/admin/views/InquiriesView.tsx`.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `UUID` or `TEXT` | Primary Key |
+| `reference_code` | `TEXT` | Unique inquiry code (e.g., `INQ-2026-4821`) |
+| `guest_name` | `TEXT` | Guest full name |
+| `email` | `TEXT` | Contact email (matches customer account for logged-in history) |
+| `phone` | `TEXT` | Contact mobile number |
+| `topic` | `TEXT` | Inquiry topic category |
+| `message` | `TEXT` | Initial inquiry message text |
+| `status` | `TEXT` | `'New'`, `'Replied'`, `'Resolved'`, `'Archived'` |
+| `reply_text` | `TEXT` | Latest staff reply text |
+| `messages` | `JSONB` | Thread history array: `[{ id, sender: 'guest'|'staff', senderName, message, timestamp, createdAtIso }]` |
+| `resolved_at` | `TIMESTAMPTZ` | Timestamp when marked as resolved |
+| `resolved_by` | `TEXT` | Staff member who resolved the inquiry |
+| `is_read_by_customer`| `BOOLEAN` | `true` if read, `false` for unread replies notification badge |
+| `created_at` | `TIMESTAMPTZ` | Submission timestamp |
+
+> **Thread Resolution Behavior:** When `status` is set to `'Resolved'`, customer reply input is strictly locked/disabled on the client side.
+
+---
+
 ## 3. Realtime Updates (Optional but Recommended)
 
-To enable live calendar updates without page refreshing:
+To enable live calendar and message updates without page refreshing:
 1. Go to **Database** → **Replication** in Supabase.
-2. Enable replication for the `reservations` and `invoices` tables.
-3. The website's `subscribeToLiveCalendar()` will automatically listen for live changes.
+2. Enable replication for the `reservations`, `invoices`, and `inquiries` tables.
+3. The website will automatically receive live updates for reservations, staff replies, and resolution changes.
 
 ---
 
@@ -144,4 +168,43 @@ If you need to adjust any queries to match your preferred table or column names:
 - Client Initialization: `src/lib/supabase.ts`
 - Reservations & Calendar: `src/services/db/reservationService.ts`
 - Billing & Payments: `src/services/db/billingService.ts`
+- Concierge Inquiries & Messages: `src/services/db/inquiryService.ts`
 - Authentication & Profiles: `src/services/authService.ts`
+
+---
+
+## 5. SQL Table Creation Script (Copy & Paste in Supabase SQL Editor)
+
+You can run this query in your Supabase SQL editor to create the `inquiries` table:
+
+```sql
+CREATE TABLE IF NOT EXISTS public.inquiries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  reference_code TEXT NOT NULL,
+  guest_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT,
+  topic TEXT NOT NULL,
+  message TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'New',
+  reply_text TEXT,
+  messages JSONB DEFAULT '[]'::jsonb,
+  resolved_at TIMESTAMPTZ,
+  resolved_by TEXT,
+  is_read_by_customer BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE public.inquiries ENABLE ROW LEVEL SECURITY;
+
+-- Allow public/authenticated insert & select for guest concierge
+CREATE POLICY "Allow public insert to inquiries" ON public.inquiries
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow select inquiries" ON public.inquiries
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow update inquiries" ON public.inquiries
+  FOR UPDATE USING (true);
+```
