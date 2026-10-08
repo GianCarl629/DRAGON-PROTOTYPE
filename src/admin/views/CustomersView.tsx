@@ -13,7 +13,7 @@ import {
   FileText
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { AdminCustomer } from '../data/adminMockData';
+import { AdminCustomer, AdminDataManager, INITIAL_ADMIN_CUSTOMERS } from '../data/adminMockData';
 
 interface CustomersViewProps {}
 
@@ -39,26 +39,36 @@ export const CustomersView: React.FC<CustomersViewProps> = () => {
 
   const fetchCustomers = async () => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('customer_records')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('customer_records')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (data) {
-      const formatted: AdminCustomer[] = data.map((c: any) => ({
-        id: c.id,
-        name: c.name,
-        email: c.email || '',
-        phone: c.phone || '',
-        accountStatus: c.account_status,
-        reservationCount: c.reservation_count || 1,
-        latestReservation: c.latest_reservation || 'Standard Room',
-        memberSince: c.member_since || 'Oct 2026',
-        notes: c.notes || ''
-      }));
-      setCustomers(formatted);
+      if (data && data.length > 0) {
+        const formatted: AdminCustomer[] = data.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          email: c.email || '',
+          phone: c.phone || '',
+          accountStatus: c.account_status,
+          reservationCount: c.reservation_count || 1,
+          latestReservation: c.latest_reservation || 'Standard Room',
+          memberSince: c.member_since || 'Oct 2026',
+          notes: c.notes || ''
+        }));
+        setCustomers(formatted);
+      } else {
+        const store = AdminDataManager.loadStore();
+        setCustomers(store.customers || INITIAL_ADMIN_CUSTOMERS);
+      }
+    } catch (err) {
+      console.warn("Notice: Falling back to local customers data:", err);
+      const store = AdminDataManager.loadStore();
+      setCustomers(store.customers || INITIAL_ADMIN_CUSTOMERS);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {

@@ -26,6 +26,8 @@ import { TodaysOperationsSchedule } from '../components/dashboard/TodaysOperatio
 import { RecentReservationsTable } from '../components/dashboard/RecentReservationsTable';
 import { RecentActivityTimeline } from '../components/dashboard/RecentActivityTimeline';
 
+import { AdminDataManager } from '../data/adminMockData';
+
 interface DashboardViewProps {
   onNavigateTab: (tab: string, filter?: string) => void;
   onConfirmReservation: (id: string) => void;
@@ -39,96 +41,115 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('30d');
   const [isLoading, setIsLoading] = useState(true);
-  const [liveStore, setLiveStore] = useState<any>({
-    reservations: [],
-    rooms: [],
-    dormSlots: [],
-    billing: [],
-    inquiries: []
-  });
+  const [liveStore, setLiveStore] = useState<any>(() => AdminDataManager.loadStore());
 
   const fetchDashboardData = async () => {
     setIsLoading(true);
-    
-    const [resRes, roomRes, dormRes, billRes, inqRes] = await Promise.all([
-      supabase.from('reservations').select('*'),
-      supabase.from('room_units').select('*'),
-      supabase.from('dorm_beds').select('*'),
-      supabase.from('billing_records').select('*'),
-      supabase.from('guest_inquiries').select('*')
-    ]);
+    try {
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Dashboard fetch timeout')), 5000)
+      );
 
-    const formattedReservations = (resRes.data || []).map((r: any) => ({
-      id: r.id,
-      reservationCode: r.reservation_code || `RES-${r.id.substring(0, 5)}`,
-      guestName: r.guest_name,
-      roomName: r.room_type || 'Room Unit',
-      roomType: r.room_type,
-      guests: r.number_of_guests || 1,
-      checkIn: r.check_in_date,
-      checkOut: r.check_out_date,
-      status: r.status,
-      totalAmount: Number(r.total_price) || 0,
-      bookedAt: 'Recent'
-    }));
+      const fetchPromise = Promise.all([
+        supabase.from('reservations').select('*'),
+        supabase.from('room_units').select('*'),
+        supabase.from('dorm_beds').select('*'),
+        supabase.from('billing_records').select('*'),
+        supabase.from('guest_inquiries').select('*')
+      ]);
 
-    const formattedRooms = (roomRes.data || []).map((rm: any) => ({
-      id: rm.id,
-      name: rm.room_number,
-      roomType: rm.room_type,
-      floor: rm.floor,
-      status: rm.status,
-      price: rm.price_per_night
-    }));
+      const [resRes, roomRes, dormRes, billRes, inqRes] = await Promise.race([
+        fetchPromise,
+        timeoutPromise
+      ]) as any[];
 
-    const formattedDormSlots = (dormRes.data || []).map((d: any) => ({
-      id: d.id,
-      dormRoom: d.room_number,
-      wing: d.wing,
-      bedSlot: d.bed_identifier,
-      status: d.status,
-      tenantName: d.tenant_name,
-      tenantPhone: d.tenant_phone,
-      dueDate: d.due_date,
-      monthlyRate: Number(d.monthly_rent) || 3500,
-      utilityStatus: d.amenities || 'Inclusive of Wi-Fi'
-    }));
+      const localStore = AdminDataManager.loadStore();
 
-    const formattedBilling = (billRes.data || []).map((b: any) => ({
-      id: b.id,
-      invoiceNumber: b.invoice_number,
-      tenantOrGuest: b.tenant_or_guest,
-      type: b.type,
-      roomOrBed: b.room_or_bed,
-      billingPeriod: b.billing_period,
-      rentAmount: Number(b.rent_amount) || 0,
-      waterAmount: Number(b.water_amount) || 0,
-      electricityAmount: Number(b.electricity_amount) || 0,
-      depositAmount: Number(b.deposit_amount) || 0,
-      totalAmount: Number(b.total_amount) || 0,
-      paymentStatus: b.payment_status,
-      dueDate: b.due_date,
-      paidAt: b.paid_at
-    }));
+      const formattedReservations = resRes.data && resRes.data.length > 0
+        ? resRes.data.map((r: any) => ({
+            id: r.id,
+            reservationCode: r.reservation_code || `RES-${r.id.substring(0, 5)}`,
+            guestName: r.guest_name,
+            roomName: r.room_type || 'Room Unit',
+            roomType: r.room_type,
+            guests: r.number_of_guests || 1,
+            checkIn: r.check_in_date,
+            checkOut: r.check_out_date,
+            status: r.status,
+            totalAmount: Number(r.total_price) || 0,
+            bookedAt: 'Recent'
+          }))
+        : localStore.reservations;
 
-    const formattedInquiries = (inqRes.data || []).map((i: any) => ({
-      id: i.id,
-      guestName: i.guest_name,
-      topic: i.topic,
-      message: i.message,
-      status: i.status,
-      receivedAt: i.received_at || 'Recent'
-    }));
+      const formattedRooms = roomRes.data && roomRes.data.length > 0
+        ? roomRes.data.map((rm: any) => ({
+            id: rm.id,
+            name: rm.room_number,
+            roomType: rm.room_type,
+            floor: rm.floor,
+            status: rm.status,
+            price: rm.price_per_night
+          }))
+        : localStore.rooms;
 
-    setLiveStore({
-      reservations: formattedReservations,
-      rooms: formattedRooms,
-      dormSlots: formattedDormSlots,
-      billing: formattedBilling,
-      inquiries: formattedInquiries
-    });
+      const formattedDormSlots = dormRes.data && dormRes.data.length > 0
+        ? dormRes.data.map((d: any) => ({
+            id: d.id,
+            dormRoom: d.room_number,
+            wing: d.wing,
+            bedSlot: d.bed_identifier,
+            status: d.status,
+            tenantName: d.tenant_name,
+            tenantPhone: d.tenant_phone,
+            dueDate: d.due_date,
+            monthlyRate: Number(d.monthly_rent) || 3500,
+            utilityStatus: d.amenities || 'Inclusive of Wi-Fi'
+          }))
+        : localStore.dormSlots;
 
-    setIsLoading(false);
+      const formattedBilling = billRes.data && billRes.data.length > 0
+        ? billRes.data.map((b: any) => ({
+            id: b.id,
+            invoiceNumber: b.invoice_number,
+            tenantOrGuest: b.tenant_or_guest,
+            type: b.type,
+            roomOrBed: b.room_or_bed,
+            billingPeriod: b.billing_period,
+            rentAmount: Number(b.rent_amount) || 0,
+            waterAmount: Number(b.water_amount) || 0,
+            electricityAmount: Number(b.electricity_amount) || 0,
+            depositAmount: Number(b.deposit_amount) || 0,
+            totalAmount: Number(b.total_amount) || 0,
+            paymentStatus: b.payment_status,
+            dueDate: b.due_date,
+            paidAt: b.paid_at
+          }))
+        : localStore.billing;
+
+      const formattedInquiries = inqRes.data && inqRes.data.length > 0
+        ? inqRes.data.map((i: any) => ({
+            id: i.id,
+            guestName: i.guest_name,
+            topic: i.topic,
+            message: i.message,
+            status: i.status,
+            receivedAt: i.received_at || 'Recent'
+          }))
+        : localStore.inquiries;
+
+      setLiveStore({
+        reservations: formattedReservations,
+        rooms: formattedRooms,
+        dormSlots: formattedDormSlots,
+        billing: formattedBilling,
+        inquiries: formattedInquiries
+      });
+    } catch (err) {
+      console.warn('Notice: Dashboard fetch timed out or errored, loaded baseline:', err);
+      setLiveStore(AdminDataManager.loadStore());
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {

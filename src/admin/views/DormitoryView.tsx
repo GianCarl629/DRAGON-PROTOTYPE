@@ -9,13 +9,14 @@ import {
   UserCheck, 
   UserMinus 
 } from 'lucide-react';
+import { AdminDataManager, INITIAL_ADMIN_DORM_SLOTS } from '../data/adminMockData';
 
 export interface AdminDormSlot {
   id: string;
   dormRoom: string;
   wing: string;
   bedSlot: string;
-  status: 'Available' | 'Occupied' | 'Reserved' | 'Maintenance';
+  status: 'Available' | 'Occupied' | 'Reserved' | 'Maintenance' | 'Under Cleaning';
   tenantName: string | null;
   tenantPhone?: string;
   dueDate: string | null;
@@ -44,34 +45,54 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
 
   const fetchDormBeds = async () => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('dorm_beds')
-      .select('*')
-      .order('room_number', { ascending: true })
-      .order('bed_identifier', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('dorm_beds')
+        .select('*')
+        .order('room_number', { ascending: true })
+        .order('bed_identifier', { ascending: true });
 
-    if (error) {
-      console.error("Error fetching beds:", error);
-    } else if (data) {
-      const formattedSlots: AdminDormSlot[] = data.map((d: any) => ({
-        id: d.id,
-        dormRoom: d.room_number,
-        wing: d.wing,
-        bedSlot: d.bed_identifier,
-        status: (d.status as any) || 'Available',
-        tenantName: d.tenant_name,
-        tenantPhone: d.tenant_phone,
-        dueDate: d.due_date,
-        monthlyRate: Number(d.monthly_rent) || 3500,
-        utilityStatus: d.amenities || 'Inclusive of Wi-Fi & Water'
-      }));
-      setSlots(formattedSlots);
+      if (error || !data || data.length === 0) {
+        console.warn("Notice: Using baseline dorm beds data:", error);
+        const store = AdminDataManager.loadStore();
+        setSlots((store.dormSlots as any) || (INITIAL_ADMIN_DORM_SLOTS as any));
+      } else {
+        const formattedSlots: AdminDormSlot[] = data.map((d: any) => ({
+          id: d.id,
+          dormRoom: d.room_number,
+          wing: d.wing,
+          bedSlot: d.bed_identifier,
+          status: (d.status as any) || 'Available',
+          tenantName: d.tenant_name,
+          tenantPhone: d.tenant_phone,
+          dueDate: d.due_date,
+          monthlyRate: Number(d.monthly_rent) || 3500,
+          utilityStatus: d.amenities || 'Inclusive of Wi-Fi & Water'
+        }));
+        setSlots(formattedSlots);
+      }
+    } catch (err) {
+      console.warn("Notice: Error fetching dorm beds, using baseline:", err);
+      const store = AdminDataManager.loadStore();
+      setSlots((store.dormSlots as any) || (INITIAL_ADMIN_DORM_SLOTS as any));
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {
     fetchDormBeds();
+
+    const channel = supabase
+      .channel('admin-dorm-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dorm_beds' }, () => {
+        fetchDormBeds();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const dormRooms = Array.from(new Set(slots.map(s => s.dormRoom)));
@@ -109,7 +130,7 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
         setSelectedSlot(null);
         fetchDormBeds();
       } else {
-        alert("Pammakaammo: Saan a naisave iti database. Basaen ti console logs.");
+        alert("Notice: Could not save to database. Please check console logs.");
         console.error(error);
       }
     }

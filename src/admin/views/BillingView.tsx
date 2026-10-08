@@ -7,7 +7,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { AdminBillingRecord } from '../data/adminMockData';
+import { AdminBillingRecord, AdminDataManager, INITIAL_ADMIN_BILLING } from '../data/adminMockData';
 import { saveLocalInvoice } from '../../services/db/billingService';
 
 interface BillingViewProps {
@@ -27,31 +27,41 @@ export const BillingView: React.FC<BillingViewProps> = ({
 
   const fetchBillingRecords = async () => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('billing_records')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('billing_records')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (data) {
-      const formatted: AdminBillingRecord[] = data.map((b: any) => ({
-        id: b.id,
-        invoiceNumber: b.invoice_number,
-        tenantOrGuest: b.tenant_or_guest,
-        type: b.type as any,
-        roomOrBed: b.room_or_bed,
-        billingPeriod: b.billing_period,
-        rentAmount: Number(b.rent_amount) || 0,
-        waterAmount: Number(b.water_amount) || 0,
-        electricityAmount: Number(b.electricity_amount) || 0,
-        depositAmount: Number(b.deposit_amount) || 0,
-        totalAmount: Number(b.total_amount) || 0,
-        paymentStatus: b.payment_status as any,
-        dueDate: b.due_date,
-        paidAt: b.paid_at
-      }));
-      setBillingRecords(formatted);
+      if (data && data.length > 0) {
+        const formatted: AdminBillingRecord[] = data.map((b: any) => ({
+          id: b.id,
+          invoiceNumber: b.invoice_number,
+          tenantOrGuest: b.tenant_or_guest,
+          type: b.type as any,
+          roomOrBed: b.room_or_bed,
+          billingPeriod: b.billing_period,
+          rentAmount: Number(b.rent_amount) || 0,
+          waterAmount: Number(b.water_amount) || 0,
+          electricityAmount: Number(b.electricity_amount) || 0,
+          depositAmount: Number(b.deposit_amount) || 0,
+          totalAmount: Number(b.total_amount) || 0,
+          paymentStatus: b.payment_status as any,
+          dueDate: b.due_date,
+          paidAt: b.paid_at
+        }));
+        setBillingRecords(formatted);
+      } else {
+        const store = AdminDataManager.loadStore();
+        setBillingRecords(store.billing || INITIAL_ADMIN_BILLING);
+      }
+    } catch (err) {
+      console.warn("Notice: Falling back to local billing data:", err);
+      const store = AdminDataManager.loadStore();
+      setBillingRecords(store.billing || INITIAL_ADMIN_BILLING);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {

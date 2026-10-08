@@ -3,14 +3,20 @@ import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { SAMPLE_ROOMS } from '../../data/mockData';
 import { Room } from '../../types';
 
-// Fetch rooms from Supabase or fallback
+// Fetch rooms from Supabase or fallback with timeout protection
 export const fetchRooms = async (): Promise<Room[]> => {
   if (isSupabaseConfigured()) {
     try {
-      const { data, error } = await supabase
+      const timeoutPromise = new Promise<{ data: null; error: any }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: 'timeout' }), 3500)
+      );
+
+      const fetchPromise = supabase
         .from('rooms')
         .select('*')
         .order('rate', { ascending: true });
+
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
 
       if (!error && data && data.length > 0) {
         return data.map((r: any) => ({

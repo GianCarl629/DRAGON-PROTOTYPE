@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { SAMPLE_ROOMS } from '../../data/mockData';
+import { AdminDataManager, INITIAL_ADMIN_RESERVATIONS } from '../data/adminMockData';
 
 interface AdminReservation {
   id: string;
@@ -64,49 +65,75 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchPhysicalRooms = async () => {
-    const { data } = await supabase.from('room_units').select('id, room_number, room_type, status').eq('status', 'Available');
-    if (data) setAvailablePhysicalRooms(data);
+    try {
+      const { data } = await supabase.from('room_units').select('id, room_number, room_type, status').eq('status', 'Available');
+      if (data) setAvailablePhysicalRooms(data);
+    } catch {
+      // silent
+    }
   };
 
   const fetchReservations = async () => {
     setIsLoading(true);
-    const { data, error } = await supabase.from('reservations').select('*').order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase.from('reservations').select('*').order('created_at', { ascending: false });
 
-    if (data) {
-      const formattedData: AdminReservation[] = data.map((res: any) => {
-        const rawType = String(res.room_type || res.room_id || '');
-        const cleanRoomType = rawType.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      if (error || !data || data.length === 0) {
+        console.warn('Notice: Using baseline reservations data:', error);
+        const store = AdminDataManager.loadStore();
+        setLiveReservations((store.reservations as any) || (INITIAL_ADMIN_RESERVATIONS as any));
+      } else {
+        const formattedData: AdminReservation[] = data.map((res: any) => {
+          const rawType = String(res.room_type || res.room_id || '');
+          const cleanRoomType = rawType.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
-        return {
-          id: res.id,
-          reservationCode: res.reservation_code || 'N/A',
-          guestName: res.guest_name || 'No Name',
-          email: res.guest_email || '',
-          phone: res.guest_phone || '',
-          roomName: cleanRoomType,
-          roomType: cleanRoomType,
-          category: res.stay_type || 'transient',
-          checkIn: res.check_in_date || res.check_in || '',
-          checkOut: res.check_out_date || res.check_out || '',
-          guests: Number(res.number_of_guests) || 1,
-          rate: Number(res.rate_applied) || 0,
-          ratePeriod: 'night',
-          totalAmount: Number(res.total_price) || 0,
-          status: (res.status as any) || 'Pending Review',
-          paymentStatus: (res.payment_status as any) || 'Pending',
-          specialRequests: res.special_requests || '',
-          cancellationReason: res.cancellation_reason || '',
-          physicalRoomNumber: res.physical_room_number || ''
-        };
-      });
-      setLiveReservations(formattedData);
+          return {
+            id: res.id,
+            reservationCode: res.reservation_code || 'N/A',
+            guestName: res.guest_name || 'No Name',
+            email: res.guest_email || '',
+            phone: res.guest_phone || '',
+            roomName: cleanRoomType,
+            roomType: cleanRoomType,
+            category: res.stay_type || 'transient',
+            checkIn: res.check_in_date || res.check_in || '',
+            checkOut: res.check_out_date || res.check_out || '',
+            guests: Number(res.number_of_guests) || 1,
+            rate: Number(res.rate_applied) || 0,
+            ratePeriod: 'night',
+            totalAmount: Number(res.total_price) || 0,
+            status: (res.status as any) || 'Pending Review',
+            paymentStatus: (res.payment_status as any) || 'Pending',
+            specialRequests: res.special_requests || '',
+            cancellationReason: res.cancellation_reason || '',
+            physicalRoomNumber: res.physical_room_number || ''
+          };
+        });
+        setLiveReservations(formattedData);
+      }
+    } catch (err) {
+      console.warn('Notice: Error fetching reservations, using baseline:', err);
+      const store = AdminDataManager.loadStore();
+      setLiveReservations((store.reservations as any) || (INITIAL_ADMIN_RESERVATIONS as any));
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {
     fetchReservations();
     fetchPhysicalRooms();
+
+    const channel = supabase
+      .channel('admin-reservations-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, () => {
+        fetchReservations();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
