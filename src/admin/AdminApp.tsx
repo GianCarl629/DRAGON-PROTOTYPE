@@ -297,11 +297,9 @@ export const AdminApp: React.FC = () => {
       onSelectTab={handleSelectTab}
       onLogout={handleLogout}
       adminUsername={adminUsername}
-      store={store}
     >
       {activeTab === 'dashboard' && (
         <DashboardView
-          store={store}
           onNavigateTab={handleSelectTab}
           onConfirmReservation={handleConfirmReservation}
           onCancelReservation={handleCancelReservation}
@@ -310,65 +308,38 @@ export const AdminApp: React.FC = () => {
 
       {activeTab === 'reservations' && (
         <ReservationsView
-          reservations={store.reservations}
-          onConfirm={handleConfirmReservation}
-          onCancel={handleCancelReservation}
-          onUpdatePayment={handleUpdatePaymentStatus}
-          onUpdateReservation={handleUpdateReservation}
-          onAddReservation={handleAddReservation}
-          onDeleteReservation={handleDeleteReservation}
           initialFilter={tabFilter}
         />
       )}
 
       {activeTab === 'rooms' && (
         <RoomsView
-          rooms={store.rooms}
-          onAddRoom={handleAddRoom}
-          onUpdateRoom={handleUpdateRoom}
-          onDeleteRoom={handleDeleteRoom}
           initialFilter={tabFilter}
         />
       )}
 
       {activeTab === 'dormitory' && (
-        <DormitoryView
-          slots={store.dormSlots}
-          onUpdateSlot={handleUpdateDormSlot}
-        />
+        <DormitoryView />
       )}
 
       {activeTab === 'billing' && (
         <BillingView
-          billingRecords={store.billing}
-          onUpdateStatus={handleUpdateBillingStatus}
-          onAddRecord={handleAddBillingRecord}
           initialFilter={tabFilter}
         />
       )}
 
       {activeTab === 'customers' && (
-        <CustomersView
-          customers={store.customers}
-          onAddCustomer={handleAddCustomer}
-          onUpdateCustomer={handleUpdateCustomer}
-        />
+        <CustomersView />
       )}
 
       {activeTab === 'inquiries' && (
         <InquiriesView
-          inquiries={store.inquiries}
-          onReply={handleReplyInquiry}
-          onMarkRead={handleMarkReadInquiry}
-          onArchive={handleArchiveInquiry}
-          onResolve={handleResolveInquiry}
-          onReopen={handleReopenInquiry}
           initialFilter={tabFilter}
         />
       )}
 
       {activeTab === 'reports' && (
-        <ReportsView store={store} />
+        <ReportsView />
       )}
 
       {activeTab === 'settings' && (

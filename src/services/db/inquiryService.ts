@@ -93,27 +93,49 @@ export const submitCustomerInquiry = async (
   // Sync with Supabase if configured
   if (isSupabaseConfigured()) {
     try {
-      const { data, error } = await supabase
-        .from('inquiries')
+      // First try guest_inquiries (live Supabase table)
+      const { data: guestData, error: guestErr } = await supabase
+        .from('guest_inquiries')
         .insert([
           {
-            reference_code: referenceCode,
             guest_name: newInquiry.guestName,
-            email: newInquiry.email,
-            phone: newInquiry.phone,
+            guest_email: newInquiry.email,
+            guest_phone: newInquiry.phone,
             topic: newInquiry.topic,
             message: newInquiry.message,
             status: 'New',
-            messages: newInquiry.messages,
-            is_read_by_customer: true,
-            created_at: new Date().toISOString()
+            received_at: timestampStr
           }
         ])
         .select()
         .single();
 
-      if (!error && data) {
-        newInquiry.id = data.id;
+      if (!guestErr && guestData) {
+        newInquiry.id = guestData.id;
+      } else {
+        // Fallback to inquiries table
+        const { data, error } = await supabase
+          .from('inquiries')
+          .insert([
+            {
+              reference_code: referenceCode,
+              guest_name: newInquiry.guestName,
+              email: newInquiry.email,
+              phone: newInquiry.phone,
+              topic: newInquiry.topic,
+              message: newInquiry.message,
+              status: 'New',
+              messages: newInquiry.messages,
+              is_read_by_customer: true,
+              created_at: new Date().toISOString()
+            }
+          ])
+          .select()
+          .single();
+
+        if (!error && data) {
+          newInquiry.id = data.id;
+        }
       }
     } catch (err) {
       console.warn('Notice: Storing inquiry in local admin store:', err);
@@ -205,14 +227,23 @@ export const sendCustomerReply = async (
   // Sync to Supabase if configured
   if (isSupabaseConfigured()) {
     try {
-      await supabase
-        .from('inquiries')
+      const { error: guestErr } = await supabase
+        .from('guest_inquiries')
         .update({
-          status: 'New',
-          messages: updatedInquiry.messages,
-          is_read_by_customer: true
+          status: 'New'
         })
         .eq('id', inquiryId);
+
+      if (guestErr) {
+        await supabase
+          .from('inquiries')
+          .update({
+            status: 'New',
+            messages: updatedInquiry.messages,
+            is_read_by_customer: true
+          })
+          .eq('id', inquiryId);
+      }
     } catch (err) {
       console.warn('Notice: Updating customer reply in Supabase failed, cached locally:', err);
     }
@@ -277,21 +308,30 @@ export const sendStaffReply = async (
   // Sync to Supabase if configured
   if (isSupabaseConfigured()) {
     try {
-      await supabase
-        .from('inquiries')
+      const { error: guestErr } = await supabase
+        .from('guest_inquiries')
         .update({
-          status: markAsResolved ? 'Resolved' : 'Replied',
-          reply_text: replyText.trim(),
-          messages: updatedInquiry.messages,
-          is_read_by_customer: false,
-          ...(markAsResolved
-            ? {
-                resolved_at: new Date().toISOString(),
-                resolved_by: staffName
-              }
-            : {})
+          status: markAsResolved ? 'Resolved' : 'Replied'
         })
         .eq('id', inquiryId);
+
+      if (guestErr) {
+        await supabase
+          .from('inquiries')
+          .update({
+            status: markAsResolved ? 'Resolved' : 'Replied',
+            reply_text: replyText.trim(),
+            messages: updatedInquiry.messages,
+            is_read_by_customer: false,
+            ...(markAsResolved
+              ? {
+                  resolved_at: new Date().toISOString(),
+                  resolved_by: staffName
+                }
+              : {})
+          })
+          .eq('id', inquiryId);
+      }
     } catch (err) {
       console.warn('Notice: Updating staff reply in Supabase failed, cached locally:', err);
     }
@@ -452,6 +492,47 @@ export const syncInquiriesWithSupabase = async (): Promise<AdminInquiry[]> => {
   }
 
   try {
+    // 1. Try fetching from guest_inquiries first (live Supabase table)
+    const { data: guestData, error: guestErr } = await supabase
+      .from('guest_inquiries')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!guestErr && guestData) {
+      const remoteInquiries: AdminInquiry[] = guestData.map((row: any) => ({
+        id: row.id,
+        guestName: row.guest_name,
+        email: row.guest_email || row.email || '',
+        phone: row.guest_phone || row.phone || '',
+        topic: row.topic,
+        message: row.message,
+        status: (row.status as any) || 'New',
+        replyText: row.reply_text || undefined,
+        messages: [
+          {
+            id: `msg-${row.id}-orig`,
+            sender: 'guest' as const,
+            senderName: row.guest_name,
+            message: row.message,
+            timestamp: row.received_at || (row.created_at ? new Date(row.created_at).toLocaleDateString() : 'Submitted')
+          }
+        ],
+        receivedAt: row.received_at || (row.created_at ? new Date(row.created_at).toLocaleDateString() : 'Recent'),
+        resolvedAt: row.resolved_at ? new Date(row.resolved_at).toLocaleDateString() : undefined,
+        resolvedBy: row.resolved_by || undefined,
+        isReadByCustomer: true
+      }));
+
+      // Remote Supabase database is source of truth (deleted rows are removed)
+      AdminDataManager.saveStore({
+        ...AdminDataManager.loadStore(),
+        inquiries: remoteInquiries
+      });
+      notifyInquiryChange();
+      return remoteInquiries;
+    }
+
+    // 2. Fallback to inquiries table
     const { data, error } = await supabase
       .from('inquiries')
       .select('*')
@@ -485,23 +566,12 @@ export const syncInquiriesWithSupabase = async (): Promise<AdminInquiry[]> => {
       isReadByCustomer: row.is_read_by_customer ?? true
     }));
 
-    const store = AdminDataManager.loadStore();
-    const existing = store.inquiries || [];
-    const remoteIdMap = new Map(remoteInquiries.map((i) => [i.id, i]));
-
-    const merged = [...remoteInquiries];
-    for (const localInq of existing) {
-      if (!remoteIdMap.has(localInq.id)) {
-        merged.push(localInq);
-      }
-    }
-
     AdminDataManager.saveStore({
-      ...store,
-      inquiries: merged
+      ...AdminDataManager.loadStore(),
+      inquiries: remoteInquiries
     });
     notifyInquiryChange();
-    return merged;
+    return remoteInquiries;
   } catch (err) {
     console.warn('Error during Supabase inquiry sync:', err);
     return AdminDataManager.loadStore().inquiries || [];
@@ -518,6 +588,14 @@ export const subscribeToInquiryChanges = (
 
   const channel = supabase
     .channel('live-inquiries-changes')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'guest_inquiries' },
+      async (payload) => {
+        await syncInquiriesWithSupabase();
+        onUpdate(payload);
+      }
+    )
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'inquiries' },

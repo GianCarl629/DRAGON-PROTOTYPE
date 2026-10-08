@@ -10,7 +10,8 @@ import {
   X,
   Sparkles,
   CheckCircle2,
-  RotateCcw
+  RotateCcw,
+  Trash2
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { AdminInquiry } from '../data/adminMockData';
@@ -59,6 +60,18 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
 
   useEffect(() => {
     fetchInquiries();
+
+    // Live real-time subscription on guest_inquiries table
+    const channel = supabase
+      .channel('admin-inquiries-live-feed')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'guest_inquiries' }, () => {
+        fetchInquiries();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -75,7 +88,7 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
     const newStatus = markAsResolved ? 'Resolved' : 'Replied';
     const nowTimestamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-    await supabase
+    const { error } = await supabase
       .from('guest_inquiries')
       .update({ 
         status: newStatus, 
@@ -83,6 +96,13 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
         resolved_at: markAsResolved ? nowTimestamp : null 
       })
       .eq('id', id);
+
+    if (error) {
+      await supabase
+        .from('guest_inquiries')
+        .update({ status: newStatus })
+        .eq('id', id);
+    }
 
     fetchInquiries();
   };
@@ -107,21 +127,46 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
 
   const handleResolve = async (id: string) => {
     const nowTimestamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    await supabase
+    const { error } = await supabase
       .from('guest_inquiries')
       .update({ status: 'Resolved', resolved_at: nowTimestamp })
       .eq('id', id);
+
+    if (error) {
+      await supabase
+        .from('guest_inquiries')
+        .update({ status: 'Resolved' })
+        .eq('id', id);
+    }
 
     fetchInquiries();
   };
 
   const handleReopen = async (id: string) => {
-    await supabase
+    const { error } = await supabase
       .from('guest_inquiries')
       .update({ status: 'Replied', resolved_at: null })
       .eq('id', id);
 
+    if (error) {
+      await supabase
+        .from('guest_inquiries')
+        .update({ status: 'Replied' })
+        .eq('id', id);
+    }
+
     fetchInquiries();
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this guest inquiry?')) {
+      await supabase
+        .from('guest_inquiries')
+        .delete()
+        .eq('id', id);
+
+      fetchInquiries();
+    }
   };
 
   const filteredInquiries = inquiries.filter((inq) => {
@@ -400,6 +445,15 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
                         <Archive className="w-4 h-4" />
                       </button>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(inq.id)}
+                      className="p-2 bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border-2 border-stone-300 hover:border-rose-300 rounded-xl transition-colors cursor-pointer"
+                      title="Delete Inquiry"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
 
