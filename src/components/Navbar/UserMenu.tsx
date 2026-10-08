@@ -77,19 +77,25 @@ export const UserMenu: React.FC = () => {
         aria-haspopup="true"
       >
         <div className="relative flex-shrink-0">
-          <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-pine-900 to-pine-800 text-gold-300 font-serif font-bold text-xs flex items-center justify-center border border-gold-400/80 shadow-2xs">
+          <div className={`w-6 h-6 rounded-full font-serif font-bold text-xs flex items-center justify-center border shadow-2xs transition-colors ${
+            isOpen
+              ? 'bg-gold-500 text-pine-950 border-gold-300'
+              : 'bg-gradient-to-tr from-pine-900 to-pine-800 text-gold-300 border-gold-400/80'
+          }`}>
             {initial}
           </div>
           {unreadInquiries > 0 && (
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 border-2 border-white animate-pulse" title={`${unreadInquiries} new inquiry reply`} />
           )}
         </div>
-        <span className="text-xs font-bold max-w-[100px] truncate text-pine-950">
+        <span className={`text-xs font-bold max-w-[100px] truncate transition-colors ${
+          isOpen ? 'text-white' : 'text-pine-950'
+        }`}>
           Hi, {firstName}
         </span>
         <ChevronDown
           className={`w-3.5 h-3.5 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-gold-400' : 'text-slate-400'
+            isOpen ? 'rotate-180 text-gold-300' : 'text-slate-500'
           }`}
           strokeWidth={2.5}
         />
@@ -110,7 +116,7 @@ export const UserMenu: React.FC = () => {
                 <span>Member</span>
               </span>
             </div>
-            <span className="text-[11px] text-slate-500 block truncate mt-0.5">
+            <span className="text-[11px] text-slate-600 font-medium block truncate mt-0.5">
               {user.email}
             </span>
           </div>

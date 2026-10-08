@@ -176,12 +176,12 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
                 }`}
               >
                 {/* Top Row: Sender, Topic, Time & Status */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-stone-200 gap-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gold-100 text-pine-950 flex items-center justify-center border border-gold-300 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-stone-200 gap-2.5">
+                  <div className="flex items-start sm:items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gold-100 text-pine-950 flex items-center justify-center border border-gold-300 shadow-xs flex-shrink-0 mt-0.5 sm:mt-0">
                       <User className="w-5 h-5 text-pine-900" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-base text-pine-950">{inq.guestName}</span>
                         <span className="text-slate-500 font-bold">•</span>
@@ -189,15 +189,15 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
                           {inq.topic}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-800 font-medium flex items-center gap-2 mt-0.5">
-                        <span className="font-bold text-slate-950">{inq.email}</span>
-                        <span className="text-slate-500 font-bold">•</span>
+                      <div className="text-xs text-slate-800 font-medium flex items-center gap-1.5 flex-wrap mt-0.5">
+                        <span className="font-bold text-slate-950 break-all">{inq.email}</span>
+                        <span className="text-slate-500 font-bold hidden sm:inline">•</span>
                         <span className="text-slate-900 font-semibold">{inq.phone}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2.5 text-xs">
+                  <div className="flex items-center justify-between sm:justify-end gap-2.5 text-xs pt-1 sm:pt-0">
                     <span className="text-slate-800 font-bold text-xs">{inq.receivedAt}</span>
                     {inq.status === 'New' ? (
                       <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-950 border border-amber-400 shadow-2xs">
@@ -348,8 +348,8 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
 
       {/* REPLY MODAL */}
       {replyingInquiry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <form onSubmit={handleSendReply} className="bg-[#fffdfa] border-2 border-gold-300 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <form onSubmit={handleSendReply} className="bg-[#fffdfa] border-2 border-gold-300 rounded-3xl max-w-lg w-full p-4 sm:p-6 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-gold-200">
               <div>
                 <h3 className="font-serif font-bold text-lg text-pine-950">

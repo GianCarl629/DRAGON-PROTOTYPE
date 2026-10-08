@@ -138,9 +138,10 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
         </div>
       </div>
 
-      {/* Customer Directory Table (Section 14) */}
+      {/* Customer Directory Table & Mobile Cards */}
       <div className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl overflow-hidden shadow-card">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="text-[11px] uppercase tracking-wider text-pine-950 border-b border-gold-200/80 bg-gold-50/60 font-bold">
               <tr>
@@ -231,12 +232,93 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Customer Cards View */}
+        <div className="block md:hidden divide-y divide-gold-100/80">
+          {filteredCustomers.length === 0 ? (
+            <div className="py-10 px-4 text-center text-slate-400 text-xs">
+              No customers found matching search.
+            </div>
+          ) : (
+            filteredCustomers.map((c) => (
+              <div key={c.id} className="p-4 space-y-3 hover:bg-gold-50/20 transition-colors">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-900">{c.name}</h4>
+                    <span className="text-[11px] text-slate-400">Member since {c.memberSince}</span>
+                  </div>
+                  <div>
+                    {c.accountStatus === 'VIP Member' ? (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gold-100 text-gold-900 border border-gold-300 inline-flex items-center gap-1">
+                        <Star className="w-2.5 h-2.5 fill-gold-500 text-gold-500" />
+                        <span>VIP</span>
+                      </span>
+                    ) : c.accountStatus === 'Active' ? (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        Active
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 text-stone-700 border border-stone-200">
+                        Past Guest
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <a
+                    href={`mailto:${c.email}`}
+                    className="flex items-center gap-1.5 text-slate-600 hover:text-pine-800 truncate"
+                  >
+                    <Mail className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
+                    <span className="truncate">{c.email}</span>
+                  </a>
+                  <a
+                    href={`tel:${c.phone}`}
+                    className="flex items-center gap-1.5 text-slate-600 hover:text-pine-800"
+                  >
+                    <Phone className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
+                    <span>{c.phone}</span>
+                  </a>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200/80 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Stays</span>
+                    <span className="font-bold text-slate-800">{c.reservationCount} {c.reservationCount === 1 ? 'Stay' : 'Stays'}</span>
+                  </div>
+                  <div className="text-right max-w-[60%]">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Latest</span>
+                    <span className="font-medium text-slate-700 truncate block">{c.latestReservation}</span>
+                  </div>
+                </div>
+
+                {c.notes && (
+                  <p className="text-[11px] text-slate-500 italic bg-amber-50/50 p-2 rounded-lg border border-amber-200/50">
+                    "{c.notes}"
+                  </p>
+                )}
+
+                <div className="pt-1 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setEditingCustomer(c)}
+                    className="w-full sm:w-auto px-3 py-1.5 bg-stone-100 hover:bg-gold-100 text-slate-700 hover:text-pine-950 rounded-xl text-xs font-semibold transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5 border border-stone-200"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-pine-700" />
+                    <span>Edit Profile</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* EDIT CUSTOMER MODAL */}
       {editingCustomer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <form onSubmit={handleSaveEdit} className="bg-white border border-stone-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <form onSubmit={handleSaveEdit} className="bg-white border border-stone-200 rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <h3 className="font-bold text-sm text-slate-900 font-serif">
                 Edit Guest: {editingCustomer.name}
@@ -327,8 +409,8 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
 
       {/* ADD CUSTOMER MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <form onSubmit={handleCreateCustomer} className="bg-white border border-stone-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <form onSubmit={handleCreateCustomer} className="bg-white border border-stone-200 rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <h3 className="font-bold text-sm text-slate-900 font-serif">
                 Register New Customer

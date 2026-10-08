@@ -84,8 +84,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Global Date Filter Controls (Section 17) */}
-        <div className="flex items-center gap-1.5 p-1 bg-stone-100 rounded-2xl border border-stone-200/90 self-start md:self-auto">
+        <div className="flex items-center gap-1 p-1 bg-stone-100 rounded-2xl border border-stone-200/90 w-full sm:w-auto overflow-x-auto justify-between sm:justify-start">
           {(['7d', '30d', '3m', '12m'] as const).map((p) => {
+            const shortLabels: Record<TimePeriod, string> = {
+              '7d': '7D',
+              '30d': '30D',
+              '3m': '3M',
+              '12m': '12M'
+            };
             const labels: Record<TimePeriod, string> = {
               '7d': 'Past 7 Days',
               '30d': 'Past 30 Days',
@@ -99,13 +105,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 key={p}
                 type="button"
                 onClick={() => setSelectedPeriod(p)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex-1 sm:flex-none px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center ${
                   isSelected
                     ? 'bg-pine-950 text-white font-bold shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-stone-200/60'
                 }`}
               >
-                {labels[p]}
+                <span className="sm:hidden">{shortLabels[p]}</span>
+                <span className="hidden sm:inline">{labels[p]}</span>
               </button>
             );
           })}

@@ -73,8 +73,14 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = ({
         </div>
 
         {/* Period Selector Tabs */}
-        <div className="inline-flex p-1 rounded-xl bg-stone-100/80 border border-stone-200/80 self-start sm:self-auto text-xs font-semibold">
+        <div className="inline-flex p-1 rounded-xl bg-stone-100/80 border border-stone-200/80 self-start sm:self-auto text-xs font-semibold max-w-full overflow-x-auto">
           {(['7d', '30d', '3m', '12m'] as TimePeriod[]).map((p) => {
+            const shortLabels: Record<TimePeriod, string> = {
+              '7d': '7D',
+              '30d': '30D',
+              '3m': '3M',
+              '12m': '12M'
+            };
             const labels: Record<TimePeriod, string> = {
               '7d': '7 Days',
               '30d': '30 Days',
@@ -87,13 +93,14 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = ({
                 key={p}
                 type="button"
                 onClick={() => onPeriodChange(p)}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                className={`px-2 sm:px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-pine-950 text-gold-300 shadow-xs font-bold'
                     : 'text-slate-600 hover:text-pine-950 hover:bg-stone-200/60'
                 }`}
               >
-                {labels[p]}
+                <span className="sm:hidden">{shortLabels[p]}</span>
+                <span className="hidden sm:inline">{labels[p]}</span>
               </button>
             );
           })}

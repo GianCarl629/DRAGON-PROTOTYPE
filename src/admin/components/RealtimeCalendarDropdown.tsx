@@ -125,7 +125,7 @@ export const RealtimeCalendarDropdown: React.FC<RealtimeCalendarDropdownProps> =
 
       {/* Interactive Calendar Dropdown Modal */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#fffdfa] rounded-3xl border-2 border-gold-300 shadow-2xl p-4 sm:p-5 z-50 animate-in fade-in zoom-in-95 duration-150 text-slate-800">
+        <div className="fixed inset-x-2 top-14 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full mt-2 w-auto sm:w-96 max-w-[calc(100vw-1rem)] max-h-[85vh] overflow-y-auto bg-[#fffdfa] rounded-2xl sm:rounded-3xl border-2 border-gold-300 shadow-2xl p-4 sm:p-5 z-50 animate-in fade-in zoom-in-95 duration-150 text-slate-800">
           
           {/* Header & Live Clock Bar */}
           <div className="pb-3 border-b border-gold-200/80 flex items-center justify-between">

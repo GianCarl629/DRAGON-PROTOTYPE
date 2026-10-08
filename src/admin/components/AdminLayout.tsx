@@ -197,27 +197,27 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
       {/* SIDEBAR NAVIGATION: Permanently fixed to the left side */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-40 h-screen w-72 bg-pine-950 border-r border-pine-800 flex flex-col justify-between transition-transform duration-300 ease-in-out shadow-2xl flex-shrink-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 h-screen w-72 max-w-[85vw] bg-pine-950 border-r border-pine-800 flex flex-col justify-between transition-transform duration-300 ease-in-out shadow-2xl flex-shrink-0 ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         {/* Top Brand Header: Permanently sticks to the top of the side panel */}
-        <div className="sticky top-0 z-30 p-5 border-b border-pine-900/90 bg-pine-950/95 backdrop-blur-md flex items-center justify-between flex-shrink-0 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-gold-400 shadow-glow-gold bg-pine-950 flex items-center justify-center p-0.5 flex-shrink-0">
+        <div className="sticky top-0 z-30 p-4 sm:p-5 border-b border-pine-900/90 bg-pine-950/95 backdrop-blur-md flex items-center justify-between flex-shrink-0 shadow-xs">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden border-2 border-gold-400 shadow-glow-gold bg-pine-950 flex items-center justify-center p-0.5 flex-shrink-0">
               <img
                 src="/dragon-treasure-logo.jpg"
                 alt="Dragon Treasure Crest"
                 className="w-full h-full object-cover scale-[1.10]"
               />
             </div>
-            <div className="min-w-0">
-              <h1 className="font-serif font-bold text-base text-gold-100 truncate">
+            <div className="min-w-0 flex-1">
+              <h1 className="font-serif font-bold text-sm sm:text-base text-gold-100 truncate">
                 Dragon Treasure
               </h1>
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse" />
-                <span className="text-[10px] uppercase font-bold text-gold-300 tracking-wider">
+                <span className="text-[10px] uppercase font-bold text-gold-300 tracking-wider truncate">
                   Property Operations
                 </span>
               </div>
@@ -228,14 +228,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="md:hidden w-8 h-8 rounded-lg bg-pine-900 hover:bg-pine-800 text-gold-300 flex items-center justify-center cursor-pointer"
+            className="md:hidden w-8 h-8 rounded-lg bg-pine-900 hover:bg-pine-800 text-gold-300 flex items-center justify-center cursor-pointer transition-colors"
+            aria-label="Close menu"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Navigation Links Grouped Hierarchically: Scrollable middle section */}
-        <nav className="p-3.5 space-y-4 flex-1 overflow-y-auto min-h-0">
+        <nav className="p-3 sm:p-3.5 space-y-3 sm:space-y-4 flex-1 overflow-y-auto min-h-0">
           {navSections.map((section, sIdx) => (
             <div key={sIdx} className="space-y-1">
               {section.heading && (
@@ -281,7 +282,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         </nav>
 
         {/* Footer User Info & Logout (Section 23): Permanently sticks to the bottom of the side panel */}
-        <div className="sticky bottom-0 z-30 p-4 border-t border-pine-900 bg-pine-950/95 backdrop-blur-md space-y-3 flex-shrink-0">
+        <div className="sticky bottom-0 z-30 p-3 sm:p-4 border-t border-pine-900 bg-pine-950/95 backdrop-blur-md space-y-2.5 sm:space-y-3 flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-gold-500/20 border border-gold-400/40 flex items-center justify-center text-gold-300 font-bold text-xs uppercase">
               {adminUsername.substring(0, 2)}
@@ -313,38 +314,38 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       {isMobileMenuOpen && (
         <div
           onClick={() => setIsMobileMenuOpen(false)}
-          className="fixed inset-0 z-30 bg-pine-950/70 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-pine-950/70 backdrop-blur-sm md:hidden animate-fade-in"
         />
       )}
 
       {/* MAIN CONTENT AREA: Padded by w-72 (md:pl-72) */}
       <div className="md:pl-72 flex-1 flex flex-col min-w-0 min-h-screen relative z-10">
         
-        {/* Top Header Bar (Section 4) */}
-        <header className="sticky top-0 z-20 bg-[#fffdfa]/95 backdrop-blur-md border-b border-gold-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-2xs">
+        {/* Top Header Bar */}
+        <header className="sticky top-0 z-20 bg-[#fffdfa]/95 backdrop-blur-md border-b border-gold-200/80 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between shadow-2xs gap-2">
           {/* Left: Mobile Toggle & Title + Contextual Subtitle */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden w-9 h-9 rounded-xl bg-stone-100 hover:bg-stone-200 text-pine-950 flex items-center justify-center cursor-pointer border border-stone-200"
+              className="md:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-stone-100 hover:bg-stone-200 text-pine-950 flex items-center justify-center cursor-pointer border border-stone-200 flex-shrink-0"
               aria-label="Open mobile menu"
             >
               <Menu className="w-4 h-4" />
             </button>
 
-            <div>
-              <h2 className="text-base sm:text-lg font-serif font-bold text-pine-950 leading-tight">
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-base lg:text-lg font-serif font-bold text-pine-950 leading-tight truncate">
                 {headerInfo.title}
               </h2>
-              <p className="text-[11px] text-slate-500 hidden sm:block">
+              <p className="text-[11px] text-slate-500 hidden sm:block truncate">
                 {headerInfo.subtitle}
               </p>
             </div>
           </div>
 
           {/* Right Header Controls: Realtime PHT Calendar, 10x Notifications, Cursor, Admin Profile */}
-          <div className="flex items-center gap-2 sm:gap-3.5 text-xs">
+          <div className="flex items-center gap-1.5 sm:gap-3 text-xs flex-shrink-0">
             {/* Real-time Philippine Date (Display only) */}
             <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold-50/80 border border-gold-300 text-pine-950 text-[11px] font-medium shadow-2xs">
               <Calendar className="w-3.5 h-3.5 text-pine-700" />
@@ -357,15 +358,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               onNavigateTab={(tab, filter) => onSelectTab(tab, filter)}
             />
 
-            {/* Quick Cursor Control */}
-            <CursorSettingsDropdown />
+            {/* Quick Cursor Control: hidden on small mobile to preserve touch real estate */}
+            <div className="hidden sm:block">
+              <CursorSettingsDropdown />
+            </div>
 
             {/* Admin Profile Pill / Menu */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-2 pl-2 pr-2.5 py-1 rounded-full bg-white hover:bg-gold-50/80 border border-stone-200 hover:border-gold-300 transition-all cursor-pointer shadow-2xs"
+                className="flex items-center gap-1.5 sm:gap-2 p-1 sm:pl-2 sm:pr-2.5 rounded-full bg-white hover:bg-gold-50/80 border border-stone-200 hover:border-gold-300 transition-all cursor-pointer shadow-2xs"
               >
                 <div className="w-6 h-6 rounded-full bg-pine-950 text-gold-300 font-bold text-[10px] flex items-center justify-center uppercase">
                   {adminUsername.substring(0, 2)}
@@ -410,18 +413,92 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           </div>
         </header>
 
-        {/* Dynamic Page Content */}
-        <main className="p-4 sm:p-8 flex-1 overflow-y-auto">
+        {/* Dynamic Page Content: generous bottom padding on mobile for bottom bar */}
+        <main className="p-3.5 sm:p-6 lg:p-8 flex-1 overflow-y-auto pb-24 md:pb-8">
           {children}
         </main>
 
         {/* Footer info note */}
-        <footer className="p-4 border-t border-gold-200/60 bg-[#fffdfa]/80 text-center text-[11px] text-slate-500 flex flex-col sm:flex-row items-center justify-between px-4 sm:px-8 gap-2">
+        <footer className="p-4 border-t border-gold-200/60 bg-[#fffdfa]/80 text-center text-[11px] text-slate-500 flex flex-col sm:flex-row items-center justify-between px-4 sm:px-8 gap-2 pb-20 md:pb-4">
           <span>Dragon Treasure Transient & Condotel Administration • Baguio City</span>
           <span className="text-slate-400">Restricted Property Management Console</span>
         </footer>
 
       </div>
+
+      {/* MOBILE BOTTOM NAVIGATION BAR: Native-like bottom bar for phones & touch devices */}
+      <nav className="fixed bottom-0 inset-x-0 z-30 bg-[#fffdfa]/95 backdrop-blur-md border-t border-gold-300 md:hidden shadow-2xl px-2 py-1.5 flex items-center justify-around safe-area-bottom">
+        <button
+          type="button"
+          onClick={() => handleNavClick('dashboard')}
+          className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'dashboard'
+              ? 'text-pine-950 font-bold bg-gold-200/60 shadow-xs'
+              : 'text-slate-600 hover:text-pine-950'
+          }`}
+        >
+          <LayoutDashboard className="w-4 h-4 mb-0.5" />
+          <span className="text-[10px]">Dashboard</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleNavClick('reservations')}
+          className={`relative flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'reservations'
+              ? 'text-pine-950 font-bold bg-gold-200/60 shadow-xs'
+              : 'text-slate-600 hover:text-pine-950'
+          }`}
+        >
+          <CalendarCheck2 className="w-4 h-4 mb-0.5" />
+          <span className="text-[10px]">Bookings</span>
+          {pendingReservationsCount > 0 && (
+            <span className="absolute top-0.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 animate-pulse ring-1 ring-white" />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleNavClick('rooms')}
+          className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'rooms'
+              ? 'text-pine-950 font-bold bg-gold-200/60 shadow-xs'
+              : 'text-slate-600 hover:text-pine-950'
+          }`}
+        >
+          <BedDouble className="w-4 h-4 mb-0.5" />
+          <span className="text-[10px]">Rooms</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleNavClick('inquiries')}
+          className={`relative flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'inquiries'
+              ? 'text-pine-950 font-bold bg-gold-200/60 shadow-xs'
+              : 'text-slate-600 hover:text-pine-950'
+          }`}
+        >
+          <MessageSquare className="w-4 h-4 mb-0.5" />
+          <span className="text-[10px]">Inquiries</span>
+          {newInquiriesCount > 0 && (
+            <span className="absolute top-0.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 animate-pulse ring-1 ring-white" />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsMobileMenuOpen(true)}
+          className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
+            !['dashboard', 'reservations', 'rooms', 'inquiries'].includes(activeTab)
+              ? 'text-pine-950 font-bold bg-gold-200/60 shadow-xs'
+              : 'text-slate-600 hover:text-pine-950'
+          }`}
+        >
+          <Menu className="w-4 h-4 mb-0.5" />
+          <span className="text-[10px]">More</span>
+        </button>
+      </nav>
 
     </div>
   );

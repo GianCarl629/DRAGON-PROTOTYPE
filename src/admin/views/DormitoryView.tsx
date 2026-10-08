@@ -108,15 +108,15 @@ export const DormitoryView: React.FC<DormitoryViewProps> = ({
         </div>
 
         {/* Quick Stats Pill */}
-        <div className="flex items-center gap-3 bg-[#fffdfa] border border-gold-200/90 px-4 py-2 rounded-2xl text-xs shadow-card">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-[#fffdfa] border border-gold-200/90 px-3.5 sm:px-4 py-2 rounded-2xl text-xs shadow-card">
           <div className="text-slate-700">
             Total Beds: <strong className="text-pine-900">{totalSlots}</strong>
           </div>
-          <span className="text-gold-300">•</span>
+          <span className="text-gold-300 hidden sm:inline">•</span>
           <div className="text-emerald-800">
             Available: <strong>{availableSlots}</strong>
           </div>
-          <span className="text-gold-300">•</span>
+          <span className="text-gold-300 hidden sm:inline">•</span>
           <div className="text-pine-900">
             Occupied: <strong>{occupiedSlots}</strong>
           </div>
@@ -163,7 +163,7 @@ export const DormitoryView: React.FC<DormitoryViewProps> = ({
               </div>
 
               {/* 4 Bed Slots Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {roomSlots.map((slot) => {
                   const isOccupied = slot.status === 'Occupied';
                   const isAvailable = slot.status === 'Available';
@@ -287,8 +287,8 @@ export const DormitoryView: React.FC<DormitoryViewProps> = ({
 
       {/* ASSIGN BED MODAL */}
       {isAssignModalOpen && selectedSlot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <form onSubmit={handleSaveAssign} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <form onSubmit={handleSaveAssign} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full p-4 sm:p-6 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <h3 className="font-bold text-sm text-slate-900 font-serif">
                 Assign Bed: {selectedSlot.dormRoom} — {selectedSlot.bedSlot}

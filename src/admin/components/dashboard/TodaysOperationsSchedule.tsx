@@ -162,12 +162,12 @@ export const TodaysOperationsSchedule: React.FC<TodaysOperationsScheduleProps> =
               return (
                 <div
                   key={item.id}
-                  className="p-3 rounded-2xl bg-stone-50/70 hover:bg-gold-50/50 border border-stone-200/70 hover:border-gold-300 transition-all flex items-center justify-between gap-3 group"
+                  className="p-3 rounded-2xl bg-stone-50/70 hover:bg-gold-50/50 border border-stone-200/70 hover:border-gold-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 group"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     {/* Time Pill */}
-                    <div className="w-20 px-2 py-1.5 rounded-xl bg-white border border-stone-200 text-center flex-shrink-0 shadow-2xs">
-                      <span className="font-mono text-xs font-bold text-pine-950">
+                    <div className="px-2 py-1 sm:py-1.5 rounded-xl bg-white border border-stone-200 text-center flex-shrink-0 shadow-2xs">
+                      <span className="font-mono text-[11px] sm:text-xs font-bold text-pine-950">
                         {item.time}
                       </span>
                     </div>
@@ -175,12 +175,12 @@ export const TodaysOperationsSchedule: React.FC<TodaysOperationsScheduleProps> =
                     {/* Status Badge */}
                     <div className="flex-shrink-0">
                       {isCheckIn ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
                           <LogIn className="w-3 h-3 text-emerald-700" />
                           <span>Check-in</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
                           <LogOut className="w-3 h-3 text-amber-700" />
                           <span>Check-out</span>
                         </span>
@@ -188,25 +188,25 @@ export const TodaysOperationsSchedule: React.FC<TodaysOperationsScheduleProps> =
                     </div>
 
                     {/* Guest & Room Details */}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-slate-900 truncate">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold text-xs text-slate-900 truncate max-w-[140px] sm:max-w-none">
                           {item.guestName}
                         </span>
                         <span className="font-mono text-[10px] text-slate-400">
                           ({item.reservationCode})
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-500 flex items-center gap-2 truncate">
-                        <span>{item.roomName}</span>
+                      <div className="text-[11px] text-slate-500 flex items-center gap-1.5 truncate">
+                        <span className="truncate">{item.roomName}</span>
                         <span>•</span>
-                        <span>{item.guestsCount} guest{item.guestsCount > 1 ? 's' : ''}</span>
+                        <span className="flex-shrink-0">{item.guestsCount} guest{item.guestsCount > 1 ? 's' : ''}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Payment Indicator & Action */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center justify-between sm:justify-end gap-2 flex-shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-stone-200/60">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                       item.paymentStatus === 'Paid'
                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'

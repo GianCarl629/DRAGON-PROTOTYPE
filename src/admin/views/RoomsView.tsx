@@ -199,9 +199,111 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
         </div>
       </div>
 
-      {/* Room Inventory Table (Section 11) */}
+      {/* Room Inventory: Responsive Mobile Cards & Desktop Table */}
       <div className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl overflow-hidden shadow-card">
-        <div className="overflow-x-auto">
+        
+        {/* MOBILE CARDS VIEW: Shown on screens below md breakpoint (<768px) */}
+        <div className="block md:hidden divide-y divide-gold-200/60">
+          {filteredRooms.length === 0 ? (
+            <div className="py-12 px-4 text-center text-slate-400 text-xs">
+              No rooms found matching the current search criteria.
+            </div>
+          ) : (
+            filteredRooms.map((room) => (
+              <div key={room.id} className="p-4 space-y-3 hover:bg-gold-50/30 transition-colors">
+                {/* Top Row: Room Number & Status Selector */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-xs text-pine-900 bg-gold-100/80 px-2.5 py-1 rounded-lg border border-gold-300">
+                      {room.roomNumber}
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-stone-100 text-slate-700 border border-stone-200">
+                      {room.floor}
+                    </span>
+                  </div>
+
+                  {/* Status Dropdown */}
+                  <select
+                    value={room.status}
+                    onChange={(e) => handleQuickStatusChange(room.id, e.target.value as any)}
+                    className={`text-[10px] font-bold px-2 py-1 rounded-lg border cursor-pointer focus:outline-none bg-stone-50 ${
+                      room.status === 'Available'
+                        ? 'text-emerald-800 border-emerald-300 bg-emerald-50/70'
+                        : room.status === 'Occupied'
+                        ? 'text-purple-800 border-purple-300 bg-purple-50/70'
+                        : room.status === 'Reserved'
+                        ? 'text-blue-800 border-blue-300 bg-blue-50/70'
+                        : 'text-amber-800 border-amber-300 bg-amber-50/70'
+                    }`}
+                  >
+                    <option value="Available">Available</option>
+                    <option value="Occupied">Occupied</option>
+                    <option value="Reserved">Reserved</option>
+                    <option value="Maintenance">Maintenance</option>
+                  </select>
+                </div>
+
+                {/* Room Info & Price */}
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-sm text-slate-900">{room.name}</span>
+                    <span className="font-serif font-bold text-base text-pine-900">
+                      ₱{room.price.toLocaleString()}
+                      <span className="text-[10px] font-sans font-normal text-slate-500">/{room.ratePeriod}</span>
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-600 font-medium mt-0.5">
+                    {room.roomType} • <span className="capitalize">{room.category}</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-1">
+                    <Users className="w-3.5 h-3.5 text-pine-700" />
+                    <span>Capacity: Up to {room.capacity} {room.capacity === 1 ? 'guest' : 'guests'}</span>
+                  </div>
+                </div>
+
+                {/* Amenities preview if available */}
+                {room.amenities && room.amenities.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {room.amenities.slice(0, 3).map((amenity, aIdx) => (
+                      <span key={aIdx} className="text-[10px] px-2 py-0.5 rounded-md bg-stone-100 text-slate-600 border border-stone-200">
+                        {amenity}
+                      </span>
+                    ))}
+                    {room.amenities.length > 3 && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-md text-slate-400">
+                        +{room.amenities.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Actions Row */}
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+                  <button
+                    type="button"
+                    onClick={() => setEditingRoom(room)}
+                    className="px-3 py-1.5 bg-stone-100 hover:bg-gold-100 text-slate-700 hover:text-pine-950 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1 border border-stone-200"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-pine-700" />
+                    <span>Edit Room</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onDeleteRoom(room.id)}
+                    className="p-1.5 rounded-lg bg-stone-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer border border-stone-200"
+                    title="Delete Room"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* DESKTOP TABLE VIEW: Shown on screens md and up (>=768px) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="text-[11px] uppercase tracking-wider text-pine-950 border-b border-gold-200/80 bg-gold-50/60">
               <tr>
@@ -310,8 +412,8 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
 
       {/* EDIT ROOM MODAL */}
       {editingRoom && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <form onSubmit={handleSaveEdit} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <form onSubmit={handleSaveEdit} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <h3 className="font-bold text-sm text-slate-900 font-serif">
                 Edit Room: {editingRoom.roomNumber}
@@ -415,8 +517,8 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
 
       {/* ADD ROOM MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <form onSubmit={handleCreateRoom} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <form onSubmit={handleCreateRoom} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <h3 className="font-bold text-sm text-slate-900 font-serif">
                 Add Room to Property Inventory

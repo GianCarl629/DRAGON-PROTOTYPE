@@ -60,7 +60,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ store }) => {
         <button
           type="button"
           onClick={handleExportCSV}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-stone-50 text-pine-950 border border-gold-300 text-xs font-bold transition-all cursor-pointer shadow-xs"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-stone-50 text-pine-950 border border-gold-300 text-xs font-bold transition-all cursor-pointer shadow-xs w-full sm:w-auto"
         >
           <Download className="w-4 h-4 text-gold-600" />
           <span>Export Summary CSV</span>
@@ -68,7 +68,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ store }) => {
       </div>
 
       {/* Main KPI Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[#fffdfa] border border-gold-200/90 shadow-card p-5 rounded-2xl space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500">
             <span>Overall Occupancy</span>
