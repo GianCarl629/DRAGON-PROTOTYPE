@@ -1,33 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MessageSquare, 
   Search, 
   Send, 
   Archive, 
-  CheckCircle2, 
-  Clock, 
   User, 
-  Mail, 
-  Phone, 
   Reply, 
-  X,
-  Sparkles
+  X
 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { AdminInquiry } from '../data/adminMockData';
 
 interface InquiriesViewProps {
-  inquiries: AdminInquiry[];
-  onReply: (id: string, replyText: string) => void;
-  onMarkRead: (id: string) => void;
-  onArchive: (id: string) => void;
   initialFilter?: string;
 }
 
 export const InquiriesView: React.FC<InquiriesViewProps> = ({
-  inquiries,
-  onReply,
-  onMarkRead,
-  onArchive,
   initialFilter
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,7 +23,39 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
     (initialFilter as any) || 'All'
   );
 
-  React.useEffect(() => {
+  const [inquiries, setInquiries] = useState<AdminInquiry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Kumuha ng inquiries mula sa Supabase
+  const fetchInquiries = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('guest_inquiries')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (data) {
+      const formatted: AdminInquiry[] = data.map((i: any) => ({
+        id: i.id,
+        guestName: i.guest_name,
+        email: i.guest_email || 'No email',
+        phone: i.guest_phone || 'No phone',
+        topic: i.topic,
+        message: i.message,
+        status: i.status as any,
+        receivedAt: i.received_at || 'Recent',
+        replyText: i.reply_text
+      }));
+      setInquiries(formatted);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchInquiries();
+  }, []);
+
+  useEffect(() => {
     if (initialFilter) {
       setStatusFilter(initialFilter as any);
     }
@@ -43,6 +63,33 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
   
   const [replyingInquiry, setReplyingInquiry] = useState<AdminInquiry | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
+
+  const handleReply = async (id: string, replyText: string) => {
+    await supabase
+      .from('guest_inquiries')
+      .update({ status: 'Replied', reply_text: replyText })
+      .eq('id', id);
+
+    fetchInquiries();
+  };
+
+  const handleMarkRead = async (id: string) => {
+    await supabase
+      .from('guest_inquiries')
+      .update({ status: 'Replied' }) // O kaya ay mare-mark bilang binasa
+      .eq('id', id);
+
+    fetchInquiries();
+  };
+
+  const handleArchive = async (id: string) => {
+    await supabase
+      .from('guest_inquiries')
+      .update({ status: 'Archived' })
+      .eq('id', id);
+
+    fetchInquiries();
+  };
 
   const filteredInquiries = inquiries.filter((inq) => {
     const matchesSearch =
@@ -65,7 +112,7 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
   const handleSendReply = (e: React.FormEvent) => {
     e.preventDefault();
     if (replyingInquiry && replyMessage.trim()) {
-      onReply(replyingInquiry.id, replyMessage.trim());
+      handleReply(replyingInquiry.id, replyMessage.trim());
       setReplyingInquiry(null);
       setReplyMessage('');
     }
@@ -137,9 +184,14 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
         </div>
       </div>
 
-      {/* Inquiries Cards Grid (As specified in Section 15) */}
+      {/* Inquiries Cards Grid */}
       <div className="space-y-3.5">
-        {filteredInquiries.length === 0 ? (
+        {isLoading ? (
+          <div className="py-12 text-center text-slate-500 font-semibold text-xs flex justify-center items-center gap-2">
+            <div className="w-4 h-4 border-2 border-gold-500 border-t-transparent rounded-full animate-spin"></div>
+            Loading guest inquiries...
+          </div>
+        ) : filteredInquiries.length === 0 ? (
           <div className="bg-[#fffdfa] border border-gold-200/90 rounded-2xl p-12 text-center text-slate-500 text-xs shadow-card">
             No inquiries match the current filter.
           </div>
@@ -196,7 +248,7 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
                 "{inq.message}"
               </div>
 
-              {/* Existing Staff Reply (if already replied) */}
+              {/* Existing Staff Reply */}
               {inq.replyText && (
                 <div className="bg-emerald-50/60 p-3 rounded-xl border border-emerald-200 text-xs text-emerald-950 space-y-1">
                   <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
@@ -208,7 +260,7 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
                 </div>
               )}
 
-              {/* Action Buttons: Reply, Mark Read, Archive */}
+              {/* Action Buttons */}
               <div className="flex items-center justify-between pt-1 text-xs">
                 <div className="text-[11px] text-slate-500">
                   Topic: <strong className="text-pine-900">{inq.topic}</strong>
@@ -227,7 +279,7 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
                   {inq.status === 'New' && (
                     <button
                       type="button"
-                      onClick={() => onMarkRead(inq.id)}
+                      onClick={() => handleMarkRead(inq.id)}
                       className="px-3 py-1.5 bg-white hover:bg-stone-100 text-slate-700 border border-stone-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                     >
                       Mark as Read
@@ -237,7 +289,7 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
                   {inq.status !== 'Archived' && (
                     <button
                       type="button"
-                      onClick={() => onArchive(inq.id)}
+                      onClick={() => handleArchive(inq.id)}
                       className="p-1.5 bg-white hover:bg-stone-100 text-slate-500 hover:text-slate-800 border border-stone-200 rounded-xl transition-colors cursor-pointer"
                       title="Archive Inquiry"
                     >
@@ -316,4 +368,3 @@ export const InquiriesView: React.FC<InquiriesViewProps> = ({
     </div>
   );
 };
-

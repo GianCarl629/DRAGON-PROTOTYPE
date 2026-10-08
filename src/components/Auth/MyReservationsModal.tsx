@@ -1,4 +1,4 @@
-// Client dashboard modal for bookings, invoices, and online payments
+// Client dashboard modal for bookings, invoices, and online payments (Live Supabase Sync)
 import React, { useState, useEffect } from 'react';
 import { 
   X, 
@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PROPERTY_CONTACT } from '../../data/mockData';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { 
   getLocalInvoices, 
   submitOnlinePayment, 
@@ -56,12 +57,13 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
   onClose,
   onBrowseRooms
 }) => {
-  const { user, reservations, cancelReservation, deleteReservation } = useAuth();
+  const { user, cancelReservation } = useAuth();
 
   // Active portal tab: 'bookings' | 'billing' | 'payment'
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
 
-  // Stays & Bookings State
+  // Stays & Bookings State (Live from Supabase)
+  const [liveReservations, setLiveReservations] = useState<any[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [selectedReason, setSelectedReason] = useState<string>('');
@@ -70,11 +72,11 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [cancelFeedback, setCancelFeedback] = useState<string | null>(null);
 
-  // Automated Invoices State (Objective 2)
+  // Automated Invoices State
   const [invoices, setInvoices] = useState<ClientInvoice[]>([]);
   const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
 
-  // Online Payment Upload State (Objective 4)
+  // Online Payment Upload State
   const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<'GCash' | 'Maya' | 'Bank Transfer' | 'Cash'>('GCash');
   const [referenceNumber, setReferenceNumber] = useState<string>('');
@@ -84,23 +86,67 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
   const [isSubmittingPayment, setIsSubmittingPayment] = useState<boolean>(false);
   const [receiptFilePreview, setReceiptFilePreview] = useState<string | null>(null);
 
-  // Load invoices and tab on modal open
+  // Fetch live reservations and invoices directly from Supabase on modal open
   useEffect(() => {
-    if (isOpen) {
-      if (initialTab) {
-        setActiveTab(initialTab);
-      }
-      const loadedInvoices = getLocalInvoices();
-      setInvoices(loadedInvoices);
+    const loadPortalData = async () => {
+      if (isOpen) {
+        if (initialTab) {
+          setActiveTab(initialTab);
+        }
 
-      // Pre-select first pending invoice for payment form if exists
-      const firstPending = loadedInvoices.find(i => i.paymentStatus !== 'Paid');
-      if (firstPending) {
-        setSelectedInvoiceForPayment(firstPending.id);
-        setPaymentAmount(firstPending.totalAmount);
+        // 1. Fetch live reservations from Supabase and filter by user email
+        if (isSupabaseConfigured()) {
+          try {
+            const { data, error } = await supabase
+              .from('reservations')
+              .select('*')
+              .order('created_at', { ascending: false });
+
+            if (!error && data) {
+              const userEmail = user?.email?.toLowerCase().trim();
+              const filtered = userEmail 
+                ? data.filter((r: any) => r.guest_email && r.guest_email.toLowerCase().trim() === userEmail)
+                : data;
+
+              const formattedReservations = filtered.map((r: any) => ({
+                id: r.id,
+                reservationCode: r.reservation_code || `RES-${r.id.substring(0, 5)}`,
+                roomName: r.room_type || 'Transient Room',
+                roomCategory: (r.room_type && r.room_type.toLowerCase().includes('dorm')) ? 'dormitory' : 'transient',
+                roomImage: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=600&q=80',
+                checkInDate: r.check_in_date,
+                checkOutDate: r.check_out_date,
+                status: r.status, // Ito na ang live status mula sa admin confirmation!
+                rate: Number(r.total_price) || 2500,
+                ratePeriod: 'night',
+                fullName: r.guest_name,
+                email: r.guest_email || user?.email || '',
+                contactNumber: r.guest_phone || '',
+                numberOfGuests: r.number_of_guests || 1,
+                specialRequests: r.special_requests || '',
+                cancellationReason: r.cancellation_reason || '',
+                bookedAt: 'Recently'
+              }));
+              setLiveReservations(formattedReservations);
+            }
+          } catch (err) {
+            console.warn('Error fetching live reservations:', err);
+          }
+        }
+
+        // 2. Fetch invoices with user email filtering
+        const loadedInvoices = await getLocalInvoices(user?.email);
+        setInvoices(loadedInvoices);
+
+        const firstPending = loadedInvoices.find((i: ClientInvoice) => i.paymentStatus !== 'Paid');
+        if (firstPending) {
+          setSelectedInvoiceForPayment(firstPending.id);
+          setPaymentAmount(firstPending.totalAmount);
+        }
       }
-    }
-  }, [isOpen, initialTab]);
+    };
+    loadPortalData();
+  }, [isOpen, initialTab, user?.email]);
 
   // Lock background scrolling while modal is open
   useEffect(() => {
@@ -130,12 +176,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
-  const handleCopyCode = (code: string, id: string) => {
-    navigator.clipboard.writeText(code).catch(() => {});
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
   const handleOpenCancel = (id: string) => {
     setCancellingId(id);
     setSelectedReason('');
@@ -143,7 +183,7 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
     setCancelError(null);
   };
 
-  const handleConfirmCancel = (id: string, reservationCode: string) => {
+  const handleConfirmCancel = async (id: string, reservationCode: string) => {
     if (!selectedReason) {
       setCancelError('Please select a cancellation reason from the list.');
       return;
@@ -158,6 +198,14 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
         ? `Others: ${otherReasonText.trim()}`
         : selectedReason;
 
+    // Update in Supabase directly
+    if (isSupabaseConfigured()) {
+      await supabase
+        .from('reservations')
+        .update({ status: 'Cancelled', cancellation_reason: finalReason })
+        .eq('id', id);
+    }
+
     cancelReservation(id, finalReason);
     setCancellingId(null);
     setSelectedReason('');
@@ -165,6 +213,9 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
     setCancelError(null);
     setCancelFeedback(`Reservation request ${reservationCode} has been cancelled.`);
     setTimeout(() => setCancelFeedback(null), 4000);
+
+    // Refresh live reservations list
+    setLiveReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'Cancelled', cancellationReason: finalReason } : r));
   };
 
   // Handlers for online payment tab
@@ -205,7 +256,8 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
     setIsSubmittingPayment(false);
     if (result.success) {
       setPaymentSuccessMsg(result.message);
-      setInvoices(getLocalInvoices());
+      const updatedInvoices = await getLocalInvoices(user?.email);
+      setInvoices(updatedInvoices);
       setReferenceNumber('');
       setReceiptFilePreview(null);
       setTimeout(() => setPaymentSuccessMsg(null), 5000);
@@ -247,7 +299,7 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
           </button>
         </div>
 
-        {/* Tab Navigation: Bookings, Automated Invoices, Upload Payment */}
+        {/* Tab Navigation */}
         <div className="px-3 sm:px-6 pt-2.5 sm:pt-3 pb-1 border-b border-stone-200/80 flex items-center gap-1.5 sm:gap-2 bg-white overflow-x-auto no-scrollbar scroll-smooth">
           <button
             type="button"
@@ -263,7 +315,7 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
             <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
               activeTab === 'bookings' ? 'bg-pine-800 text-gold-200' : 'bg-stone-200 text-slate-700'
             }`}>
-              {reservations.length}
+              {liveReservations.length}
             </span>
           </button>
 
@@ -318,7 +370,7 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
               </div>
             )}
 
-            {reservations.length === 0 ? (
+            {liveReservations.length === 0 ? (
               <div className="text-center py-12 space-y-4">
                 <div className="w-16 h-16 rounded-full bg-stone-100 text-slate-400 flex items-center justify-center mx-auto">
                   <BedDouble className="w-8 h-8" strokeWidth={1.5} />
@@ -345,7 +397,7 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
                 )}
               </div>
             ) : (
-              reservations.map((res) => {
+              liveReservations.map((res) => {
                 const isExpanded = expandedId === res.id;
                 const isCancelling = cancellingId === res.id;
                 const isCancelled = res.status === 'Cancelled';
@@ -422,7 +474,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
                       </div>
                     </div>
 
-                    {/* Expandable Details */}
                     {isExpanded && (
                       <div className="p-4 sm:p-5 pt-0 border-t border-stone-100 text-xs text-slate-600 space-y-3 bg-stone-50/40">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3">
@@ -445,7 +496,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
                       </div>
                     )}
 
-                    {/* Cancel Reason Prompt */}
                     {isCancelling && (
                       <div className="p-4 border-t border-rose-200 bg-rose-50/60 text-xs space-y-3 animate-fade-in">
                         <div className="flex items-center gap-2 text-rose-950 font-bold">
@@ -581,7 +631,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
                       </div>
                     </div>
 
-                    {/* Itemized Utility Meter Readings Breakdown (Objective 2) */}
                     {isExpanded && (
                       <div className="p-4 sm:p-5 pt-0 border-t border-stone-100 bg-stone-50/60 text-xs space-y-3">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3">
@@ -718,7 +767,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
                 </div>
               </div>
 
-              {/* Upload Receipt / Proof Screenshot */}
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">
                   Upload Payment Slip / Screenshot

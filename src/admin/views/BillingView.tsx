@@ -1,33 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Receipt, 
   Search, 
-  CreditCard, 
-  DollarSign, 
-  CheckCircle2, 
-  Clock, 
-  AlertTriangle, 
   Plus, 
-  FileText, 
   X, 
-  Zap, 
-  Droplet, 
-  ShieldCheck 
+  CheckCircle2
 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { AdminBillingRecord } from '../data/adminMockData';
 import { saveLocalInvoice } from '../../services/db/billingService';
 
 interface BillingViewProps {
-  billingRecords: AdminBillingRecord[];
-  onUpdateStatus: (id: string, newStatus: 'Paid' | 'Pending' | 'Overdue') => void;
-  onAddRecord: (newRec: AdminBillingRecord) => void;
   initialFilter?: string;
 }
 
 export const BillingView: React.FC<BillingViewProps> = ({
-  billingRecords,
-  onUpdateStatus,
-  onAddRecord,
   initialFilter
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,11 +22,49 @@ export const BillingView: React.FC<BillingViewProps> = ({
     (initialFilter as any) || 'All'
   );
 
-  React.useEffect(() => {
+  const [billingRecords, setBillingRecords] = useState<AdminBillingRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Kumuha ng billing records mula sa Supabase
+  const fetchBillingRecords = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('billing_records')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (data) {
+      const formatted: AdminBillingRecord[] = data.map((b: any) => ({
+        id: b.id,
+        invoiceNumber: b.invoice_number,
+        tenantOrGuest: b.tenant_or_guest,
+        type: b.type as any,
+        roomOrBed: b.room_or_bed,
+        billingPeriod: b.billing_period,
+        rentAmount: Number(b.rent_amount) || 0,
+        waterAmount: Number(b.water_amount) || 0,
+        electricityAmount: Number(b.electricity_amount) || 0,
+        depositAmount: Number(b.deposit_amount) || 0,
+        totalAmount: Number(b.total_amount) || 0,
+        paymentStatus: b.payment_status as any,
+        dueDate: b.due_date,
+        paidAt: b.paid_at
+      }));
+      setBillingRecords(formatted);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchBillingRecords();
+  }, []);
+
+  useEffect(() => {
     if (initialFilter) {
       setStatusFilter(initialFilter as any);
     }
   }, [initialFilter]);
+
   const [selectedRecord, setSelectedRecord] = useState<AdminBillingRecord | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -49,13 +74,24 @@ export const BillingView: React.FC<BillingViewProps> = ({
     roomOrBed: 'Dormitory Room (Shared Bedspace) - Bed 1',
     type: 'Monthly Dorm Rent' as AdminBillingRecord['type'],
     billingPeriod: 'October 2026',
-    rentAmount: 3000,
+    rentAmount: 3500,
     waterAmount: 150,
     electricityAmount: 350,
     depositAmount: 0,
     dueDate: '2026-10-15',
     paymentStatus: 'Pending' as 'Paid' | 'Pending' | 'Overdue'
   });
+
+  const handleUpdateStatus = async (id: string, newStatus: 'Paid' | 'Pending' | 'Overdue') => {
+    const paidTimestamp = newStatus === 'Paid' ? new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null;
+    
+    await supabase
+      .from('billing_records')
+      .update({ payment_status: newStatus, paid_at: paidTimestamp })
+      .eq('id', id);
+
+    fetchBillingRecords();
+  };
 
   const filteredRecords = billingRecords.filter((b) => {
     const matchesSearch =
@@ -72,7 +108,7 @@ export const BillingView: React.FC<BillingViewProps> = ({
   const totalCollected = billingRecords.filter(b => b.paymentStatus === 'Paid').reduce((sum, b) => sum + b.totalAmount, 0);
   const totalOutstanding = billingRecords.filter(b => b.paymentStatus !== 'Paid').reduce((sum, b) => sum + b.totalAmount, 0);
 
-  const handleCreateInvoice = (e: React.FormEvent) => {
+  const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     const rent = Number(invoiceForm.rentAmount) || 0;
     const water = Number(invoiceForm.waterAmount) || 0;
@@ -80,41 +116,46 @@ export const BillingView: React.FC<BillingViewProps> = ({
     const deposit = Number(invoiceForm.depositAmount) || 0;
     const total = rent + water + electricity + deposit;
 
-    const newRecord: AdminBillingRecord = {
-      id: `inv-${Date.now()}`,
-      invoiceNumber: `INV-2026-${Math.floor(100 + Math.random() * 900)}`,
-      tenantOrGuest: invoiceForm.tenantOrGuest.trim() || 'Guest',
-      roomOrBed: invoiceForm.roomOrBed,
+    const payload = {
+      invoice_number: `INV-2026-${Math.floor(100 + Math.random() * 900)}`,
+      tenant_or_guest: invoiceForm.tenantOrGuest.trim() || 'Guest',
+      room_or_bed: invoiceForm.roomOrBed,
       type: invoiceForm.type,
-      billingPeriod: invoiceForm.billingPeriod,
-      rentAmount: rent,
-      waterAmount: water,
-      electricityAmount: electricity,
-      depositAmount: deposit,
-      totalAmount: total,
-      paymentStatus: invoiceForm.paymentStatus,
-      dueDate: invoiceForm.dueDate
+      billing_period: invoiceForm.billingPeriod,
+      rent_amount: rent,
+      water_amount: water,
+      electricity_amount: electricity,
+      deposit_amount: deposit,
+      total_amount: total,
+      payment_status: invoiceForm.paymentStatus,
+      due_date: invoiceForm.dueDate
     };
 
-    onAddRecord(newRecord);
-    // Sync invoice to database and client portal (Objective 2 & 4)
-    saveLocalInvoice({
-      id: newRecord.id,
-      invoiceNumber: newRecord.invoiceNumber,
-      tenantOrGuestName: newRecord.tenantOrGuest,
-      roomOrBed: newRecord.roomOrBed,
-      stayType: newRecord.type,
-      billingPeriod: newRecord.billingPeriod,
-      rentAmount: newRecord.rentAmount,
-      waterAmount: newRecord.waterAmount,
-      electricityAmount: newRecord.electricityAmount,
-      depositAmount: newRecord.depositAmount,
-      totalAmount: newRecord.totalAmount,
-      dueDate: newRecord.dueDate,
-      paymentStatus: newRecord.paymentStatus,
-      createdAt: new Date().toISOString()
-    });
-    setIsAddModalOpen(false);
+    const { data, error } = await supabase.from('billing_records').insert([payload]).select();
+    
+    if (!error && data) {
+      const newRec = data[0];
+      // Sync local helper service
+      saveLocalInvoice({
+        id: newRec.id,
+        invoiceNumber: newRec.invoice_number,
+        tenantOrGuestName: newRec.tenant_or_guest,
+        roomOrBed: newRec.room_or_bed,
+        stayType: newRec.type,
+        billingPeriod: newRec.billing_period,
+        rentAmount: newRec.rent_amount,
+        waterAmount: newRec.water_amount,
+        electricityAmount: newRec.electricity_amount,
+        depositAmount: newRec.deposit_amount,
+        totalAmount: newRec.total_amount,
+        dueDate: newRec.due_date,
+        paymentStatus: newRec.payment_status,
+        createdAt: newRec.created_at
+      });
+
+      setIsAddModalOpen(false);
+      fetchBillingRecords();
+    }
   };
 
   return (
@@ -164,7 +205,7 @@ export const BillingView: React.FC<BillingViewProps> = ({
             ₱{totalCollected.toLocaleString()}
           </div>
           <span className="text-[11px] text-emerald-700 font-semibold">
-            {((totalCollected / (totalBilled || 1)) * 100).toFixed(1)}% Collection Rate
+            {totalBilled > 0 ? ((totalCollected / totalBilled) * 100).toFixed(1) : 0}% Collection Rate
           </span>
         </div>
 
@@ -190,7 +231,7 @@ export const BillingView: React.FC<BillingViewProps> = ({
             </div>
             <input
               type="text"
-              placeholder="Search by invoice number (e.g. INV-2026-081), tenant, room, or period..."
+              placeholder="Search by invoice number, tenant, room, or period..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-stone-50 border border-stone-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-pine-700 transition-all font-medium"
@@ -216,7 +257,7 @@ export const BillingView: React.FC<BillingViewProps> = ({
         </div>
       </div>
 
-      {/* Main Billing Table (Section 13) */}
+      {/* Main Billing Table */}
       <div className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl overflow-hidden shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
@@ -236,7 +277,16 @@ export const BillingView: React.FC<BillingViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gold-100/70">
-              {filteredRecords.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={11} className="py-12 text-center text-slate-500 font-semibold">
+                    <div className="flex justify-center items-center gap-2">
+                       <div className="w-4 h-4 border-2 border-gold-500 border-t-transparent rounded-full animate-spin"></div>
+                       Loading billing records...
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredRecords.length === 0 ? (
                 <tr>
                   <td colSpan={11} className="py-12 text-center text-slate-400 text-xs">
                     No billing statements found.
@@ -246,56 +296,46 @@ export const BillingView: React.FC<BillingViewProps> = ({
                 filteredRecords.map((rec) => (
                   <tr key={rec.id} className="hover:bg-gold-50/40 transition-colors">
                     
-                    {/* Invoice ID */}
                     <td className="py-3.5 px-4 font-mono font-bold text-pine-900 whitespace-nowrap">
                       {rec.invoiceNumber}
                     </td>
 
-                    {/* Tenant / Guest */}
                     <td className="py-3.5 px-4 whitespace-nowrap font-bold text-slate-900">
                       {rec.tenantOrGuest}
                     </td>
 
-                    {/* Room */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-slate-700">
                       {rec.roomOrBed}
                     </td>
 
-                    {/* Billing Period */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-slate-600">
                       {rec.billingPeriod}
                     </td>
 
-                    {/* Rent */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-slate-800">
                       {rec.rentAmount > 0 ? `₱${rec.rentAmount.toLocaleString()}` : '—'}
                     </td>
 
-                    {/* Water */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-slate-800">
                       {rec.waterAmount > 0 ? `₱${rec.waterAmount.toLocaleString()}` : '—'}
                     </td>
 
-                    {/* Electricity */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-slate-800">
                       {rec.electricityAmount > 0 ? `₱${rec.electricityAmount.toLocaleString()}` : '—'}
                     </td>
 
-                    {/* Deposit */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-slate-800">
                       {rec.depositAmount > 0 ? `₱${rec.depositAmount.toLocaleString()}` : '—'}
                     </td>
 
-                    {/* Total Amount */}
                     <td className="py-3.5 px-4 whitespace-nowrap font-serif font-bold text-pine-900 text-sm">
                       ₱{rec.totalAmount.toLocaleString()}
                     </td>
 
-                    {/* Status */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <select
                         value={rec.paymentStatus}
-                        onChange={(e) => onUpdateStatus(rec.id, e.target.value as any)}
+                        onChange={(e) => handleUpdateStatus(rec.id, e.target.value as any)}
                         className={`text-[11px] font-bold px-2 py-1 rounded-lg border cursor-pointer focus:outline-none bg-stone-50 ${
                           rec.paymentStatus === 'Paid'
                             ? 'text-emerald-800 border-emerald-300 bg-emerald-50/70'
@@ -310,7 +350,6 @@ export const BillingView: React.FC<BillingViewProps> = ({
                       </select>
                     </td>
 
-                    {/* Actions */}
                     <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <button
                         type="button"
@@ -330,7 +369,7 @@ export const BillingView: React.FC<BillingViewProps> = ({
         </div>
       </div>
 
-      {/* BILLING BREAKDOWN MODAL (Section 13) */}
+      {/* BILLING BREAKDOWN MODAL */}
       {selectedRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
           <div className="bg-white border border-stone-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
@@ -359,7 +398,6 @@ export const BillingView: React.FC<BillingViewProps> = ({
                 <div className="text-slate-600">Period: <strong className="text-slate-900">{selectedRecord.billingPeriod}</strong></div>
               </div>
 
-              {/* Exact Formula Breakdown */}
               <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-2 font-mono">
                 <div className="flex justify-between text-slate-800">
                   <span>Monthly / Stay Rent:</span>
@@ -401,7 +439,7 @@ export const BillingView: React.FC<BillingViewProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    onUpdateStatus(selectedRecord.id, 'Paid');
+                    handleUpdateStatus(selectedRecord.id, 'Paid');
                     setSelectedRecord({ ...selectedRecord, paymentStatus: 'Paid' });
                   }}
                   className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer"

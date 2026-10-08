@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   Search, 
@@ -12,19 +12,15 @@ import {
   X,
   FileText
 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { AdminCustomer } from '../data/adminMockData';
 
-interface CustomersViewProps {
-  customers: AdminCustomer[];
-  onAddCustomer: (customer: AdminCustomer) => void;
-  onUpdateCustomer: (updated: AdminCustomer) => void;
-}
+interface CustomersViewProps {}
 
-export const CustomersView: React.FC<CustomersViewProps> = ({
-  customers,
-  onAddCustomer,
-  onUpdateCustomer
-}) => {
+export const CustomersView: React.FC<CustomersViewProps> = () => {
+  const [customers, setCustomers] = useState<AdminCustomer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'VIP Member' | 'Past Guest'>('All');
   
@@ -41,6 +37,35 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
     notes: ''
   });
 
+  // Kunin ang customers mula sa Supabase
+  const fetchCustomers = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('customer_records')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (data) {
+      const formatted: AdminCustomer[] = data.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        email: c.email || '',
+        phone: c.phone || '',
+        accountStatus: c.account_status,
+        reservationCount: c.reservation_count || 1,
+        latestReservation: c.latest_reservation || 'Standard Room',
+        memberSince: c.member_since || 'Oct 2026',
+        notes: c.notes || ''
+      }));
+      setCustomers(formatted);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
   const filteredCustomers = customers.filter((c) => {
     const matchesSearch =
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -51,28 +76,46 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
     return matchesSearch && matchesStatus;
   });
 
-  const handleCreateCustomer = (e: React.FormEvent) => {
+  const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newCust: AdminCustomer = {
-      id: `cust-${Date.now()}`,
+    const payload = {
       name: form.name.trim() || 'New Guest',
       email: form.email.trim() || 'guest@example.com',
       phone: form.phone.trim() || '0917-000-0000',
-      accountStatus: form.accountStatus,
-      reservationCount: Number(form.reservationCount) || 1,
-      latestReservation: form.latestReservation,
-      memberSince: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      account_status: form.accountStatus,
+      reservation_count: Number(form.reservationCount) || 1,
+      latest_reservation: form.latestReservation,
+      member_since: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
       notes: form.notes
     };
-    onAddCustomer(newCust);
-    setIsAddModalOpen(false);
+
+    const { error } = await supabase.from('customer_records').insert([payload]);
+    if (!error) {
+      setIsAddModalOpen(false);
+      setForm({ name: '', email: '', phone: '', accountStatus: 'Active', reservationCount: 1, latestReservation: 'Standard Room (Walk-in)', notes: '' });
+      fetchCustomers();
+    }
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingCustomer) {
-      onUpdateCustomer(editingCustomer);
-      setEditingCustomer(null);
+      const { error } = await supabase
+        .from('customer_records')
+        .update({
+          name: editingCustomer.name,
+          email: editingCustomer.email,
+          phone: editingCustomer.phone,
+          account_status: editingCustomer.accountStatus,
+          reservation_count: editingCustomer.reservationCount,
+          notes: editingCustomer.notes
+        })
+        .eq('id', editingCustomer.id);
+
+      if (!error) {
+        setEditingCustomer(null);
+        fetchCustomers();
+      }
     }
   };
 
@@ -138,7 +181,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
         </div>
       </div>
 
-      {/* Customer Directory Table (Section 14) */}
+      {/* Customer Directory Table */}
       <div className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl overflow-hidden shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
@@ -155,7 +198,16 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gold-100/70">
-              {filteredCustomers.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-slate-500 font-semibold">
+                    <div className="flex justify-center items-center gap-2">
+                       <div className="w-4 h-4 border-2 border-gold-500 border-t-transparent rounded-full animate-spin"></div>
+                       Loading customer records...
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredCustomers.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-400 text-xs">
                     No customers found matching search.
@@ -165,22 +217,18 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                 filteredCustomers.map((c) => (
                   <tr key={c.id} className="hover:bg-gold-50/40 transition-colors">
                     
-                    {/* Name */}
                     <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">
                       {c.name}
                     </td>
 
-                    {/* Email */}
                     <td className="py-3.5 px-4 text-slate-600 whitespace-nowrap">
                       {c.email}
                     </td>
 
-                    {/* Phone */}
                     <td className="py-3.5 px-4 text-slate-600 whitespace-nowrap">
                       {c.phone}
                     </td>
 
-                    {/* Status */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       {c.accountStatus === 'VIP Member' ? (
                         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gold-100 text-gold-900 border border-gold-300 inline-flex items-center gap-1">
@@ -198,22 +246,18 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                       )}
                     </td>
 
-                    {/* Count */}
                     <td className="py-3.5 px-4 whitespace-nowrap font-semibold text-slate-900">
                       {c.reservationCount} {c.reservationCount === 1 ? 'Stay' : 'Stays'}
                     </td>
 
-                    {/* Latest */}
                     <td className="py-3.5 px-4 text-slate-600 max-w-[200px] truncate">
                       {c.latestReservation}
                     </td>
 
-                    {/* Member Since */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-slate-500">
                       {c.memberSince}
                     </td>
 
-                    {/* Actions */}
                     <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <button
                         type="button"
@@ -300,7 +344,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                   rows={3}
                   value={editingCustomer.notes || ''}
                   onChange={(e) => setEditingCustomer({ ...editingCustomer, notes: e.target.value })}
-                  placeholder="Preferences, floor choices, corporate details..."
+                  placeholder="Preferences, floor choices..."
                   className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-slate-900 text-xs"
                 />
               </div>
@@ -396,7 +440,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                 <label className="text-slate-700 block font-semibold">Notes</label>
                 <input
                   type="text"
-                  placeholder="Preferences, corporate billing, etc."
+                  placeholder="Preferences, corporate billing..."
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-900 text-xs"

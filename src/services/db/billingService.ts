@@ -1,9 +1,9 @@
-// Billing and utility service for computing rent and utilities
+// Billing and utility service for computing rent and utilities (Full & Connected with Email Filtering)
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 export interface UtilityRates {
-  waterRatePerCubicMeter: number; // Standard: ₱45.00/m³
-  electricRatePerKwh: number; // Standard: ₱14.50/kWh
+  waterRatePerCubicMeter: number;
+  electricRatePerKwh: number;
 }
 
 export const DEFAULT_UTILITY_RATES: UtilityRates = {
@@ -101,6 +101,69 @@ export const computeUtilityReadings = (
   };
 };
 
+// Get invoices (Supabase with LocalStorage fallback and User Email Filtering)
+export const getLocalInvoices = async (userEmail?: string): Promise<ClientInvoice[]> => {
+  if (isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        const mappedInvoices: ClientInvoice[] = data.map((b: any) => ({
+          id: b.id,
+          invoiceNumber: b.invoice_number || `INV-${b.id.substring(0, 5)}`,
+          tenantOrGuestName: b.tenant_or_guest_name || 'Guest',
+          tenantEmail: b.tenant_email || '',
+          roomOrBed: b.room_or_bed || 'Dormitory Room',
+          stayType: b.stay_type || 'Monthly Dorm Rent',
+          billingPeriod: b.billing_period || 'Current Period',
+          rentAmount: Number(b.rent_amount) || 0,
+          waterAmount: Number(b.water_amount) || 0,
+          electricityAmount: Number(b.electricity_amount) || 0,
+          depositAmount: Number(b.deposit_amount) || 0,
+          totalAmount: Number(b.total_amount) || 0,
+          dueDate: b.due_date || '2026-10-30',
+          paymentStatus: b.payment_status || 'Pending',
+          paymentMethod: b.payment_method || '',
+          paymentReference: b.payment_reference || '',
+          paidAt: b.paid_at || '',
+          createdAt: b.created_at || new Date().toISOString()
+        }));
+
+        if (userEmail) {
+          const cleanEmail = userEmail.toLowerCase().trim();
+          return mappedInvoices.filter(inv => inv.tenantEmail && inv.tenantEmail.toLowerCase().trim() === cleanEmail);
+        }
+        return mappedInvoices;
+      }
+    } catch (e) {
+      console.warn('Supabase fetch invoices error, falling back to local:', e);
+    }
+  }
+
+  // Fallback to local storage if supabase is empty or unconfigured
+  try {
+    const data = localStorage.getItem('dragon_treasure_invoices');
+    if (data) {
+      const existing: ClientInvoice[] = JSON.parse(data);
+      if (userEmail) {
+        const cleanEmail = userEmail.toLowerCase().trim();
+        return existing.filter(inv => inv.tenantEmail && inv.tenantEmail.toLowerCase().trim() === cleanEmail);
+      }
+      return existing;
+    }
+
+    // Kung walang-wala, talagang blangko lang i-return
+    const initial: ClientInvoice[] = [];
+    localStorage.setItem('dragon_treasure_invoices', JSON.stringify(initial));
+    return [];
+  } catch {
+    return [];
+  }
+};
+
 // Generate invoice with utility breakdown
 export const generateAutomatedInvoice = async (
   input: InvoiceGenerationInput
@@ -140,7 +203,6 @@ export const generateAutomatedInvoice = async (
     createdAt: new Date().toISOString()
   };
 
-  // If Supabase is connected, insert record
   if (isSupabaseConfigured()) {
     try {
       const { data, error } = await supabase
@@ -149,6 +211,7 @@ export const generateAutomatedInvoice = async (
           {
             invoice_number: newInvoice.invoiceNumber,
             tenant_or_guest_name: newInvoice.tenantOrGuestName,
+            tenant_email: newInvoice.tenantEmail || '',
             room_or_bed: newInvoice.roomOrBed,
             stay_type: newInvoice.stayType,
             billing_period: newInvoice.billingPeriod,
@@ -188,7 +251,6 @@ export const submitOnlinePayment = async (
 
   if (isSupabaseConfigured()) {
     try {
-      // 1. Insert payment proof record
       const { error: paymentError } = await supabase.from('payments').insert([
         {
           invoice_id: payment.invoiceId,
@@ -202,13 +264,13 @@ export const submitOnlinePayment = async (
       ]);
 
       if (!paymentError) {
-        // 2. Update invoice status to Paid/Pending Verification
         await supabase
           .from('invoices')
           .update({
             payment_status: 'Paid',
             payment_method: payment.paymentMethod,
-            paid_at: new Date().toISOString()
+            payment_reference: payment.referenceNumber,
+            paid_at: paidAt
           })
           .eq('id', payment.invoiceId);
 
@@ -220,79 +282,17 @@ export const submitOnlinePayment = async (
     }
   }
 
-  // Local persistence update
   updateLocalInvoicePayment(payment.invoiceId, payment.paymentMethod, payment.referenceNumber, paidAt);
   return { success: true, message: 'Payment recorded and queued for verification.' };
 };
 
-// Local storage helpers for invoices
-const INVOICES_STORAGE_KEY = 'dragon_treasure_invoices';
-
-export const getLocalInvoices = (): ClientInvoice[] => {
-  try {
-    const data = localStorage.getItem(INVOICES_STORAGE_KEY);
-    if (data) return JSON.parse(data);
-
-    // Initial default invoices for current tenants
-    const initial: ClientInvoice[] = [
-      {
-        id: 'inv-oct-01',
-        invoiceNumber: 'INV-2026-1042',
-        tenantOrGuestName: 'Bea Alonzo',
-        tenantEmail: 'bea.alonzo@gmail.com',
-        roomOrBed: 'Dormitory Room - Bed 1 (Female)',
-        stayType: 'Monthly Dorm Rent',
-        billingPeriod: 'October 2026',
-        rentAmount: 3000,
-        waterAmount: 180, // 4m³ @ ₱45/m³
-        electricityAmount: 435, // 30kWh @ ₱14.50/kWh
-        depositAmount: 0,
-        totalAmount: 3615,
-        dueDate: '2026-10-15',
-        paymentStatus: 'Pending',
-        utilitiesBreakdown: {
-          waterConsumption: 4,
-          waterRate: 45,
-          waterTotal: 180,
-          electricConsumption: 30,
-          electricRate: 14.5,
-          electricTotal: 435
-        },
-        createdAt: '2026-10-01'
-      },
-      {
-        id: 'inv-sep-01',
-        invoiceNumber: 'INV-2026-0921',
-        tenantOrGuestName: 'Bea Alonzo',
-        tenantEmail: 'bea.alonzo@gmail.com',
-        roomOrBed: 'Dormitory Room - Bed 1 (Female)',
-        stayType: 'Monthly Dorm Rent',
-        billingPeriod: 'September 2026',
-        rentAmount: 3000,
-        waterAmount: 135,
-        electricityAmount: 377,
-        depositAmount: 0,
-        totalAmount: 3512,
-        dueDate: '2026-09-15',
-        paymentStatus: 'Paid',
-        paymentMethod: 'GCash',
-        paymentReference: 'GC-9402859132',
-        paidAt: 'Sep 12, 2026',
-        createdAt: '2026-09-01'
-      }
-    ];
-    localStorage.setItem(INVOICES_STORAGE_KEY, JSON.stringify(initial));
-    return initial;
-  } catch {
-    return [];
-  }
-};
-
+// Local storage helper functions
 export const saveLocalInvoice = (invoice: ClientInvoice): void => {
   try {
-    const existing = getLocalInvoices();
+    const data = localStorage.getItem('dragon_treasure_invoices');
+    const existing: ClientInvoice[] = data ? JSON.parse(data) : [];
     const updated = [invoice, ...existing.filter(i => i.id !== invoice.id)];
-    localStorage.setItem(INVOICES_STORAGE_KEY, JSON.stringify(updated));
+    localStorage.setItem('dragon_treasure_invoices', JSON.stringify(updated));
   } catch (e) {
     console.error('Failed to save invoice locally', e);
   }
@@ -305,7 +305,8 @@ export const updateLocalInvoicePayment = (
   paidAtDate: string
 ): void => {
   try {
-    const existing = getLocalInvoices();
+    const data = localStorage.getItem('dragon_treasure_invoices');
+    const existing: ClientInvoice[] = data ? JSON.parse(data) : [];
     const updated = existing.map((inv) =>
       inv.id === invoiceId
         ? {
@@ -317,7 +318,7 @@ export const updateLocalInvoicePayment = (
           }
         : inv
     );
-    localStorage.setItem(INVOICES_STORAGE_KEY, JSON.stringify(updated));
+    localStorage.setItem('dragon_treasure_invoices', JSON.stringify(updated));
   } catch (e) {
     console.error('Failed to update invoice payment locally', e);
   }

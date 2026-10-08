@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  CalendarCheck2,
   Search,
   Filter,
   CheckCircle2,
@@ -20,29 +19,38 @@ import {
   X,
   Check
 } from 'lucide-react';
-import { AdminReservation } from '../data/adminMockData';
-import { SAMPLE_ROOMS } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
+import { SAMPLE_ROOMS } from '../../data/mockData';
+
+// Pinalawag a format para iti nalaka a pannakaawat
+interface AdminReservation {
+  id: string;
+  reservationCode: string;
+  guestName: string;
+  email: string;
+  phone: string;
+  roomName: string; // Daytoy ti Room Type (e.g., Compact Solo Room)
+  roomType: string;
+  category: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  rate: number;
+  ratePeriod: string;
+  totalAmount: number;
+  status: 'Pending Review' | 'Confirmed' | 'Completed' | 'Cancelled';
+  paymentStatus: 'Paid' | 'Pending' | 'Partial' | 'Unpaid';
+  specialRequests?: string;
+  cancellationReason?: string;
+  bookedAt?: string;
+  physicalRoomNumber?: string; // Baro: Para ma-assignan iti Room (e.g., Room 1-101)
+}
 
 interface ReservationsViewProps {
-  reservations: AdminReservation[];
-  onConfirm: (id: string) => void;
-  onCancel: (id: string, reason: string) => void;
-  onUpdatePayment: (id: string, paymentStatus: 'Paid' | 'Pending' | 'Partial' | 'Unpaid') => void;
-  onUpdateReservation: (updated: AdminReservation) => void;
-  onAddReservation: (newRes: AdminReservation) => void;
-  onDeleteReservation: (id: string) => void;
   initialFilter?: string;
 }
 
 export const ReservationsView: React.FC<ReservationsViewProps> = ({
-  reservations,
-  onConfirm,
-  onCancel,
-  onUpdatePayment,
-  onUpdateReservation,
-  onAddReservation,
-  onDeleteReservation,
   initialFilter
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,43 +59,71 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
   );
   const [categoryFilter, setCategoryFilter] = useState<'All' | 'transient' | 'dormitory'>('All');
 
-  //PARA KUMUHA NG LIVE DATA FROM SUPABASE
-  const [liveReservations, setLiveReservations] = useState<any[]>([]);
+  // STATE PARA KADAGITI LIVE RESERVATION KEN PHYSICAL ROOMS
+  const [liveReservations, setLiveReservations] = useState<AdminReservation[]>([]);
+  const [availablePhysicalRooms, setAvailablePhysicalRooms] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchReservations = async () => {
-    const { data, error } = await supabase.from('reservations').select('*');
-
-    if (data) {
-      const formattedData = data.map((res: any) => ({
-        ...res,
-        // Dito natin itinutugma ang pangalan mula sa Supabase papunta sa UI mo
-        reservationCode: String(res.reservation_code || ''),
-        guestName: String(res.guest_name || ''),
-        roomName: String(res.room_id || ''),
-        email: String(res.guest_email || ''),
-        phone: String(res.guest_phone || ''),
-        checkIn: String(res.check_in_date || ''),
-        checkOut: String(res.check_out_date || ''),
-        status: String(res.status || 'Pending Review'),
-        paymentStatus: 'Pending', // Default muna dahil walang payment status column
-        ratePeriod: 'night',
-        category: String(res.stay_type || ''),
-        specialRequests: String(res.special_requests || ''),
-        cancellationReason: String(res.cancellation_reason || ''),
-
-        // Mga numero
-        rate: Number(res.rate_applied) || 0,
-        guests: Number(res.number_of_guests) || 1,
-        totalAmount: Number(res.total_price) || 0
-      }));
-      setLiveReservations(formattedData);
-    }
+  // Mangala kadagiti Physical Rooms manipud 'room_units' table
+  const fetchPhysicalRooms = async () => {
+    const { data } = await supabase.from('room_units').select('id, room_number, room_type, status').eq('status', 'Available');
+    if (data) setAvailablePhysicalRooms(data);
   };
 
-  // --- LIVE UPDATE FUNCTIONS PARA SA BUTTONS ---
+  // MANGALA KADAGITI RESERBASYON MANIPUD SUPABASE
+  const fetchReservations = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase.from('reservations').select('*').order('created_at', { ascending: false });
+
+    if (data) {
+      const formattedData: AdminReservation[] = data.map((res: any) => {
+        // Linisan ti nagan (e.g., 'compact-solo-room' -> 'Compact Solo Room')
+        const rawType = String(res.room_type || res.room_id || '');
+        const cleanRoomType = rawType.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+        return {
+          id: res.id,
+          reservationCode: res.reservation_code || 'N/A',
+          guestName: res.guest_name || 'No Name',
+          email: res.guest_email || '',
+          phone: res.guest_phone || '',
+          roomName: cleanRoomType,
+          roomType: cleanRoomType,
+          category: res.stay_type || 'transient',
+          checkIn: res.check_in_date || res.check_in || '',
+          checkOut: res.check_out_date || res.check_out || '',
+          guests: Number(res.number_of_guests) || 1,
+          rate: Number(res.rate_applied) || 0,
+          ratePeriod: 'night',
+          totalAmount: Number(res.total_price) || 0,
+          status: (res.status as any) || 'Pending Review',
+          paymentStatus: (res.payment_status as any) || 'Pending',
+          specialRequests: res.special_requests || '',
+          cancellationReason: res.cancellation_reason || '',
+          physicalRoomNumber: res.physical_room_number || '' // Kunin ti assigned physical room
+        };
+      });
+      setLiveReservations(formattedData);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchReservations();
+    fetchPhysicalRooms();
+  }, []);
+
+  useEffect(() => {
+    if (initialFilter) {
+      setStatusFilter(initialFilter as any);
+    }
+  }, [initialFilter]);
+
+
+  // --- LIVE UPDATE FUNCTIONS ---
   const handleLiveConfirm = async (id: string) => {
     await supabase.from('reservations').update({ status: 'Confirmed' }).eq('id', id);
-    fetchReservations(); // Para mag-refresh agad ang table
+    fetchReservations();
   };
 
   const handleLiveCancel = async (id: string, reason: string) => {
@@ -96,20 +132,18 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
   };
 
   const handleLiveDelete = async (id: string) => {
-    await supabase.from('reservations').delete().eq('id', id);
+    if (window.confirm("Pudno kadi a kayatmo a burasen daytoy a reserbasyon? Paspasigem tapno malinisan ti data.")) {
+      await supabase.from('reservations').delete().eq('id', id);
+      fetchReservations();
+    }
+  };
+
+  const handleUpdatePayment = async (id: string, paymentStatus: string) => {
+    await supabase.from('reservations').update({ payment_status: paymentStatus }).eq('id', id);
     fetchReservations();
   };
+
   // ---------------------------------------------
-
-  React.useEffect(() => {
-    fetchReservations(); // Hugutin ang data pagka-load ng page
-  }, []);
-
-  React.useEffect(() => {
-    if (initialFilter) {
-      setStatusFilter(initialFilter as any);
-    }
-  }, [initialFilter]);
 
   // Modals state
   const [selectedReservation, setSelectedReservation] = useState<AdminReservation | null>(null);
@@ -117,14 +151,11 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Cancellation prompt modal
   const [cancellingRes, setCancellingRes] = useState<AdminReservation | null>(null);
   const [cancelReason, setCancelReason] = useState('');
 
-  // Editing form state
   const [editFormData, setEditFormData] = useState<Partial<AdminReservation>>({});
 
-  // New Reservation form state (aligned with index.html SAMPLE_ROOMS)
   const [newFormData, setNewFormData] = useState({
     guestName: '',
     email: '',
@@ -155,7 +186,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
     }));
   };
 
-  // Filtered reservations, GINAWANG LIVERESERVATIONS ANG RESERVATIONS
   const filteredReservations = liveReservations.filter((r) => {
     const matchesSearch =
       r.reservationCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -181,19 +211,29 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedReservation && editFormData) {
-      onUpdateReservation({
-        ...selectedReservation,
-        ...editFormData
-      } as AdminReservation);
+      await supabase.from('reservations').update({
+        guest_name: editFormData.guestName,
+        guest_phone: editFormData.phone,
+        check_in_date: editFormData.checkIn,
+        check_out_date: editFormData.checkOut,
+        status: editFormData.status,
+        payment_status: editFormData.paymentStatus,
+        physical_room_number: editFormData.physicalRoomNumber // I-save ti physical room
+      }).eq('id', selectedReservation.id);
+
+      // No in-assignan iti room, papatauden ti status dayta a physical room nga 'Occupied' 
+      // (No Confirmed na wenno adda idiay petsa - mabalin nga aramiden daytoy nga awtomatiko ngem manually i-set para nataginayon)
+      
       setIsEditModalOpen(false);
       setSelectedReservation(null);
+      fetchReservations();
     }
   };
 
-  const handleCreateNew = (e: React.FormEvent) => {
+  const handleCreateNew = async (e: React.FormEvent) => {
     e.preventDefault();
     const checkInDate = new Date(newFormData.checkIn);
     const checkOutDate = new Date(newFormData.checkOut);
@@ -207,28 +247,26 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
         ? (Number(newFormData.rate) || 1500) * diffDays
         : Number(newFormData.rate) || 8000;
 
-    const newRes: AdminReservation = {
-      id: `res-${Date.now()}`,
-      reservationCode: `DT-${Math.floor(100 + Math.random() * 900)}`,
-      guestName: newFormData.guestName || 'Walk-in Guest',
-      email: newFormData.email || 'guest@example.com',
-      phone: newFormData.phone || '0917-000-0000',
-      roomName: newFormData.roomName,
-      roomType: newFormData.roomType,
-      category: newFormData.category,
-      checkIn: newFormData.checkIn || new Date().toISOString().split('T')[0],
-      checkOut: newFormData.checkOut || new Date().toISOString().split('T')[0],
-      guests: Number(newFormData.guests) || 2,
-      rate: Number(newFormData.rate) || 1500,
-      ratePeriod: newFormData.ratePeriod,
-      totalAmount: computedTotal,
+    const payload = {
+      reservation_code: `DT-${Math.floor(100 + Math.random() * 900)}`,
+      guest_name: newFormData.guestName || 'Walk-in Guest',
+      guest_email: newFormData.email || 'guest@example.com',
+      guest_phone: newFormData.phone || '0917-000-0000',
+      room_type: newFormData.roomType.toLowerCase().replace(/ /g, '-'), // Agsubli iti db format
+      stay_type: newFormData.category,
+      check_in_date: newFormData.checkIn || new Date().toISOString().split('T')[0],
+      check_out_date: newFormData.checkOut || new Date().toISOString().split('T')[0],
+      number_of_guests: Number(newFormData.guests) || 2,
+      rate_applied: Number(newFormData.rate) || 1500,
+      total_price: computedTotal,
       status: newFormData.status,
-      paymentStatus: newFormData.paymentStatus,
-      specialRequests: newFormData.specialRequests,
-      bookedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      payment_status: newFormData.paymentStatus,
+      special_requests: newFormData.specialRequests
     };
-    onAddReservation(newRes);
+
+    await supabase.from('reservations').insert([payload]);
     setIsAddModalOpen(false);
+    fetchReservations();
   };
 
   const handlePromptCancel = (res: AdminReservation) => {
@@ -247,13 +285,12 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
   return (
     <div className="space-y-6">
 
-      {/* Top Header & New Reservation Action */}
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="font-serif font-bold text-2xl text-pine-950 flex items-center gap-2">
             <span>Reservation Management</span>
             <span className="text-xs font-sans font-bold px-2.5 py-0.5 rounded-full bg-gold-100 text-pine-900 border border-gold-300">
-
               {liveReservations.length} Bookings
             </span>
           </h2>
@@ -276,7 +313,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
       <div className="p-4 rounded-3xl bg-[#fffdfa] border border-gold-200/90 shadow-card space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
 
-          {/* Search Box */}
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <Search className="w-4 h-4 text-pine-700" />
@@ -290,7 +326,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
             />
           </div>
 
-          {/* Status Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
             {(['All', 'Pending Review', 'Confirmed', 'Cancelled'] as const).map((tab) => (
               <button
@@ -313,7 +348,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
             ))}
           </div>
 
-          {/* Category Filter */}
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value as any)}
@@ -327,7 +361,7 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
         </div>
       </div>
 
-      {/* Main Reservation Management Table (Section 10) */}
+      {/* Main Reservation Management Table */}
       <div className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl overflow-hidden shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
@@ -335,7 +369,7 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
               <tr>
                 <th className="py-3.5 px-4 font-bold">Reservation ID</th>
                 <th className="py-3.5 px-4 font-bold">Guest</th>
-                <th className="py-3.5 px-4 font-bold">Room</th>
+                <th className="py-3.5 px-4 font-bold">Room Category & Physical Unit</th>
                 <th className="py-3.5 px-4 font-bold">Check-in</th>
                 <th className="py-3.5 px-4 font-bold">Check-out</th>
                 <th className="py-3.5 px-4 font-bold">Status</th>
@@ -344,7 +378,16 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gold-100/70">
-              {filteredReservations.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-slate-500 font-semibold">
+                    <div className="flex justify-center items-center gap-2">
+                       <div className="w-4 h-4 border-2 border-gold-500 border-t-transparent rounded-full animate-spin"></div>
+                       Loading reservations...
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredReservations.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-400 text-xs">
                     No reservations matching current search and filter criteria.
@@ -354,34 +397,34 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                 filteredReservations.map((res) => (
                   <tr key={res.id} className="hover:bg-gold-50/40 transition-colors">
 
-                    {/* ID */}
                     <td className="py-3.5 px-4 font-mono font-bold text-pine-900 whitespace-nowrap">
                       {res.reservationCode}
                     </td>
 
-                    {/* Guest */}
                     <td className="py-3.5 px-4">
                       <div className="font-bold text-slate-900">{res.guestName}</div>
                       <div className="text-[11px] text-slate-500">{res.phone}</div>
                     </td>
 
-                    {/* Room */}
                     <td className="py-3.5 px-4">
                       <div className="font-medium text-slate-900">{res.roomName}</div>
                       <div className="text-[10px] text-slate-500">{res.guests} Guests • ₱{res.rate.toLocaleString()}/{res.ratePeriod}</div>
+                      {/* Ipakita no adda physical room number */}
+                      {res.physicalRoomNumber && (
+                        <div className="mt-1 inline-block bg-pine-100 text-pine-900 text-[10px] font-bold px-2 py-0.5 rounded border border-pine-200">
+                          Unit: {res.physicalRoomNumber}
+                        </div>
+                      )}
                     </td>
 
-                    {/* Check-in */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-slate-700 font-medium">
                       {res.checkIn}
                     </td>
 
-                    {/* Check-out */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-slate-700 font-medium">
                       {res.checkOut}
                     </td>
 
-                    {/* Status */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       {res.status === 'Pending Review' ? (
                         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1">
@@ -405,11 +448,10 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                       )}
                     </td>
 
-                    {/* Payment Status Dropdown */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <select
                         value={res.paymentStatus}
-                        onChange={(e) => onUpdatePayment(res.id, e.target.value as any)}
+                        onChange={(e) => handleUpdatePayment(res.id, e.target.value)}
                         className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border cursor-pointer focus:outline-none bg-stone-50 ${res.paymentStatus === 'Paid'
                             ? 'text-emerald-800 border-emerald-300 bg-emerald-50/70'
                             : res.paymentStatus === 'Pending' || res.paymentStatus === 'Partial'
@@ -424,11 +466,9 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                       </select>
                     </td>
 
-                    {/* Admin Actions */}
                     <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="inline-flex items-center gap-1.5">
 
-                        {/* Quick Approve if Pending */}
                         {res.status === 'Pending Review' && (
                           <button
                             type="button"
@@ -441,7 +481,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                           </button>
                         )}
 
-                        {/* View Details */}
                         <button
                           type="button"
                           onClick={() => handleOpenView(res)}
@@ -451,17 +490,15 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                           <Eye className="w-3.5 h-3.5 text-pine-700" />
                         </button>
 
-                        {/* Edit */}
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(res)}
                           className="p-1.5 rounded-lg bg-stone-100 hover:bg-gold-100 text-slate-700 hover:text-pine-950 transition-colors cursor-pointer border border-stone-200"
-                          title="Edit Reservation"
+                          title="Edit & Assign Room"
                         >
                           <Edit3 className="w-3.5 h-3.5 text-pine-700" />
                         </button>
 
-                        {/* Cancel if active */}
                         {res.status !== 'Cancelled' ? (
                           <button
                             type="button"
@@ -475,10 +512,10 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                           <button
                             type="button"
                             onClick={() => handleLiveDelete(res.id)}
-                            className="p-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer border border-stone-200"
+                            className="p-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer border border-stone-200"
                             title="Remove Record"
                           >
-                            <Trash2 className="w-3.5 h-3.5 text-slate-400" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
 
@@ -539,8 +576,13 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                   Stay Specifications
                 </span>
                 <div className="flex justify-between text-slate-800">
-                  <span className="text-slate-500">Accommodations:</span>
+                  <span className="text-slate-500">Room Type:</span>
                   <span className="font-bold">{selectedReservation.roomName}</span>
+                </div>
+                {/* View Assigned Physical Room */}
+                <div className="flex justify-between text-slate-800">
+                  <span className="text-slate-500">Assigned Unit:</span>
+                  <span className="font-bold text-pine-700">{selectedReservation.physicalRoomNumber || 'Not yet assigned'}</span>
                 </div>
                 <div className="flex justify-between text-slate-800">
                   <span className="text-slate-500">Check-in:</span>
@@ -653,7 +695,7 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
         </div>
       )}
 
-      {/* 3. EDIT RESERVATION MODAL */}
+      {/* 3. EDIT RESERVATION & ASSIGN ROOM MODAL */}
       {isEditModalOpen && selectedReservation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
           <form onSubmit={handleSaveEdit} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
@@ -709,6 +751,31 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                   onChange={(e) => setEditFormData({ ...editFormData, checkOut: e.target.value })}
                   className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-900 text-xs"
                 />
+              </div>
+
+              {/* BARO: Room Assignment Dropdown */}
+              <div className="space-y-1 sm:col-span-2">
+                <label className="text-slate-700 block font-semibold">Assign Physical Room</label>
+                <select
+                  value={editFormData.physicalRoomNumber || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, physicalRoomNumber: e.target.value })}
+                  className="w-full bg-pine-50 border border-pine-200 rounded-xl px-3 py-2 text-pine-900 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-pine-700"
+                >
+                  <option value="">-- Select an Available Room --</option>
+                  {availablePhysicalRooms
+                    .filter(room => {
+                      // Ipakita laeng dagiti kuarto a mangtugma iti room type (e.g. no nagbook isuna ti Compact Solo, Compact Solo laeng ti agparang)
+                      const dbRoomType = selectedReservation.roomType.toLowerCase().replace(/ /g, '-');
+                      const unitType = room.room_type.toLowerCase().replace(/ /g, '-');
+                      return dbRoomType === unitType;
+                    })
+                    .map(room => (
+                      <option key={room.id} value={room.room_number}>
+                        {room.room_number} ({room.room_type})
+                      </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-slate-500">Ipakpakitana laeng dagiti kuarto nga "Available" agdama nga agpadpada iti type ti nabookna.</p>
               </div>
 
               <div className="space-y-1">

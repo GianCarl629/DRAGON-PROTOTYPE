@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase'; // Siguraduhing tama ang path
 import { 
   BedDouble, 
   Plus, 
@@ -13,40 +14,143 @@ import {
   Tag,
   Layers
 } from 'lucide-react';
-import { AdminRoom } from '../data/adminMockData';
 import { SAMPLE_ROOMS } from '../../data/mockData';
 
+// In-update na natin ang interface para tumugma sa format
+export interface AdminRoom {
+  id: string;
+  roomNumber: string;
+  name: string;
+  category: string;
+  roomType: string;
+  capacity: number;
+  price: number;
+  ratePeriod: string;
+  status: 'Available' | 'Occupied' | 'Reserved' | 'Maintenance';
+  floor: string;
+  amenities: string[];
+}
+
+// Ginawang optional ang props para hindi mag-error ang parent
 interface RoomsViewProps {
-  rooms: AdminRoom[];
-  onAddRoom: (newRoom: AdminRoom) => void;
-  onUpdateRoom: (updated: AdminRoom) => void;
-  onDeleteRoom: (id: string) => void;
+  rooms?: AdminRoom[];
+  onAddRoom?: (newRoom: AdminRoom) => void;
+  onUpdateRoom?: (updated: AdminRoom) => void;
+  onDeleteRoom?: (id: string) => void;
   initialFilter?: string;
 }
 
-export const RoomsView: React.FC<RoomsViewProps> = ({
-  rooms,
-  onAddRoom,
-  onUpdateRoom,
-  onDeleteRoom,
-  initialFilter
-}) => {
+export const RoomsView: React.FC<RoomsViewProps> = ({ initialFilter }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Available' | 'Occupied' | 'Reserved' | 'Maintenance'>(
     (initialFilter as any) || 'All'
   );
 
-  React.useEffect(() => {
-    if (initialFilter) {
-      setStatusFilter(initialFilter as any);
+  // Dito mase-save ang data na galing sa mismong Supabase database
+  const [dbRooms, setDbRooms] = useState<AdminRoom[]>([]);
+  // Dito mase-save yung nag-sync nang Live Status (Occupied/Reserved base sa reservations)
+  const [syncedRooms, setSyncedRooms] = useState<AdminRoom[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 1. READ: Kunin ang mga kwarto mula sa 'room_units' table
+  const fetchRooms = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('room_units')
+      .select('*')
+      .order('room_number', { ascending: true });
+
+    if (error) {
+      console.error("Error fetching rooms:", error);
+    } else if (data) {
+      // I-format ang data galing DB para maging tugma sa UI natin
+      const formattedRooms: AdminRoom[] = data.map((d: any) => ({
+        id: d.id,
+        roomNumber: d.room_number,
+        name: d.name,
+        category: d.category,
+        roomType: d.room_type,
+        capacity: d.capacity,
+        price: d.price,
+        ratePeriod: d.rate_period,
+        status: d.status,
+        floor: d.floor || '',
+        amenities: d.amenities ? d.amenities.split(',').map((s: string) => s.trim()) : []
+      }));
+      setDbRooms(formattedRooms);
     }
-  }, [initialFilter]);
-  
+    setIsLoading(false);
+  };
+
+  // Kunin agad ang data pag-load ng page
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  // 2. LIVE SYNC: I-check ang 'reservations' para sa Auto-Status
+  useEffect(() => {
+    const fetchLiveStatus = async () => {
+      try {
+        const today = new Date().toLocaleDateString('en-CA');
+
+        const { data: activeReservations, error } = await supabase
+          .from('reservations')
+          .select('*')
+          .eq('status', 'Confirmed')
+          .gte('check_out', today);
+
+        if (error) throw error;
+
+        if (activeReservations) {
+          const occupiedCounts: Record<string, number> = {};
+          const reservedCounts: Record<string, number> = {};
+
+          activeReservations.forEach(res => {
+            const dbType = res.room_type ? res.room_type.toLowerCase().replace(/-/g, ' ') : '';
+            if (res.check_in <= today && res.check_out >= today) {
+              occupiedCounts[dbType] = (occupiedCounts[dbType] || 0) + 1;
+            } else if (res.check_in > today) {
+              reservedCounts[dbType] = (reservedCounts[dbType] || 0) + 1;
+            }
+          });
+
+          const updatedRooms = dbRooms.map((room): AdminRoom => {
+            if (room.status === 'Maintenance') return room;
+
+            const localType = room.roomType.toLowerCase().replace(/-/g, ' ');
+
+            if (occupiedCounts[localType] > 0) {
+              occupiedCounts[localType] -= 1;
+              return { ...room, status: 'Occupied' };
+            }
+            if (reservedCounts[localType] > 0) {
+              reservedCounts[localType] -= 1;
+              return { ...room, status: 'Reserved' };
+            }
+            return { ...room, status: 'Available' };
+          });
+
+          setSyncedRooms(updatedRooms);
+        } else {
+          setSyncedRooms(dbRooms);
+        }
+      } catch (error) {
+        console.error("Error syncing status:", error);
+        setSyncedRooms(dbRooms);
+      }
+    };
+
+    if (dbRooms.length > 0) {
+      fetchLiveStatus();
+    } else {
+      setSyncedRooms([]);
+    }
+  }, [dbRooms]);
+
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<AdminRoom | null>(null);
 
-  // New Room Form (aligned with index.html SAMPLE_ROOMS)
   const [formData, setFormData] = useState({
     roomNumber: '',
     name: '',
@@ -73,7 +177,7 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
     }));
   };
 
-  const filteredRooms = rooms.filter((r) => {
+  const filteredRooms = syncedRooms.filter((r) => {
     const matchesSearch =
       r.roomNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -84,62 +188,106 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
     return matchesSearch && matchesStatus;
   });
 
-  const handleQuickStatusChange = (roomId: string, newStatus: AdminRoom['status']) => {
-    const room = rooms.find(r => r.id === roomId);
-    if (room) {
-      onUpdateRoom({ ...room, status: newStatus });
+  // 3. UPDATE QUICK STATUS
+  const handleQuickStatusChange = async (roomId: string, newStatus: string) => {
+    const { error } = await supabase
+      .from('room_units')
+      .update({ status: newStatus })
+      .eq('id', roomId);
+    
+    if (!error) {
+      fetchRooms(); // Refresh UI kapag success
     }
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  // 4. UPDATE FULL ROOM DETAILS
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingRoom) {
-      onUpdateRoom(editingRoom);
+    if (!editingRoom) return;
+
+    const { error } = await supabase
+      .from('room_units')
+      .update({
+        room_number: editingRoom.roomNumber,
+        name: editingRoom.name,
+        capacity: editingRoom.capacity,
+        price: editingRoom.price,
+        floor: editingRoom.floor,
+        status: editingRoom.status
+      })
+      .eq('id', editingRoom.id);
+
+    if (!error) {
       setEditingRoom(null);
+      fetchRooms(); // Refresh UI
+    } else {
+      alert("Error updating room!");
+      console.error(error);
     }
   };
 
-  const handleCreateRoom = (e: React.FormEvent) => {
+  // 5. CREATE NEW ROOM
+  const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newRoom: AdminRoom = {
-      id: `room-${Date.now()}`,
-      roomNumber: formData.roomNumber.trim() || `Room ${rooms.length + 101}`,
+    
+    const dbPayload = {
+      room_number: formData.roomNumber.trim(),
       name: formData.name.trim() || `${formData.roomType} ${formData.roomNumber}`,
       category: formData.category,
-      roomType: formData.roomType,
+      room_type: formData.roomType,
       capacity: Number(formData.capacity) || 2,
       price: Number(formData.price) || 1500,
-      ratePeriod: formData.ratePeriod,
+      rate_period: formData.ratePeriod,
       status: formData.status,
       floor: formData.floor,
-      amenities: formData.amenities.split(',').map(s => s.trim()).filter(Boolean)
+      amenities: formData.amenities
     };
-    onAddRoom(newRoom);
-    setIsAddModalOpen(false);
-    setFormData({
-      roomNumber: '',
-      name: '',
-      category: SAMPLE_ROOMS[0].category,
-      roomType: SAMPLE_ROOMS[0].name,
-      capacity: SAMPLE_ROOMS[0].capacity,
-      price: SAMPLE_ROOMS[0].rate,
-      ratePeriod: SAMPLE_ROOMS[0].category === 'dormitory' ? 'month' : 'night',
-      status: 'Available',
-      floor: '1st Floor',
-      amenities: SAMPLE_ROOMS[0].features.join(', ')
-    });
+
+    const { error } = await supabase.from('room_units').insert([dbPayload]);
+
+    if (!error) {
+      setIsAddModalOpen(false);
+      // Reset Form
+      setFormData({
+        roomNumber: '',
+        name: '',
+        category: SAMPLE_ROOMS[0].category,
+        roomType: SAMPLE_ROOMS[0].name,
+        capacity: SAMPLE_ROOMS[0].capacity,
+        price: SAMPLE_ROOMS[0].rate,
+        ratePeriod: SAMPLE_ROOMS[0].category === 'dormitory' ? 'month' : 'night',
+        status: 'Available',
+        floor: '1st Floor',
+        amenities: SAMPLE_ROOMS[0].features.join(', ')
+      });
+      fetchRooms(); // Refresh UI para lumitaw yung bagong kwarto
+    } else {
+      alert("Error adding new room!");
+      console.error(error);
+    }
+  };
+
+  // 6. DELETE ROOM
+  const handleDeleteRoom = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this room? This action cannot be undone.")) {
+      const { error } = await supabase.from('room_units').delete().eq('id', id);
+      if (!error) {
+        fetchRooms();
+      } else {
+        console.error(error);
+      }
+    }
   };
 
   return (
     <div className="space-y-6">
-      
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="font-serif font-bold text-2xl text-pine-950 flex items-center gap-2">
             <span>Room & Unit Inventory</span>
             <span className="text-xs font-sans font-bold px-2.5 py-0.5 rounded-full bg-gold-100 text-pine-900 border border-gold-300">
-              {rooms.length} Units
+              {syncedRooms.length} Units
             </span>
           </h2>
           <p className="text-xs text-slate-600">
@@ -190,7 +338,7 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
                   <span className={`ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                     statusFilter === tab ? 'bg-pine-950 text-gold-300' : 'bg-gold-100 text-gold-900'
                   }`}>
-                    {rooms.filter(r => r.status === tab).length}
+                    {syncedRooms.filter(r => r.status === tab).length}
                   </span>
                 )}
               </button>
@@ -199,7 +347,7 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
         </div>
       </div>
 
-      {/* Room Inventory Table (Section 11) */}
+      {/* Room Inventory Table */}
       <div className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl overflow-hidden shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
@@ -215,33 +363,38 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gold-100/70">
-              {filteredRooms.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-500 text-sm font-semibold">
+                    <div className="flex justify-center items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-gold-500 border-t-transparent rounded-full animate-spin"></div>
+                      Loading rooms from database...
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredRooms.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400 text-xs">
-                    No rooms found matching the current search criteria.
+                    No physical rooms have been added yet. Click "Add New Room" to start building your inventory.
                   </td>
                 </tr>
               ) : (
                 filteredRooms.map((room) => (
                   <tr key={room.id} className="hover:bg-gold-50/40 transition-colors">
                     
-                    {/* Room Number */}
                     <td className="py-3.5 px-4 font-mono font-bold text-pine-900 whitespace-nowrap">
                       {room.roomNumber}
                     </td>
 
-                    {/* Room Name & Type */}
                     <td className="py-3.5 px-4">
                       <div className="font-bold text-slate-900">{room.name}</div>
                       <div className="text-[11px] text-slate-500">{room.roomType} • {room.category}</div>
                     </td>
 
-                    {/* Floor */}
                     <td className="py-3.5 px-4 text-slate-700">
                       {room.floor}
                     </td>
 
-                    {/* Capacity */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-slate-700 font-medium">
                       <span className="inline-flex items-center gap-1">
                         <Users className="w-3.5 h-3.5 text-pine-700" />
@@ -249,17 +402,15 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
                       </span>
                     </td>
 
-                    {/* Rate */}
                     <td className="py-3.5 px-4 whitespace-nowrap font-serif font-bold text-pine-900 text-sm">
                       ₱{room.price.toLocaleString()}
                       <span className="text-[10px] font-sans font-normal text-slate-500">/{room.ratePeriod}</span>
                     </td>
 
-                    {/* Status Dropdown */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <select
                         value={room.status}
-                        onChange={(e) => handleQuickStatusChange(room.id, e.target.value as any)}
+                        onChange={(e) => handleQuickStatusChange(room.id, e.target.value)}
                         className={`text-[11px] font-bold px-2 py-1 rounded-lg border cursor-pointer focus:outline-none bg-stone-50 ${
                           room.status === 'Available'
                             ? 'text-emerald-800 border-emerald-300 bg-emerald-50/70'
@@ -277,7 +428,6 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
                       </select>
                     </td>
 
-                    {/* Actions */}
                     <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="inline-flex items-center gap-1.5">
                         <button
@@ -291,7 +441,7 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
 
                         <button
                           type="button"
-                          onClick={() => onDeleteRoom(room.id)}
+                          onClick={() => handleDeleteRoom(room.id)}
                           className="p-1 rounded-lg bg-stone-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer border border-stone-200"
                           title="Delete Room"
                         >
@@ -452,7 +602,7 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
                 >
                   {SAMPLE_ROOMS.map((r) => (
                     <option key={r.id} value={r.name}>
-                      {r.name} ({r.formattedRate} • Max {r.capacityLabel})
+                      {r.name} (Max {r.capacity})
                     </option>
                   ))}
                 </select>

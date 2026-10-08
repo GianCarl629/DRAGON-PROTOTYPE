@@ -2,18 +2,13 @@ import React, { useState } from 'react';
 import { 
   Settings, 
   ShieldCheck, 
-  Clock, 
   Building2, 
-  Phone, 
   RotateCcw, 
-  Check, 
-  AlertTriangle,
-  Info
+  Check 
 } from 'lucide-react';
-import { AdminDataManager } from '../data/adminMockData';
 
 interface SettingsViewProps {
-  onResetData: () => void;
+  onResetData?: () => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ onResetData }) => {
@@ -139,31 +134,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onResetData }) => {
       </div>
 
       {/* System Fixtures Restoration */}
-      <div className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl p-6 space-y-3 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h4 className="font-bold text-sm text-pine-950 flex items-center gap-1.5">
-            <RotateCcw className="w-4 h-4 text-rose-600" />
-            <span>Restore System Fixtures</span>
-          </h4>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Reset administrative cache back to standard property inventory, room statuses, and baseline records.
-          </p>
-        </div>
+      {onResetData && (
+        <div className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl p-6 space-y-3 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h4 className="font-bold text-sm text-pine-950 flex items-center gap-1.5">
+              <RotateCcw className="w-4 h-4 text-rose-600" />
+              <span>Restore System Fixtures</span>
+            </h4>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Reset administrative cache back to standard property inventory, room statuses, and baseline records.
+            </p>
+          </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            if (confirm('Restore baseline system inventory and records?')) {
-              onResetData();
-            }
-          }}
-          className="px-4 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-900 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-xs"
-        >
-          Restore Baseline
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm('Restore baseline system inventory and records?')) {
+                onResetData();
+              }
+            }}
+            className="px-4 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-900 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-xs"
+          >
+            Restore Baseline
+          </button>
+        </div>
+      )}
 
     </div>
   );
 };
-

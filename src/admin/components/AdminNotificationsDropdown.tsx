@@ -1,4 +1,3 @@
-// Advanced operational notification dropdown for admin header
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   Bell, 
@@ -9,18 +8,16 @@ import {
   BedDouble, 
   X, 
   ArrowRight, 
-  Sparkles, 
   Volume2, 
   VolumeX, 
   Clock, 
-  AlertCircle,
   CheckCircle2
 } from 'lucide-react';
-import { AdminStoreState } from '../data/adminMockData';
+import { supabase } from '../../lib/supabase'; // Idinagdag ang Supabase
 
 interface AdminNotificationsDropdownProps {
-  store: AdminStoreState;
   onNavigateTab: (tab: string, filter?: string) => void;
+  // Tinanggal na natin ang 'store' prop kasi sa Supabase na tayo kukuha
 }
 
 interface NotificationItem {
@@ -37,7 +34,6 @@ interface NotificationItem {
 }
 
 export const AdminNotificationsDropdown: React.FC<AdminNotificationsDropdownProps> = ({
-  store,
   onNavigateTab
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -45,6 +41,37 @@ export const AdminNotificationsDropdown: React.FC<AdminNotificationsDropdownProp
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [soundEnabled, setSoundEnabled] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // MGA LIVE STATE PARA SA SUPABASE
+  const [pendingReservations, setPendingReservations] = useState<any[]>([]);
+  const [maintenanceRooms, setMaintenanceRooms] = useState<any[]>([]);
+
+  // Fetch live notifications from Supabase
+  const fetchNotifications = async () => {
+    // 1. Kunin ang mga Pending Reservations
+    const { data: resData } = await supabase
+      .from('reservations')
+      .select('*')
+      .eq('status', 'Pending Review');
+    
+    if (resData) setPendingReservations(resData);
+
+    // 2. Kunin ang mga naka-Maintenance na kwarto
+    const { data: roomData } = await supabase
+      .from('room_units')
+      .select('*')
+      .eq('status', 'Maintenance');
+    
+    if (roomData) setMaintenanceRooms(roomData);
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    
+    // Optional: Pwede mong i-set na mag-refresh ito every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Close when clicking outside
   useEffect(() => {
@@ -59,85 +86,44 @@ export const AdminNotificationsDropdown: React.FC<AdminNotificationsDropdownProp
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // Build specific, actionable notification records from live store
+  // Build specific, actionable notification records from live database
   const allNotifications: NotificationItem[] = useMemo(() => {
     const list: NotificationItem[] = [];
 
-    // 1. Pending Reservations
-    store.reservations
-      .filter(r => r.status === 'Pending Review')
-      .forEach(r => {
-        list.push({
-          id: `notif-res-${r.id}`,
-          category: 'reservations',
-          urgency: 'high',
-          title: `Reservation Request: ${r.guestName}`,
-          description: `${r.roomName} • ${r.guests} Pax • ${r.checkIn} to ${r.checkOut} (₱${r.totalAmount.toLocaleString()})`,
-          time: r.bookedAt || 'Recent',
-          actionLabel: 'Review & Confirm',
-          targetTab: 'reservations',
-          targetFilter: 'Pending Review',
-          metaBadge: 'Pending Review'
-        });
+    // 1. Pending Reservations (Galing sa Supabase)
+    pendingReservations.forEach(r => {
+      list.push({
+        id: `notif-res-${r.id}`,
+        category: 'reservations',
+        urgency: 'high',
+        title: `Reservation Request: ${r.guest_name}`,
+        description: `${r.room_type || 'Room'} • ${r.number_of_guests} Pax • ${r.check_in_date} to ${r.check_out_date} (₱${Number(r.total_price).toLocaleString()})`,
+        time: 'Pending',
+        actionLabel: 'Review & Confirm',
+        targetTab: 'reservations',
+        targetFilter: 'Pending Review',
+        metaBadge: 'Pending Review'
       });
+    });
 
-    // 2. New Customer Inquiries
-    store.inquiries
-      .filter(i => i.status === 'New')
-      .forEach(i => {
-        list.push({
-          id: `notif-inq-${i.id}`,
-          category: 'inquiries',
-          urgency: 'medium',
-          title: `New Guest Inquiry: ${i.guestName}`,
-          description: `Topic: ${i.topic} — "${i.message.length > 70 ? i.message.substring(0, 70) + '...' : i.message}"`,
-          time: i.receivedAt || 'Recent',
-          actionLabel: 'Reply to Guest',
-          targetTab: 'inquiries',
-          targetFilter: 'New',
-          metaBadge: 'New Inquiry'
-        });
+    // 2. Maintenance Rooms (Galing sa Supabase)
+    maintenanceRooms.forEach(r => {
+      list.push({
+        id: `notif-room-${r.id}`,
+        category: 'rooms',
+        urgency: 'info',
+        title: `Maintenance Flag: ${r.room_number}`,
+        description: `${r.floor || ''} - Status flagged for caretaker inspection and housekeeping`,
+        time: 'Active Maintenance',
+        actionLabel: 'Inspect Room',
+        targetTab: 'rooms',
+        targetFilter: 'Maintenance',
+        metaBadge: 'Maintenance'
       });
-
-    // 3. Unpaid or Overdue Invoices
-    store.billing
-      .filter(b => b.paymentStatus === 'Pending' || b.paymentStatus === 'Overdue')
-      .forEach(b => {
-        const isOverdue = b.paymentStatus === 'Overdue';
-        list.push({
-          id: `notif-bill-${b.id}`,
-          category: 'billing',
-          urgency: isOverdue ? 'high' : 'medium',
-          title: `${isOverdue ? 'Overdue Payment' : 'Unsettled Invoice'}: ${b.tenantOrGuest}`,
-          description: `${b.billingPeriod} • ${b.roomOrBed} — ₱${b.totalAmount.toLocaleString()} due ${b.dueDate}`,
-          time: `Due ${b.dueDate}`,
-          actionLabel: 'View Invoice',
-          targetTab: 'billing',
-          targetFilter: 'Pending',
-          metaBadge: isOverdue ? 'Overdue' : 'Unpaid'
-        });
-      });
-
-    // 4. Maintenance / Cleaning Rooms
-    store.rooms
-      .filter(r => r.status === 'Maintenance')
-      .forEach(r => {
-        list.push({
-          id: `notif-room-${r.id}`,
-          category: 'rooms',
-          urgency: 'info',
-          title: `Maintenance Flag: ${r.name}`,
-          description: `${r.floor} • Status flagged for caretaker inspection and housekeeping`,
-          time: 'Active Maintenance',
-          actionLabel: 'Inspect Room',
-          targetTab: 'rooms',
-          targetFilter: 'Maintenance',
-          metaBadge: 'Maintenance'
-        });
-      });
+    });
 
     return list;
-  }, [store]);
+  }, [pendingReservations, maintenanceRooms]);
 
   // Active un-dismissed items
   const activeNotifications = allNotifications.filter(item => !dismissedIds.has(item.id));
@@ -170,7 +156,6 @@ export const AdminNotificationsDropdown: React.FC<AdminNotificationsDropdownProp
     onNavigateTab(item.targetTab, item.targetFilter);
   };
 
-  // Play subtle audio chime if enabled and new alerts exist (optional tone)
   const toggleSound = () => {
     setSoundEnabled(!soundEnabled);
   };
@@ -194,7 +179,7 @@ export const AdminNotificationsDropdown: React.FC<AdminNotificationsDropdownProp
         )}
       </button>
 
-      {/* 10x Rich Notification Popover */}
+      {/* Popover Content */}
       {isOpen && (
         <div className="absolute right-0 mt-2 w-84 sm:w-[420px] bg-[#fffdfa] rounded-3xl border-2 border-gold-300 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden flex flex-col max-h-[85vh]">
           
@@ -284,28 +269,6 @@ export const AdminNotificationsDropdown: React.FC<AdminNotificationsDropdownProp
               </button>
               <button
                 type="button"
-                onClick={() => setActiveFilter('inquiries')}
-                className={`px-2.5 py-1 rounded-xl font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                  activeFilter === 'inquiries'
-                    ? 'bg-sky-800 text-white shadow-xs'
-                    : 'bg-stone-100 hover:bg-stone-200 text-slate-700'
-                }`}
-              >
-                Inquiries ({counts.inquiries})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveFilter('billing')}
-                className={`px-2.5 py-1 rounded-xl font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                  activeFilter === 'billing'
-                    ? 'bg-amber-800 text-white shadow-xs'
-                    : 'bg-stone-100 hover:bg-stone-200 text-slate-700'
-                }`}
-              >
-                Billing ({counts.billing})
-              </button>
-              <button
-                type="button"
                 onClick={() => setActiveFilter('rooms')}
                 className={`px-2.5 py-1 rounded-xl font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   activeFilter === 'rooms'
@@ -338,7 +301,6 @@ export const AdminNotificationsDropdown: React.FC<AdminNotificationsDropdownProp
               </div>
             ) : (
               filteredNotifications.map(item => {
-                // Category icon and colors
                 const iconMap = {
                   reservations: <CalendarCheck2 className="w-4 h-4 text-emerald-700" />,
                   inquiries: <MessageSquare className="w-4 h-4 text-sky-700" />,

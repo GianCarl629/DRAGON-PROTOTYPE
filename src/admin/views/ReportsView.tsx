@@ -1,31 +1,59 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  BarChart3, 
   TrendingUp, 
-  PieChart, 
   Download, 
-  Calendar, 
-  BedDouble, 
   Building2, 
   DollarSign,
   CheckCircle2
 } from 'lucide-react';
-import { AdminStoreState } from '../data/adminMockData';
+import { supabase } from '../../lib/supabase';
 
-interface ReportsViewProps {
-  store: AdminStoreState;
+interface ReservationRow {
+  reservationCode: string;
+  guestName: string;
+  roomName: string;
+  checkIn: string;
+  checkOut: string;
+  status: string;
+  totalAmount: number;
 }
 
-export const ReportsView: React.FC<ReportsViewProps> = ({ store }) => {
-  const confirmedCount = store.reservations.filter(r => r.status === 'Confirmed').length;
-  const pendingCount = store.reservations.filter(r => r.status === 'Pending Review').length;
-  const cancelledCount = store.reservations.filter(r => r.status === 'Cancelled').length;
+export const ReportsView: React.FC = () => {
+  const [reservations, setReservations] = useState<ReservationRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchReportsData = async () => {
+    setIsLoading(true);
+    const { data } = await supabase.from('reservations').select('*');
+
+    if (data) {
+      const formatted: ReservationRow[] = data.map((r: any) => ({
+        reservationCode: r.reservation_code || `RES-${r.id.substring(0, 5)}`,
+        guestName: r.guest_name,
+        roomName: r.room_type || 'Room Unit',
+        checkIn: r.check_in_date,
+        checkOut: r.check_out_date,
+        status: r.status,
+        totalAmount: Number(r.total_price) || 0
+      }));
+      setReservations(formatted);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchReportsData();
+  }, []);
+
+  const confirmedCount = reservations.filter(r => r.status === 'Confirmed').length;
+  const pendingCount = reservations.filter(r => r.status === 'Pending Review').length;
+  const cancelledCount = reservations.filter(r => r.status === 'Cancelled').length;
 
   const handleExportCSV = () => {
     const csvContent =
       'data:text/csv;charset=utf-8,' +
       'Code,Guest,Room,CheckIn,CheckOut,Status,Amount\n' +
-      store.reservations
+      reservations
         .map(
           r =>
             `${r.reservationCode},"${r.guestName}","${r.roomName}",${r.checkIn},${r.checkOut},${r.status},${r.totalAmount}`
@@ -48,7 +76,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ store }) => {
         <div>
           <h2 className="font-serif font-bold text-2xl text-pine-950 flex items-center gap-2">
             <span>Property Performance & Analytics</span>
-            <span className="text-xs font-sans font-bold px-2.5 py-0.5 rounded-full bg-gold-100 text-gold-900 border border-gold-300">
+            <span className="text-xs font-sans font-bold px-2.5 py-0.5 rounded-full bg-gold-100 text-pine-900 border border-gold-300">
               Q4 2026
             </span>
           </h2>
@@ -148,7 +176,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ store }) => {
         <div className="bg-[#fffdfa] border border-gold-200/90 shadow-card p-5 sm:p-6 rounded-2xl space-y-4">
           <h3 className="font-serif font-bold text-base text-pine-950 flex items-center justify-between">
             <span>Reservation Status Breakdown</span>
-            <span className="text-xs font-sans text-slate-500 font-medium">{store.reservations.length} records</span>
+            <span className="text-xs font-sans text-slate-500 font-medium">
+              {isLoading ? '...' : `${reservations.length} records`}
+            </span>
           </h3>
 
           <div className="grid grid-cols-3 gap-3 text-center">

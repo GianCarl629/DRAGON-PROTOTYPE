@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   CalendarCheck2, 
@@ -12,25 +12,19 @@ import {
   LogOut, 
   Menu, 
   X, 
-  Bell, 
-  Calendar, 
-  CheckCircle2, 
-  AlertTriangle,
-  ChevronDown,
-  ShieldCheck,
-  MapPin
+  ChevronDown
 } from 'lucide-react';
-import { AdminStoreState } from '../data/adminMockData';
+import { supabase } from '../../lib/supabase'; // Nagdagdag tayo ng supabase
 import { CursorSettingsDropdown } from '../../components/UI/CursorSettingsDropdown';
 import { RealtimeCalendarDropdown } from './RealtimeCalendarDropdown';
 import { AdminNotificationsDropdown } from './AdminNotificationsDropdown';
 
+// Tinanggal muna natin ang 'store' sa props dahil live data na tayo
 interface AdminLayoutProps {
   activeTab: string;
   onSelectTab: (tab: string, filter?: string) => void;
   onLogout: () => void;
   adminUsername: string;
-  store: AdminStoreState;
   children: React.ReactNode;
 }
 
@@ -51,16 +45,38 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   onSelectTab,
   onLogout,
   adminUsername,
-  store,
   children
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // Dynamic counts for notification badges
-  const pendingReservationsCount = store.reservations.filter(r => r.status === 'Pending Review').length;
-  const newInquiriesCount = store.inquiries.filter(i => i.status === 'New').length;
-  const overdueBillingCount = store.billing.filter(b => b.paymentStatus === 'Pending' || b.paymentStatus === 'Overdue').length;
+  // MGA LIVE STATE PARA SA BADGE COUNTS
+  const [pendingReservationsCount, setPendingReservationsCount] = useState(0);
+  const [newInquiriesCount, setNewInquiriesCount] = useState(0);
+  const [overdueBillingCount, setOverdueBillingCount] = useState(0);
+
+  // Kumuha ng bilang mula sa Supabase
+  const fetchBadgeCounts = async () => {
+    // 1. Bilangin ang mga Pending Reservations (Live)
+    const { count: resCount } = await supabase
+      .from('reservations')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'Pending Review');
+    
+    if (resCount !== null) setPendingReservationsCount(resCount);
+
+    // Note: Ise-set muna nating 0 yung Inquiries at Billing
+    // dahil wala pa tayong tables para sa kanila sa Supabase.
+    setNewInquiriesCount(0);
+    setOverdueBillingCount(0);
+  };
+
+  useEffect(() => {
+    fetchBadgeCounts();
+    // Pwedeng mag-refresh ang badge every 30 seconds
+    const interval = setInterval(fetchBadgeCounts, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleNavClick = (tabId: string, filter?: string) => {
     onSelectTab(tabId, filter);
@@ -78,7 +94,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     {
       heading: 'OPERATIONS',
       items: [
-        { id: 'reservations', label: 'Reservations', icon: CalendarCheck2, badge: pendingReservationsCount },
+        { id: 'reservations', label: 'Reservations', icon: CalendarCheck2, badge: pendingReservationsCount > 0 ? pendingReservationsCount : undefined },
         { id: 'rooms', label: 'Rooms', icon: BedDouble },
         { id: 'dormitory', label: 'Dormitory', icon: Building2 },
       ]
@@ -88,7 +104,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       items: [
         { id: 'billing', label: 'Billing', icon: Receipt, badge: overdueBillingCount > 0 ? overdueBillingCount : undefined },
         { id: 'customers', label: 'Customers', icon: Users },
-        { id: 'inquiries', label: 'Inquiries', icon: MessageSquare, badge: newInquiriesCount },
+        { id: 'inquiries', label: 'Inquiries', icon: MessageSquare, badge: newInquiriesCount > 0 ? newInquiriesCount : undefined },
       ]
     },
     {
@@ -333,13 +349,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           <div className="flex items-center gap-2 sm:gap-3.5 text-xs">
             {/* Real-time Philippine Standard Time Calendar & Clock Widget */}
             <RealtimeCalendarDropdown
-              reservations={store.reservations}
+              reservations={[]} 
               onSelectDateFilter={(d) => onSelectTab('reservations', d)}
             />
 
             {/* 10x Operational Alerts & Notification Dropdown */}
             <AdminNotificationsDropdown
-              store={store}
               onNavigateTab={(tab, filter) => onSelectTab(tab, filter)}
             />
 
