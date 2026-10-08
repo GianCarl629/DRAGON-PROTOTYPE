@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase'; // Innayon ti Supabase
+import { supabase } from '../../lib/supabase';
 import { 
   Building2, 
   User, 
@@ -7,15 +7,14 @@ import {
   Zap, 
   X, 
   UserCheck, 
-  UserMinus
+  UserMinus 
 } from 'lucide-react';
 
-// Na-update a format para iti Supabase db structure
 export interface AdminDormSlot {
   id: string;
-  dormRoom: string; // Katumbas ti room_number
+  dormRoom: string;
   wing: string;
-  bedSlot: string; // Katumbas ti bed_identifier
+  bedSlot: string;
   status: 'Available' | 'Occupied' | 'Reserved' | 'Maintenance';
   tenantName: string | null;
   tenantPhone?: string;
@@ -25,7 +24,6 @@ export interface AdminDormSlot {
   utilityStatus: string;
 }
 
-// Inikkat ti slots prop ta agala itan iti live data
 interface DormitoryViewProps {}
 
 export const DormitoryView: React.FC<DormitoryViewProps> = () => {
@@ -38,13 +36,12 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
   const [assignForm, setAssignForm] = useState({
     tenantName: '',
     tenantPhone: '',
-    monthlyRate: 3500, // In-adjust babaen ti standard rate
+    monthlyRate: 3500,
     dueDate: '',
     contractEnd: '',
     utilityStatus: 'Inclusive of Wi-Fi & Water'
   });
 
-  // MANGALA TI DATA MANIPUD SUPABASE
   const fetchDormBeds = async () => {
     setIsLoading(true);
     const { data, error } = await supabase
@@ -77,7 +74,6 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
     fetchDormBeds();
   }, []);
 
-  // Group slots by Dorm Room
   const dormRooms = Array.from(new Set(slots.map(s => s.dormRoom)));
 
   const handleOpenAssign = (slot: AdminDormSlot) => {
@@ -111,7 +107,7 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
       if (!error) {
         setIsAssignModalOpen(false);
         setSelectedSlot(null);
-        fetchDormBeds(); // I-refresh ti data tapno agparang a dagus ti baro a tenant
+        fetchDormBeds();
       } else {
         alert("Pammakaammo: Saan a naisave iti database. Basaen ti console logs.");
         console.error(error);
@@ -144,7 +140,6 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
   return (
     <div className="space-y-6">
       
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="font-serif font-bold text-2xl text-pine-950 flex items-center gap-2">
@@ -158,16 +153,15 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
           </p>
         </div>
 
-        {/* Quick Stats Pill */}
-        <div className="flex items-center gap-3 bg-[#fffdfa] border border-gold-200/90 px-4 py-2 rounded-2xl text-xs shadow-card">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-[#fffdfa] border border-gold-200/90 px-3.5 sm:px-4 py-2 rounded-2xl text-xs shadow-card">
           <div className="text-slate-700">
             Total Beds: <strong className="text-pine-900">{totalSlots}</strong>
           </div>
-          <span className="text-gold-300">•</span>
+          <span className="text-gold-300 hidden sm:inline">•</span>
           <div className="text-emerald-800">
             Available: <strong>{availableSlots}</strong>
           </div>
-          <span className="text-gold-300">•</span>
+          <span className="text-gold-300 hidden sm:inline">•</span>
           <div className="text-pine-900">
             Occupied: <strong>{occupiedSlots}</strong>
           </div>
@@ -180,7 +174,6 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
           Agur-uray, karkargaen dagiti record ti kuarto ken kama manipud database...
         </div>
       ) : (
-        /* Dorm Rooms & Bed Slots Grid */
         <div className="space-y-6">
           {dormRooms.map((roomName) => {
             const roomSlots = slots.filter(s => s.dormRoom === roomName);
@@ -189,7 +182,6 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
             return (
               <div key={roomName} className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl p-5 sm:p-6 space-y-4 shadow-card">
                 
-                {/* Dorm Room Title Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-gold-200/70 gap-2">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gold-100 text-pine-900 flex items-center justify-center border border-gold-300">
@@ -219,8 +211,7 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
                   </div>
                 </div>
 
-                {/* 4 Bed Slots Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {roomSlots.map((slot) => {
                     const isOccupied = slot.status === 'Occupied';
                     const isAvailable = slot.status === 'Available';
@@ -236,7 +227,6 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
                             : 'bg-amber-50/40 border-amber-300 shadow-2xs'
                         }`}
                       >
-                        {/* Bed Header & Badge */}
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-xs text-pine-950">
@@ -255,7 +245,6 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
                             </span>
                           </div>
 
-                          {/* Tenant Info */}
                           {isOccupied && slot.tenantName ? (
                             <div className="space-y-1 text-xs pt-1">
                               <div className="flex items-center gap-1.5 text-pine-950 font-bold">
@@ -285,7 +274,6 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
                           )}
                         </div>
 
-                        {/* Financial & Utility Footnote */}
                         <div className="space-y-2 pt-2 border-t border-stone-200 text-xs">
                           <div className="flex justify-between items-baseline">
                             <span className="text-[11px] text-slate-600">Monthly Rent:</span>
@@ -299,7 +287,6 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
                             <span className="truncate">{slot.utilityStatus}</span>
                           </div>
 
-                          {/* Actions */}
                           <div className="pt-1 flex items-center gap-1.5">
                             {isOccupied ? (
                               <>
@@ -343,10 +330,9 @@ export const DormitoryView: React.FC<DormitoryViewProps> = () => {
         </div>
       )}
 
-      {/* ASSIGN BED MODAL */}
       {isAssignModalOpen && selectedSlot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <form onSubmit={handleSaveAssign} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <form onSubmit={handleSaveAssign} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full p-4 sm:p-6 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <h3 className="font-bold text-sm text-slate-900 font-serif">
                 Assign Bed: {selectedSlot.dormRoom} — {selectedSlot.bedSlot}

@@ -41,7 +41,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
   preSelectedRoom,
   preSelectedTopic
 }) => {
-  const { user } = useAuth();
+  const { user, openReservationsModal } = useAuth();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -166,32 +166,32 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
           <h2 className="font-serif font-bold text-xl sm:text-2xl text-white">
             Guest Inquiries & Assistance
           </h2>
-          <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-md">
+          <p className="text-xs sm:text-sm text-stone-200 mt-1 max-w-md font-medium">
             Need special group rates, reviewee dormitory details, or check-in assistance? Our caretaker team is ready to help.
           </p>
         </div>
 
         {/* Content Body */}
-        <div className="p-5 sm:p-6 overflow-y-auto flex-1 text-slate-800 space-y-4">
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1 text-slate-950 space-y-4">
           {submittedRef ? (
             /* Success confirmation screen */
             <div className="py-6 text-center space-y-4">
-              <div className="w-16 h-16 rounded-3xl bg-emerald-50 border-2 border-emerald-300 text-emerald-700 flex items-center justify-center mx-auto shadow-md">
-                <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+              <div className="w-16 h-16 rounded-3xl bg-emerald-50 border-2 border-emerald-400 text-emerald-800 flex items-center justify-center mx-auto shadow-md">
+                <CheckCircle2 className="w-8 h-8 text-emerald-700" />
               </div>
 
               <div>
                 <h3 className="font-serif font-bold text-2xl text-pine-950">
                   Inquiry Received!
                 </h3>
-                <p className="text-sm text-slate-600 max-w-sm mx-auto mt-1 leading-relaxed">
-                  Thank you, <span className="font-bold text-slate-900">{name}</span>. Your question has been forwarded directly to our front-desk caretaker at Engineers' Hill.
+                <p className="text-sm text-slate-800 max-w-sm mx-auto mt-1 leading-relaxed font-medium">
+                  Thank you, <strong className="font-bold text-slate-950">{name}</strong>. Your question has been forwarded directly to our front-desk caretaker at Engineers' Hill.
                 </p>
               </div>
 
               {/* Reference Code Box */}
-              <div className="p-4 rounded-2xl bg-gold-50/80 border border-gold-300 max-w-xs mx-auto space-y-1.5">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+              <div className="p-4 rounded-2xl bg-gold-50 border-2 border-gold-300 max-w-xs mx-auto space-y-1.5">
+                <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
                   Reference Code
                 </span>
                 <div className="flex items-center justify-center gap-2">
@@ -201,11 +201,11 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
                   <button
                     type="button"
                     onClick={handleCopyCode}
-                    className="p-1 rounded-md hover:bg-gold-200 text-slate-600 hover:text-pine-950 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-md hover:bg-gold-200 text-slate-800 hover:text-pine-950 transition-colors cursor-pointer"
                     title="Copy reference code"
                   >
                     {copiedCode ? (
-                      <Check className="w-4 h-4 text-emerald-600" />
+                      <Check className="w-4 h-4 text-emerald-700" />
                     ) : (
                       <Copy className="w-4 h-4" />
                     )}
@@ -214,18 +214,29 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
               </div>
 
               {/* Turnaround notice */}
-              <div className="p-3.5 rounded-2xl bg-stone-100 text-xs text-slate-600 max-w-sm mx-auto flex items-center gap-3 text-left border border-stone-200">
-                <Clock className="w-5 h-5 text-pine-800 flex-shrink-0" />
-                <span>
-                  Our front-desk manager typically responds within <strong>1–2 hours</strong> during operating hours (8:00 AM – 10:00 PM).
+              <div className="p-3.5 rounded-2xl bg-stone-100 text-xs text-slate-800 max-w-sm mx-auto flex items-center gap-3 text-left border-2 border-stone-300">
+                <Clock className="w-5 h-5 text-pine-900 flex-shrink-0" />
+                <span className="font-medium">
+                  Our front-desk manager typically responds within <strong className="text-slate-950">1–2 hours</strong> during operating hours (8:00 AM – 10:00 PM).
                 </span>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2 max-w-sm mx-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    openReservationsModal('inquiries');
+                  }}
+                  className="w-full sm:flex-1 py-2.5 px-4 rounded-xl text-xs font-bold text-pine-950 bg-gold-200 hover:bg-gold-300 border border-gold-400 shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1.5"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>View in My Inquiries</span>
+                </button>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full max-w-xs py-3 px-4 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-pine-900 to-pine-800 hover:from-pine-800 hover:to-pine-950 shadow-md cursor-pointer transition-all"
+                  className="w-full sm:w-28 py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-pine-900 hover:bg-pine-950 shadow-xs cursor-pointer transition-all"
                 >
                   Done
                 </button>
@@ -235,7 +246,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
             /* Inquiry Input Form */
             <form onSubmit={handleSubmit} className="space-y-4">
               {errorMessage && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
+                <div className="p-3 rounded-xl bg-rose-50 border-2 border-rose-300 text-rose-950 text-xs font-bold">
                   {errorMessage}
                 </div>
               )}
@@ -243,8 +254,8 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
               {/* Name & Contact Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-pine-800" />
+                  <label className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-pine-900" />
                     <span>Your Full Name *</span>
                   </label>
                   <input
@@ -253,13 +264,13 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Maria Santos"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-xs sm:text-sm focus:outline-none focus:border-pine-800 focus:ring-1 focus:ring-pine-800"
+                    className="w-full px-3.5 py-2.5 rounded-xl border-2 border-stone-300 bg-white text-xs sm:text-sm text-slate-950 font-medium placeholder:text-slate-500 focus:outline-none focus:border-pine-800 focus:ring-1 focus:ring-pine-800"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-pine-800" />
+                  <label className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-pine-900" />
                     <span>Contact Number *</span>
                   </label>
                   <input
@@ -268,15 +279,15 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="0917 123 4567"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-xs sm:text-sm focus:outline-none focus:border-pine-800 focus:ring-1 focus:ring-pine-800"
+                    className="w-full px-3.5 py-2.5 rounded-xl border-2 border-stone-300 bg-white text-xs sm:text-sm text-slate-950 font-medium placeholder:text-slate-500 focus:outline-none focus:border-pine-800 focus:ring-1 focus:ring-pine-800"
                   />
                 </div>
               </div>
 
               {/* Email */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-pine-800" />
+                <label className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-pine-900" />
                   <span>Email Address *</span>
                 </label>
                 <input
@@ -285,20 +296,20 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="e.g. maria.santos@gmail.com"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-xs sm:text-sm focus:outline-none focus:border-pine-800 focus:ring-1 focus:ring-pine-800"
+                  className="w-full px-3.5 py-2.5 rounded-xl border-2 border-stone-300 bg-white text-xs sm:text-sm text-slate-950 font-medium placeholder:text-slate-500 focus:outline-none focus:border-pine-800 focus:ring-1 focus:ring-pine-800"
                 />
               </div>
 
               {/* Inquiry Topic Dropdown */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-pine-800" />
+                <label className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-pine-900" />
                   <span>Topic of Inquiry *</span>
                 </label>
                 <select
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-xs sm:text-sm focus:outline-none focus:border-pine-800 focus:ring-1 focus:ring-pine-800 cursor-pointer"
+                  className="w-full px-3.5 py-2.5 rounded-xl border-2 border-stone-300 bg-white text-xs sm:text-sm text-slate-950 font-semibold focus:outline-none focus:border-pine-800 focus:ring-1 focus:ring-pine-800 cursor-pointer"
                 >
                   {INQUIRY_TOPICS.map((t) => (
                     <option key={t} value={t}>
@@ -311,13 +322,13 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
               {/* Optional Room Selection & Target Dates */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-600">
+                  <label className="text-xs font-bold text-slate-900">
                     Room of Interest (Optional)
                   </label>
                   <select
                     value={roomOfInterest}
                     onChange={(e) => setRoomOfInterest(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-xs focus:outline-none focus:border-pine-800 cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl border-2 border-stone-300 bg-white text-xs text-slate-950 font-medium focus:outline-none focus:border-pine-800 cursor-pointer"
                   >
                     <option value="">-- Any / General --</option>
                     {SAMPLE_ROOMS.map((r) => (
@@ -329,22 +340,22 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-pine-700" />
+                  <label className="text-xs font-bold text-slate-900 flex items-center gap-1">
+                    <Calendar className="w-3 h-3 text-pine-900" />
                     <span>Target Date / Move-in (Optional)</span>
                   </label>
                   <input
                     type="date"
                     value={targetDate}
                     onChange={(e) => setTargetDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-xs focus:outline-none focus:border-pine-800"
+                    className="w-full px-3 py-2 rounded-xl border-2 border-stone-300 bg-white text-xs text-slate-950 font-medium focus:outline-none focus:border-pine-800"
                   />
                 </div>
               </div>
 
               {/* Message Textarea */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">
+                <label className="text-xs font-bold text-slate-900">
                   Your Message or Question *
                 </label>
                 <textarea
@@ -353,7 +364,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="e.g. Is Bed C in the Female Wing available this November? What are the requirements and move-in deposit?"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-xs sm:text-sm focus:outline-none focus:border-pine-800 focus:ring-1 focus:ring-pine-800 resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border-2 border-stone-300 bg-white text-xs sm:text-sm text-slate-950 font-medium placeholder:text-slate-500 focus:outline-none focus:border-pine-800 focus:ring-1 focus:ring-pine-800 resize-none"
                 />
               </div>
 
@@ -376,11 +387,11 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
               </div>
 
               {/* Direct Help Footer */}
-              <p className="text-[11px] text-center text-slate-500 pt-1">
+              <p className="text-[11px] text-center text-slate-700 font-medium pt-1">
                 Need immediate room booking? Call front desk at{' '}
                 <a
                   href={`tel:${PROPERTY_CONTACT.phone.replace(/\s+/g, '')}`}
-                  className="font-bold text-pine-900 hover:underline"
+                  className="font-bold text-pine-950 hover:underline"
                 >
                   {PROPERTY_CONTACT.phone}
                 </a>

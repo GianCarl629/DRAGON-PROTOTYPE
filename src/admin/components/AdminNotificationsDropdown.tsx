@@ -181,7 +181,7 @@ export const AdminNotificationsDropdown: React.FC<AdminNotificationsDropdownProp
 
       {/* Popover Content */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-84 sm:w-[420px] bg-[#fffdfa] rounded-3xl border-2 border-gold-300 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden flex flex-col max-h-[85vh]">
+        <div className="fixed inset-x-2 top-14 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-[420px] max-w-[calc(100vw-1rem)] bg-[#fffdfa] rounded-3xl border-2 border-gold-300 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden flex flex-col max-h-[80vh]">
           
           {/* Header */}
           <div className="p-4 sm:p-5 bg-gradient-to-b from-stone-50 to-[#fffdfa] border-b border-gold-200/80">

@@ -17,19 +17,19 @@ import {
   CreditCard,
   AlertTriangle,
   X,
-  Check
+  Check,
+  ArrowRight
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { SAMPLE_ROOMS } from '../../data/mockData';
 
-// Pinalawag a format para iti nalaka a pannakaawat
 interface AdminReservation {
   id: string;
   reservationCode: string;
   guestName: string;
   email: string;
   phone: string;
-  roomName: string; // Daytoy ti Room Type (e.g., Compact Solo Room)
+  roomName: string;
   roomType: string;
   category: string;
   checkIn: string;
@@ -43,7 +43,7 @@ interface AdminReservation {
   specialRequests?: string;
   cancellationReason?: string;
   bookedAt?: string;
-  physicalRoomNumber?: string; // Baro: Para ma-assignan iti Room (e.g., Room 1-101)
+  physicalRoomNumber?: string;
 }
 
 interface ReservationsViewProps {
@@ -59,25 +59,21 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
   );
   const [categoryFilter, setCategoryFilter] = useState<'All' | 'transient' | 'dormitory'>('All');
 
-  // STATE PARA KADAGITI LIVE RESERVATION KEN PHYSICAL ROOMS
   const [liveReservations, setLiveReservations] = useState<AdminReservation[]>([]);
   const [availablePhysicalRooms, setAvailablePhysicalRooms] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Mangala kadagiti Physical Rooms manipud 'room_units' table
   const fetchPhysicalRooms = async () => {
     const { data } = await supabase.from('room_units').select('id, room_number, room_type, status').eq('status', 'Available');
     if (data) setAvailablePhysicalRooms(data);
   };
 
-  // MANGALA KADAGITI RESERBASYON MANIPUD SUPABASE
   const fetchReservations = async () => {
     setIsLoading(true);
     const { data, error } = await supabase.from('reservations').select('*').order('created_at', { ascending: false });
 
     if (data) {
       const formattedData: AdminReservation[] = data.map((res: any) => {
-        // Linisan ti nagan (e.g., 'compact-solo-room' -> 'Compact Solo Room')
         const rawType = String(res.room_type || res.room_id || '');
         const cleanRoomType = rawType.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
@@ -100,7 +96,7 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
           paymentStatus: (res.payment_status as any) || 'Pending',
           specialRequests: res.special_requests || '',
           cancellationReason: res.cancellation_reason || '',
-          physicalRoomNumber: res.physical_room_number || '' // Kunin ti assigned physical room
+          physicalRoomNumber: res.physical_room_number || ''
         };
       });
       setLiveReservations(formattedData);
@@ -119,8 +115,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
     }
   }, [initialFilter]);
 
-
-  // --- LIVE UPDATE FUNCTIONS ---
   const handleLiveConfirm = async (id: string) => {
     await supabase.from('reservations').update({ status: 'Confirmed' }).eq('id', id);
     fetchReservations();
@@ -143,9 +137,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
     fetchReservations();
   };
 
-  // ---------------------------------------------
-
-  // Modals state
   const [selectedReservation, setSelectedReservation] = useState<AdminReservation | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -221,12 +212,9 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
         check_out_date: editFormData.checkOut,
         status: editFormData.status,
         payment_status: editFormData.paymentStatus,
-        physical_room_number: editFormData.physicalRoomNumber // I-save ti physical room
+        physical_room_number: editFormData.physicalRoomNumber
       }).eq('id', selectedReservation.id);
 
-      // No in-assignan iti room, papatauden ti status dayta a physical room nga 'Occupied' 
-      // (No Confirmed na wenno adda idiay petsa - mabalin nga aramiden daytoy nga awtomatiko ngem manually i-set para nataginayon)
-      
       setIsEditModalOpen(false);
       setSelectedReservation(null);
       fetchReservations();
@@ -252,7 +240,7 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
       guest_name: newFormData.guestName || 'Walk-in Guest',
       guest_email: newFormData.email || 'guest@example.com',
       guest_phone: newFormData.phone || '0917-000-0000',
-      room_type: newFormData.roomType.toLowerCase().replace(/ /g, '-'), // Agsubli iti db format
+      room_type: newFormData.roomType.toLowerCase().replace(/ /g, '-'),
       stay_type: newFormData.category,
       check_in_date: newFormData.checkIn || new Date().toISOString().split('T')[0],
       check_out_date: newFormData.checkOut || new Date().toISOString().split('T')[0],
@@ -285,7 +273,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
   return (
     <div className="space-y-6">
 
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="font-serif font-bold text-2xl text-pine-950 flex items-center gap-2">
@@ -309,7 +296,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
         </button>
       </div>
 
-      {/* Filter and Search Bar */}
       <div className="p-4 rounded-3xl bg-[#fffdfa] border border-gold-200/90 shadow-card space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
 
@@ -361,9 +347,156 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
         </div>
       </div>
 
-      {/* Main Reservation Management Table */}
       <div className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl overflow-hidden shadow-card">
-        <div className="overflow-x-auto">
+        
+        <div className="block md:hidden divide-y divide-gold-200/60">
+          {filteredReservations.length === 0 ? (
+            <div className="py-12 px-4 text-center text-slate-400 text-xs">
+              No reservations matching current search and filter criteria.
+            </div>
+          ) : (
+            filteredReservations.map((res) => (
+              <div key={res.id} className="p-4 space-y-3 hover:bg-gold-50/30 transition-colors">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono font-bold text-xs text-pine-900 bg-gold-100/80 px-2.5 py-1 rounded-lg border border-gold-300">
+                    {res.reservationCode}
+                  </span>
+
+                  <div>
+                    {res.status === 'Pending Review' ? (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1">
+                        <Clock className="w-2.5 h-2.5 text-amber-700" />
+                        <span>Pending Review</span>
+                      </span>
+                    ) : res.status === 'Confirmed' ? (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        <span>Confirmed</span>
+                      </span>
+                    ) : res.status === 'Cancelled' ? (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 inline-flex items-center gap-1">
+                        <XCircle className="w-2.5 h-2.5 text-rose-500" />
+                        <span>Cancelled</span>
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 text-stone-800 border border-stone-200">
+                        {res.status}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-sm text-slate-900">{res.guestName}</span>
+                    <span className="font-serif font-bold text-base text-pine-900">
+                      ₱{res.totalAmount.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-600 font-medium mt-0.5">
+                    {res.roomName} • {res.guests} Guests
+                  </div>
+                  <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-1">
+                    <a href={`tel:${res.phone}`} className="text-pine-800 font-semibold hover:underline flex items-center gap-1">
+                      <Phone className="w-3 h-3" />
+                      <span>{res.phone}</span>
+                    </a>
+                    <span>•</span>
+                    <span className="truncate">{res.email}</span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 text-xs flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Check-in</span>
+                    <span className="font-semibold text-slate-800">{res.checkIn}</span>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-gold-600 flex-shrink-0" />
+                  <div className="text-right">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Check-out</span>
+                    <span className="font-semibold text-slate-800">{res.checkOut}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-stone-100">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Pay:</span>
+                    <select
+                      value={res.paymentStatus}
+                      onChange={(e) => handleUpdatePayment(res.id, e.target.value as any)}
+                      className={`text-[10px] font-bold px-2 py-1 rounded-lg border cursor-pointer focus:outline-none bg-stone-50 ${
+                        res.paymentStatus === 'Paid'
+                          ? 'text-emerald-800 border-emerald-300 bg-emerald-50/70'
+                          : res.paymentStatus === 'Pending' || res.paymentStatus === 'Partial'
+                            ? 'text-amber-800 border-amber-300 bg-amber-50/70'
+                            : 'text-rose-800 border-rose-300 bg-rose-50/70'
+                      }`}
+                    >
+                      <option value="Paid">Paid</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Partial">Partial</option>
+                      <option value="Unpaid">Unpaid</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {res.status === 'Pending Review' && (
+                      <button
+                        type="button"
+                        onClick={() => handleLiveConfirm(res.id)}
+                        className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1"
+                        title="Confirm reservation request"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Confirm</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenView(res)}
+                      className="p-1.5 rounded-lg bg-stone-100 hover:bg-gold-100 text-slate-700 hover:text-pine-950 transition-colors cursor-pointer border border-stone-200"
+                      title="View Details"
+                    >
+                      <Eye className="w-4 h-4 text-pine-700" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEdit(res)}
+                      className="p-1.5 rounded-lg bg-stone-100 hover:bg-gold-100 text-slate-700 hover:text-pine-950 transition-colors cursor-pointer border border-stone-200"
+                      title="Edit"
+                    >
+                      <Edit3 className="w-4 h-4 text-pine-700" />
+                    </button>
+
+                    {res.status !== 'Cancelled' ? (
+                      <button
+                        type="button"
+                        onClick={() => handlePromptCancel(res)}
+                        className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 transition-colors cursor-pointer border border-rose-200"
+                        title="Cancel"
+                      >
+                        <XCircle className="w-4 h-4 text-rose-600" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleLiveDelete(res.id)}
+                        className="p-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer border border-stone-200"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4 text-slate-400" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="text-[11px] uppercase tracking-wider text-pine-950 border-b border-gold-200/80 bg-gold-50/60">
               <tr>
@@ -409,7 +542,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                     <td className="py-3.5 px-4">
                       <div className="font-medium text-slate-900">{res.roomName}</div>
                       <div className="text-[10px] text-slate-500">{res.guests} Guests • ₱{res.rate.toLocaleString()}/{res.ratePeriod}</div>
-                      {/* Ipakita no adda physical room number */}
                       {res.physicalRoomNumber && (
                         <div className="mt-1 inline-block bg-pine-100 text-pine-900 text-[10px] font-bold px-2 py-0.5 rounded border border-pine-200">
                           Unit: {res.physicalRoomNumber}
@@ -530,10 +662,9 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
         </div>
       </div>
 
-      {/* 1. VIEW RESERVATION MODAL */}
       {isViewModalOpen && selectedReservation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <div className="flex items-center gap-2">
                 <span className="font-mono text-sm font-bold text-pine-900 bg-gold-100 px-2.5 py-1 rounded border border-gold-300">
@@ -579,7 +710,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                   <span className="text-slate-500">Room Type:</span>
                   <span className="font-bold">{selectedReservation.roomName}</span>
                 </div>
-                {/* View Assigned Physical Room */}
                 <div className="flex justify-between text-slate-800">
                   <span className="text-slate-500">Assigned Unit:</span>
                   <span className="font-bold text-pine-700">{selectedReservation.physicalRoomNumber || 'Not yet assigned'}</span>
@@ -648,10 +778,9 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
         </div>
       )}
 
-      {/* 2. CANCELLATION PROMPT MODAL */}
       {cancellingRes && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white border border-stone-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white border border-stone-200 rounded-3xl max-w-md w-full max-h-[92vh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-start gap-3 text-rose-700">
               <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5 text-rose-600" />
               <div>
@@ -695,10 +824,9 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
         </div>
       )}
 
-      {/* 3. EDIT RESERVATION & ASSIGN ROOM MODAL */}
       {isEditModalOpen && selectedReservation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <form onSubmit={handleSaveEdit} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <form onSubmit={handleSaveEdit} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <h3 className="font-bold text-sm text-slate-900">
                 Edit Reservation: {selectedReservation.reservationCode}
@@ -753,7 +881,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                 />
               </div>
 
-              {/* BARO: Room Assignment Dropdown */}
               <div className="space-y-1 sm:col-span-2">
                 <label className="text-slate-700 block font-semibold">Assign Physical Room</label>
                 <select
@@ -764,7 +891,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                   <option value="">-- Select an Available Room --</option>
                   {availablePhysicalRooms
                     .filter(room => {
-                      // Ipakita laeng dagiti kuarto a mangtugma iti room type (e.g. no nagbook isuna ti Compact Solo, Compact Solo laeng ti agparang)
                       const dbRoomType = selectedReservation.roomType.toLowerCase().replace(/ /g, '-');
                       const unitType = room.room_type.toLowerCase().replace(/ /g, '-');
                       return dbRoomType === unitType;
@@ -775,7 +901,6 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
                       </option>
                   ))}
                 </select>
-                <p className="text-[10px] text-slate-500">Ipakpakitana laeng dagiti kuarto nga "Available" agdama nga agpadpada iti type ti nabookna.</p>
               </div>
 
               <div className="space-y-1">
@@ -826,10 +951,9 @@ export const ReservationsView: React.FC<ReservationsViewProps> = ({
         </div>
       )}
 
-      {/* 4. NEW RESERVATION MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <form onSubmit={handleCreateNew} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <form onSubmit={handleCreateNew} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <h3 className="font-bold text-sm text-slate-900 font-serif">
                 Create Walk-in / Direct Reservation

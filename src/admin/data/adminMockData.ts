@@ -82,6 +82,15 @@ export interface AdminCustomer {
   notes?: string;
 }
 
+export interface InquiryMessage {
+  id: string;
+  sender: 'guest' | 'staff';
+  senderName: string;
+  message: string;
+  timestamp: string;
+  createdAtIso?: string;
+}
+
 export interface AdminInquiry {
   id: string;
   guestName: string;
@@ -90,8 +99,12 @@ export interface AdminInquiry {
   topic: string;
   message: string;
   receivedAt: string;
-  status: 'New' | 'Replied' | 'Archived';
+  status: 'New' | 'Replied' | 'Resolved' | 'Archived';
   replyText?: string;
+  messages?: InquiryMessage[];
+  resolvedAt?: string;
+  resolvedBy?: string;
+  isReadByCustomer?: boolean;
 }
 
 // Baseline Property Data aligned directly with active units and rates
@@ -677,7 +690,16 @@ export const INITIAL_ADMIN_INQUIRIES: AdminInquiry[] = [
     topic: 'Group Booking & Seminar',
     message: 'Good day! We are planning a 3-night seminar in Baguio from Nov 14-17 for 12 guests. Do you have 4-5 adjacent rooms available with parking for 2 vans?',
     receivedAt: 'Today at 9:30 AM',
-    status: 'New'
+    status: 'New',
+    messages: [
+      {
+        id: 'msg-inq-001-1',
+        sender: 'guest',
+        senderName: 'Atty. Roberto Mendoza',
+        message: 'Good day! We are planning a 3-night seminar in Baguio from Nov 14-17 for 12 guests. Do you have 4-5 adjacent rooms available with parking for 2 vans?',
+        timestamp: 'Today at 9:30 AM'
+      }
+    ]
   },
   {
     id: 'inq-002',
@@ -687,7 +709,16 @@ export const INITIAL_ADMIN_INQUIRIES: AdminInquiry[] = [
     topic: 'Monthly Dormitory Inquiries',
     message: 'Hello, is Bed C in the Female Wing still available for October move-in? What are the requirements and security deposit details?',
     receivedAt: 'Yesterday at 3:15 PM',
-    status: 'New'
+    status: 'New',
+    messages: [
+      {
+        id: 'msg-inq-002-1',
+        sender: 'guest',
+        senderName: 'Jessica Alcantara',
+        message: 'Hello, is Bed C in the Female Wing still available for October move-in? What are the requirements and security deposit details?',
+        timestamp: 'Yesterday at 3:15 PM'
+      }
+    ]
   },
   {
     id: 'inq-003',
@@ -698,7 +729,51 @@ export const INITIAL_ADMIN_INQUIRIES: AdminInquiry[] = [
     message: 'Hi Dragon Treasure team, our night bus from Cubao arrives around 5:30 AM. Can we do an early check-in or leave our luggage with the caretaker?',
     receivedAt: 'Sep 29, 2026',
     status: 'Replied',
-    replyText: 'Hi Mark! You are welcome to store your luggage with our 24/7 caretaker for free starting 5:30 AM. Standard room check-in is 2:00 PM, or early room entry if clean and vacant.'
+    replyText: 'Hi Mark! You are welcome to store your luggage with our 24/7 caretaker for free starting 5:30 AM. Standard room check-in is 2:00 PM, or early room entry if clean and vacant.',
+    messages: [
+      {
+        id: 'msg-inq-003-1',
+        sender: 'guest',
+        senderName: 'Mark Villanueva',
+        message: 'Hi Dragon Treasure team, our night bus from Cubao arrives around 5:30 AM. Can we do an early check-in or leave our luggage with the caretaker?',
+        timestamp: 'Sep 29, 2026 at 4:10 PM'
+      },
+      {
+        id: 'msg-inq-003-2',
+        sender: 'staff',
+        senderName: 'Front Desk Concierge',
+        message: 'Hi Mark! You are welcome to store your luggage with our 24/7 caretaker for free starting 5:30 AM. Standard room check-in is 2:00 PM, or early room entry if clean and vacant.',
+        timestamp: 'Sep 29, 2026 at 5:00 PM'
+      }
+    ]
+  },
+  {
+    id: 'inq-004',
+    guestName: 'Juan Dela Cruz',
+    email: 'juan.delacruz@gmail.com',
+    phone: '0917-123-4567',
+    topic: 'Parking & Heater Inquiry',
+    message: 'Good day! Is the private basement parking included in our Premium Twin Room reservation? Also, is hot shower water running 24/7?',
+    receivedAt: 'Oct 02, 2026',
+    status: 'Replied',
+    replyText: 'Hello Juan! Yes, private designated parking is reserved for your room, and high-pressure centralized hot water is available 24/7.',
+    isReadByCustomer: false,
+    messages: [
+      {
+        id: 'msg-inq-004-1',
+        sender: 'guest',
+        senderName: 'Juan Dela Cruz',
+        message: 'Good day! Is the private basement parking included in our Premium Twin Room reservation? Also, is hot shower water running 24/7?',
+        timestamp: 'Oct 02, 2026 at 10:15 AM'
+      },
+      {
+        id: 'msg-inq-004-2',
+        sender: 'staff',
+        senderName: 'Front Desk Concierge',
+        message: 'Hello Juan! Yes, private designated parking is reserved for your room, and high-pressure centralized hot water is available 24/7.',
+        timestamp: 'Oct 02, 2026 at 11:00 AM'
+      }
+    ]
   }
 ];
 
@@ -730,6 +805,32 @@ export const AdminDataManager = {
           parsed.rooms &&
           parsed.rooms.some((r: any) => r.roomType === 'Premium Twin Room' || r.name === 'Premium Twin Room')
         ) {
+          if (parsed.inquiries && Array.isArray(parsed.inquiries)) {
+            parsed.inquiries = parsed.inquiries.map((inq: any) => {
+              if (!inq.messages || inq.messages.length === 0) {
+                const msgs: any[] = [
+                  {
+                    id: `msg-${inq.id}-orig`,
+                    sender: 'guest',
+                    senderName: inq.guestName || 'Guest',
+                    message: inq.message,
+                    timestamp: inq.receivedAt || 'Earlier'
+                  }
+                ];
+                if (inq.replyText) {
+                  msgs.push({
+                    id: `msg-${inq.id}-reply`,
+                    sender: 'staff',
+                    senderName: 'Front Desk Concierge',
+                    message: inq.replyText,
+                    timestamp: 'Staff Reply'
+                  });
+                }
+                return { ...inq, messages: msgs };
+              }
+              return inq;
+            });
+          }
           return parsed;
         }
       }

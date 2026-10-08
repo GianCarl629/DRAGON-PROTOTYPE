@@ -47,7 +47,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     inquiries: []
   });
 
-  // Fetch lahat ng live data mula sa Supabase para sa Dashboard Analytics
   const fetchDashboardData = async () => {
     setIsLoading(true);
     
@@ -59,7 +58,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       supabase.from('guest_inquiries').select('*')
     ]);
 
-    // Formatter para sa reservations
     const formattedReservations = (resRes.data || []).map((r: any) => ({
       id: r.id,
       reservationCode: r.reservation_code || `RES-${r.id.substring(0, 5)}`,
@@ -74,7 +72,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       bookedAt: 'Recent'
     }));
 
-    // Formatter para sa rooms
     const formattedRooms = (roomRes.data || []).map((rm: any) => ({
       id: rm.id,
       name: rm.room_number,
@@ -84,7 +81,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       price: rm.price_per_night
     }));
 
-    // Formatter para sa dorm beds
     const formattedDormSlots = (dormRes.data || []).map((d: any) => ({
       id: d.id,
       dormRoom: d.room_number,
@@ -98,7 +94,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       utilityStatus: d.amenities || 'Inclusive of Wi-Fi'
     }));
 
-    // Formatter para sa billing
     const formattedBilling = (billRes.data || []).map((b: any) => ({
       id: b.id,
       invoiceNumber: b.invoice_number,
@@ -116,7 +111,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       paidAt: b.paid_at
     }));
 
-    // Formatter para sa inquiries
     const formattedInquiries = (inqRes.data || []).map((i: any) => ({
       id: i.id,
       guestName: i.guest_name,
@@ -141,7 +135,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     fetchDashboardData();
   }, []);
 
-  // Centralized calculations gamit ang live store data
   const metrics = calculateDashboardMetrics(liveStore, selectedPeriod);
   const attentionItems = getAttentionItems(liveStore);
   const recentActivities = getRecentActivities(liveStore);
@@ -165,7 +158,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
       
-      {/* Top Controls Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-[#fffdfa] border border-gold-200/90 shadow-luxury">
         <div>
           <div className="flex items-center gap-2">
@@ -181,9 +173,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </p>
         </div>
 
-        {/* Global Date Filter Controls */}
-        <div className="flex items-center gap-1.5 p-1 bg-stone-100 rounded-2xl border border-stone-200/90 self-start md:self-auto">
+        <div className="flex items-center gap-1 p-1 bg-stone-100 rounded-2xl border border-stone-200/90 w-full sm:w-auto overflow-x-auto justify-between sm:justify-start">
           {(['7d', '30d', '3m', '12m'] as const).map((p) => {
+            const shortLabels: Record<TimePeriod, string> = {
+              '7d': '7D',
+              '30d': '30D',
+              '3m': '3M',
+              '12m': '12M'
+            };
             const labels: Record<TimePeriod, string> = {
               '7d': 'Past 7 Days',
               '30d': 'Past 30 Days',
@@ -197,32 +194,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 key={p}
                 type="button"
                 onClick={() => setSelectedPeriod(p)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex-1 sm:flex-none px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center ${
                   isSelected
                     ? 'bg-pine-950 text-white font-bold shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-stone-200/60'
                 }`}
               >
-                {labels[p]}
+                <span className="sm:hidden">{shortLabels[p]}</span>
+                <span className="hidden sm:inline">{labels[p]}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Priority 1: Requires Attention Banner */}
       <RequiresAttentionBanner
         items={attentionItems}
         onNavigate={onNavigateTab}
       />
 
-      {/* Priority 2 & 3: 6 Core Summary KPI Cards */}
       <DashboardKpiCards
         metrics={metrics}
         onNavigateTab={onNavigateTab}
       />
 
-      {/* Primary Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <RevenueTrendChart
@@ -242,7 +237,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Secondary Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <OccupancyTrendChart
           data={occupancyData}
@@ -256,7 +250,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         />
       </div>
 
-      {/* Operational Scheduling & Room Type Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TodaysOperationsSchedule
           reservations={liveStore.reservations}
@@ -269,7 +262,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         />
       </div>
 
-      {/* Dormitory Accommodation & Revenue Streams Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DormitoryOccupancyChart
           slots={liveStore.dormSlots}
@@ -283,7 +275,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         />
       </div>
 
-      {/* Recent Reservations Table */}
       <RecentReservationsTable
         reservations={liveStore.reservations}
         onConfirm={onConfirmReservation}
@@ -291,7 +282,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         onNavigateAll={(filter) => onNavigateTab('reservations', filter)}
       />
 
-      {/* Activity Timeline */}
       <RecentActivityTimeline
         activities={recentActivities}
         onNavigateTab={onNavigateTab}

@@ -20,7 +20,12 @@ import {
   Zap, 
   DollarSign, 
   ShieldCheck, 
-  ExternalLink 
+  ExternalLink,
+  MessageSquare,
+  Send,
+  Lock,
+  User,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PROPERTY_CONTACT } from '../../data/mockData';
@@ -30,6 +35,16 @@ import {
   submitOnlinePayment, 
   ClientInvoice 
 } from '../../services/db/billingService';
+import {
+  getCustomerInquiries,
+  sendCustomerReply,
+  markInquiryReadByCustomer,
+  getUnreadRepliesCountForCustomer,
+  ensureInquiryMessages,
+  syncInquiriesWithSupabase,
+  subscribeToInquiryChanges
+} from '../../services/db/inquiryService';
+import { AdminInquiry } from '../../admin/data/adminMockData';
 
 interface MyReservationsModalProps {
   isOpen: boolean;
@@ -38,7 +53,7 @@ interface MyReservationsModalProps {
   onBrowseRooms?: () => void;
 }
 
-type DashboardTab = 'bookings' | 'billing' | 'payment';
+type DashboardTab = 'bookings' | 'billing' | 'payment' | 'inquiries';
 
 const COMMON_CANCELLATION_REASONS = [
   'Change in travel plans or dates',
@@ -59,10 +74,8 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
 }) => {
   const { user, cancelReservation } = useAuth();
 
-  // Active portal tab: 'bookings' | 'billing' | 'payment'
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
 
-  // Stays & Bookings State (Live from Supabase)
   const [liveReservations, setLiveReservations] = useState<any[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -72,11 +85,9 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [cancelFeedback, setCancelFeedback] = useState<string | null>(null);
 
-  // Automated Invoices State
   const [invoices, setInvoices] = useState<ClientInvoice[]>([]);
   const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
 
-  // Online Payment Upload State
   const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<'GCash' | 'Maya' | 'Bank Transfer' | 'Cash'>('GCash');
   const [referenceNumber, setReferenceNumber] = useState<string>('');
@@ -86,7 +97,66 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
   const [isSubmittingPayment, setIsSubmittingPayment] = useState<boolean>(false);
   const [receiptFilePreview, setReceiptFilePreview] = useState<string | null>(null);
 
-  // Fetch live reservations and invoices directly from Supabase on modal open
+  const [inquiries, setInquiries] = useState<AdminInquiry[]>([]);
+  const [inquiriesFilter, setInquiriesFilter] = useState<'All' | 'Active' | 'Resolved'>('All');
+  const [expandedInquiryId, setExpandedInquiryId] = useState<string | null>(null);
+  const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
+  const [isSubmittingReply, setIsSubmittingReply] = useState<string | null>(null);
+  const [replyFeedback, setReplyFeedback] = useState<Record<string, string>>({});
+
+  const loadInquiries = () => {
+    if (user?.email) {
+      const userInquiries = getCustomerInquiries(user.email);
+      setInquiries(userInquiries);
+      if (userInquiries.length > 0 && !expandedInquiryId) {
+        setExpandedInquiryId(userInquiries[0].id);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && user?.email) {
+      loadInquiries();
+      syncInquiriesWithSupabase().then(() => {
+        if (user?.email) {
+          loadInquiries();
+        }
+      });
+    }
+  }, [isOpen, user?.email]);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      if (user?.email) {
+        loadInquiries();
+      }
+    };
+    window.addEventListener('dragon_treasure_inquiry_updated', handleUpdate);
+
+    const unsubscribeRealtime = subscribeToInquiryChanges(() => {
+      if (user?.email) {
+        loadInquiries();
+      }
+    });
+
+    return () => {
+      window.removeEventListener('dragon_treasure_inquiry_updated', handleUpdate);
+      unsubscribeRealtime();
+    };
+  }, [user?.email]);
+
+  useEffect(() => {
+    if (activeTab === 'inquiries' && inquiries.length > 0) {
+      inquiries.forEach((inq) => {
+        if (inq.isReadByCustomer === false) {
+          markInquiryReadByCustomer(inq.id);
+        }
+      });
+    }
+  }, [activeTab, inquiries]);
+
+  const unreadInquiriesCount = user?.email ? getUnreadRepliesCountForCustomer(user.email) : 0;
+
   useEffect(() => {
     const loadPortalData = async () => {
       if (isOpen) {
@@ -94,7 +164,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
           setActiveTab(initialTab);
         }
 
-        // 1. Fetch live reservations from Supabase and filter by user email
         if (isSupabaseConfigured()) {
           try {
             const { data, error } = await supabase
@@ -116,7 +185,7 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
                 roomImage: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=600&q=80',
                 checkInDate: r.check_in_date,
                 checkOutDate: r.check_out_date,
-                status: r.status, // Ito na ang live status mula sa admin confirmation!
+                status: r.status,
                 rate: Number(r.total_price) || 2500,
                 ratePeriod: 'night',
                 fullName: r.guest_name,
@@ -134,7 +203,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
           }
         }
 
-        // 2. Fetch invoices with user email filtering
         const loadedInvoices = await getLocalInvoices(user?.email);
         setInvoices(loadedInvoices);
 
@@ -148,7 +216,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
     loadPortalData();
   }, [isOpen, initialTab, user?.email]);
 
-  // Lock background scrolling while modal is open
   useEffect(() => {
     if (isOpen) {
       const originalOverflow = document.body.style.overflow;
@@ -159,7 +226,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
     }
   }, [isOpen]);
 
-  // Handle escape key to close modal
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -171,7 +237,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Handlers for bookings tab
   const toggleDetails = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
@@ -198,7 +263,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
         ? `Others: ${otherReasonText.trim()}`
         : selectedReason;
 
-    // Update in Supabase directly
     if (isSupabaseConfigured()) {
       await supabase
         .from('reservations')
@@ -214,11 +278,9 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
     setCancelFeedback(`Reservation request ${reservationCode} has been cancelled.`);
     setTimeout(() => setCancelFeedback(null), 4000);
 
-    // Refresh live reservations list
     setLiveReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'Cancelled', cancellationReason: finalReason } : r));
   };
 
-  // Handlers for online payment tab
   const handleInitiatePaymentForInvoice = (inv: ClientInvoice) => {
     setSelectedInvoiceForPayment(inv.id);
     setPaymentAmount(inv.totalAmount);
@@ -264,6 +326,35 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
     }
   };
 
+  const handleCustomerReply = async (e: React.FormEvent, inquiryId: string) => {
+    e.preventDefault();
+    const text = (replyTexts[inquiryId] || '').trim();
+    if (!text) return;
+
+    setIsSubmittingReply(inquiryId);
+    try {
+      const res = await sendCustomerReply(inquiryId, text, user?.name || 'Guest');
+      if (res.success) {
+        setReplyTexts((prev) => ({ ...prev, [inquiryId]: '' }));
+        setReplyFeedback((prev) => ({ ...prev, [inquiryId]: 'Your reply has been sent to front-desk staff!' }));
+        loadInquiries();
+        setTimeout(() => {
+          setReplyFeedback((prev) => {
+            const next = { ...prev };
+            delete next[inquiryId];
+            return next;
+          });
+        }, 4000);
+      } else {
+        alert(res.message);
+      }
+    } catch (err: any) {
+      alert(err?.message || 'Could not send reply.');
+    } finally {
+      setIsSubmittingReply(null);
+    }
+  };
+
   return (
     <div
       onClick={(e) => {
@@ -273,7 +364,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
     >
       <div className="bg-white rounded-3xl max-w-2xl sm:max-w-3xl w-full shadow-2xl border border-stone-200/90 overflow-hidden transform-gpu flex flex-col max-h-[90vh]">
         
-        {/* Pinned Header */}
         <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-stone-100 flex items-center justify-between flex-shrink-0 bg-stone-50/70">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -299,7 +389,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
           </button>
         </div>
 
-        {/* Tab Navigation */}
         <div className="px-3 sm:px-6 pt-2.5 sm:pt-3 pb-1 border-b border-stone-200/80 flex items-center gap-1.5 sm:gap-2 bg-white overflow-x-auto no-scrollbar scroll-smooth">
           <button
             type="button"
@@ -349,9 +438,29 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
             <CreditCard className="w-3.5 h-3.5" />
             <span>Upload Online Payment</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('inquiries')}
+            className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 relative ${
+              activeTab === 'inquiries'
+                ? 'bg-pine-950 text-white shadow-xs'
+                : 'text-slate-600 hover:bg-stone-100 hover:text-pine-950'
+            }`}
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>My Inquiries & Messages</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+              activeTab === 'inquiries' ? 'bg-pine-800 text-gold-200' : 'bg-stone-200 text-slate-700'
+            }`}>
+              {inquiries.length}
+            </span>
+            {unreadInquiriesCount > 0 && (
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="New staff response!" />
+            )}
+          </button>
         </div>
 
-        {/* Bookings tab */}
         {activeTab === 'bookings' && (
           <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
             {cancelFeedback && (
@@ -547,7 +656,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
           </div>
         )}
 
-        {/* Invoices tab */}
         {activeTab === 'billing' && (
           <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
             <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-2xl text-xs text-amber-950 flex items-center justify-between gap-2">
@@ -672,7 +780,6 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
           </div>
         )}
 
-        {/* Online payment tab */}
         {activeTab === 'payment' && (
           <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
             {paymentSuccessMsg && (
@@ -824,7 +931,268 @@ export const MyReservationsModal: React.FC<MyReservationsModalProps> = ({
           </div>
         )}
 
-        {/* Footer Support Info */}
+        {activeTab === 'inquiries' && (
+          <div className="p-4 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
+              <div>
+                <h3 className="font-serif font-bold text-base sm:text-lg text-pine-950">
+                  Concierge Inquiries & Messages
+                </h3>
+                <p className="text-xs text-slate-800 font-medium">
+                  Track questions submitted to front desk, receive answers, and reply to ongoing conversation threads.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5 bg-stone-100 p-1 rounded-xl self-start sm:self-auto border border-stone-200">
+                {(['All', 'Active', 'Resolved'] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    onClick={() => setInquiriesFilter(filter)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition-all ${
+                      inquiriesFilter === filter
+                        ? 'bg-white text-pine-950 shadow-2xs border border-stone-300'
+                        : 'text-slate-700 hover:text-pine-950'
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {inquiries.length === 0 ? (
+              <div className="py-12 px-4 text-center space-y-3 bg-stone-50/70 rounded-2xl border-2 border-stone-300">
+                <div className="w-12 h-12 rounded-2xl bg-gold-100 text-pine-900 flex items-center justify-center mx-auto border border-gold-300">
+                  <MessageSquare className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-pine-950">No Inquiries Found</h4>
+                  <p className="text-xs text-slate-800 font-medium max-w-sm mx-auto mt-1">
+                    Have questions about room availability, monthly dorm slots, or special arrangements?
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      const el = document.getElementById('inquire');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Send Concierge Inquiry</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {inquiries
+                  .filter((inq) => {
+                    if (inquiriesFilter === 'Active') return inq.status !== 'Resolved';
+                    if (inquiriesFilter === 'Resolved') return inq.status === 'Resolved';
+                    return true;
+                  })
+                  .map((inq) => {
+                    const isExpanded = expandedInquiryId === inq.id;
+                    const messages = ensureInquiryMessages(inq);
+                    const isResolved = inq.status === 'Resolved';
+                    const hasStaffReply = inq.status === 'Replied' || messages.some(m => m.sender === 'staff');
+
+                    return (
+                      <div
+                        key={inq.id}
+                        className={`rounded-2xl border transition-all overflow-hidden ${
+                          isResolved
+                            ? 'bg-[#fafbfa] border-stone-200'
+                            : inq.status === 'Replied'
+                            ? 'bg-[#fffdfa] border-emerald-300 shadow-sm ring-1 ring-emerald-200/60'
+                            : 'bg-white border-gold-200/90 shadow-2xs'
+                        }`}
+                      >
+                        <div
+                          onClick={() => setExpandedInquiryId(isExpanded ? null : inq.id)}
+                          className="p-4 flex items-center justify-between cursor-pointer select-none hover:bg-stone-50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                              isResolved
+                                ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                : inq.status === 'Replied'
+                                ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                : 'bg-gold-100 text-gold-950 border border-gold-300'
+                            }`}>
+                              <MessageSquare className="w-5 h-5" />
+                            </div>
+
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-bold text-sm text-pine-950">
+                                  {inq.topic}
+                                </span>
+                                <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-stone-200 text-slate-900 border border-stone-300">
+                                  {inq.id.toUpperCase()}
+                                </span>
+                              </div>
+                              <span className="text-xs text-slate-700 font-medium mt-0.5 block">
+                                Submitted <strong className="text-slate-900">{inq.receivedAt}</strong> • {messages.length} {messages.length === 1 ? 'message' : 'messages'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2.5">
+                            {isResolved ? (
+                              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-400 flex items-center gap-1 shadow-2xs">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                                <span>Resolved</span>
+                              </span>
+                            ) : inq.status === 'Replied' ? (
+                              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-400 flex items-center gap-1.5 shadow-2xs">
+                                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
+                                <span>Staff Replied</span>
+                              </span>
+                            ) : (
+                              <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-950 border border-amber-400 shadow-2xs">
+                                Waiting for Staff
+                              </span>
+                            )}
+
+                            <div className="w-8 h-8 rounded-full bg-stone-200/80 flex items-center justify-center text-slate-800">
+                              {isExpanded ? (
+                                <ChevronUp className="w-4 h-4" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="px-4 pb-4 pt-1 border-t border-stone-200 space-y-3.5 animate-fade-in bg-stone-50/40">
+                            
+                            {replyFeedback[inq.id] && (
+                              <div className="p-3 bg-emerald-100 border border-emerald-300 rounded-xl text-xs font-bold text-emerald-950 flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+                                <span>{replyFeedback[inq.id]}</span>
+                              </div>
+                            )}
+
+                            <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                              {messages.map((m, idx) => {
+                                const isUser = m.sender === 'guest';
+                                return (
+                                  <div
+                                    key={m.id || idx}
+                                    className={`p-3.5 rounded-2xl text-xs space-y-1.5 shadow-xs ${
+                                      isUser
+                                        ? 'bg-white border-2 border-stone-300 text-slate-950 ml-4 sm:ml-8'
+                                        : 'bg-pine-950 border-2 border-pine-900 text-white mr-4 sm:mr-8'
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between text-xs pb-1.5 border-b border-black/10">
+                                      <span className="font-bold flex items-center gap-1.5">
+                                        {isUser ? (
+                                          <>
+                                            <User className="w-3.5 h-3.5 text-pine-900" />
+                                            <span className="text-pine-950 font-bold">You ({m.senderName})</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+                                            <span className="text-gold-300 font-bold">{m.senderName} (Staff Concierge)</span>
+                                          </>
+                                        )}
+                                      </span>
+                                      <span className={`text-[11px] font-semibold ${isUser ? 'text-slate-600' : 'text-gold-200/90'}`}>
+                                        {m.timestamp}
+                                      </span>
+                                    </div>
+                                    <p className={`whitespace-pre-line leading-relaxed font-sans text-xs ${isUser ? 'text-slate-900 font-medium' : 'text-stone-100 font-normal'}`}>
+                                      {m.message}
+                                    </p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {isResolved ? (
+                              <div className="p-4 bg-emerald-50 border-2 border-emerald-400 rounded-2xl space-y-2 shadow-xs">
+                                <div className="flex items-center gap-2 text-emerald-950 font-bold text-sm">
+                                  <CheckCircle2 className="w-5 h-5 text-emerald-700 flex-shrink-0" />
+                                  <span>Inquiry Resolved by Front Desk Staff</span>
+                                </div>
+                                <p className="text-xs text-emerald-950 font-medium leading-relaxed">
+                                  This inquiry was marked as resolved {inq.resolvedAt ? `on ${inq.resolvedAt}` : ''}. The conversation is now closed and you cannot send further replies to this thread.
+                                </p>
+                                <div className="pt-1 flex flex-wrap items-center gap-3">
+                                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-950 bg-white px-3 py-1 rounded-lg border border-emerald-300 shadow-2xs">
+                                    <Lock className="w-3.5 h-3.5 text-emerald-700" />
+                                    <span>Replies locked</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      onClose();
+                                      const el = document.getElementById('inquire');
+                                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                                    }}
+                                    className="text-xs font-bold text-pine-900 hover:text-gold-700 underline cursor-pointer"
+                                  >
+                                    Need something else? Send a new inquiry →
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <form
+                                onSubmit={(e) => handleCustomerReply(e, inq.id)}
+                                className="pt-3 border-t border-stone-200 space-y-2"
+                              >
+                                <label className="text-xs font-bold text-pine-950 flex items-center justify-between">
+                                  <span>Reply Back to Front Desk:</span>
+                                  <span className="text-xs text-slate-700 font-semibold">
+                                    {hasStaffReply ? 'Active conversation thread' : 'Follow up on inquiry'}
+                                  </span>
+                                </label>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                  <textarea
+                                    rows={2}
+                                    value={replyTexts[inq.id] || ''}
+                                    onChange={(e) =>
+                                      setReplyTexts((prev) => ({ ...prev, [inq.id]: e.target.value }))
+                                    }
+                                    placeholder="Type your reply back to our front desk team..."
+                                    className="flex-1 bg-white border-2 border-stone-300 rounded-xl p-3 text-xs text-slate-950 font-medium placeholder:text-slate-500 focus:outline-none focus:border-pine-800 focus:ring-1 focus:ring-pine-800 resize-none shadow-2xs"
+                                  />
+                                  <button
+                                    type="submit"
+                                    disabled={
+                                      isSubmittingReply === inq.id || !(replyTexts[inq.id] || '').trim()
+                                    }
+                                    className="px-5 py-2.5 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center justify-center gap-1.5 flex-shrink-0 self-end sm:self-stretch"
+                                  >
+                                    <Send className="w-3.5 h-3.5" />
+                                    <span>
+                                      {isSubmittingReply === inq.id ? 'Sending...' : 'Send Reply'}
+                                    </span>
+                                  </button>
+                                </div>
+                              </form>
+                            )}
+
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+
+          </div>
+        )}
+
         <div className="p-4 border-t border-stone-100 bg-stone-50/70 flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />

@@ -190,8 +190,9 @@ export const RecentReservationsTable: React.FC<RecentReservationsTableProps> = (
         </div>
       </div>
 
-      {/* Table view */}
-      <div className="overflow-x-auto rounded-2xl border border-gold-200/70">
+      {/* Table & Mobile Cards View */}
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto rounded-2xl border border-gold-200/70">
         <table className="w-full text-left text-xs border-collapse">
           <thead className="text-[10px] uppercase font-bold tracking-wider text-pine-950 bg-gold-100/60 border-b border-gold-200">
             <tr>
@@ -312,14 +313,91 @@ export const RecentReservationsTable: React.FC<RecentReservationsTableProps> = (
         </table>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="block md:hidden divide-y divide-gold-100/80 rounded-2xl border border-gold-200/70 overflow-hidden bg-white">
+        {filteredReservations.length === 0 ? (
+          <div className="py-8 px-4 text-center text-slate-400 text-xs">
+            No reservations matching your filter.
+          </div>
+        ) : (
+          filteredReservations.slice(0, 6).map((res) => (
+            <div 
+              key={res.id} 
+              className="p-3.5 space-y-2.5 hover:bg-gold-50/20 transition-colors cursor-pointer"
+              onClick={() => setSelectedRes(res)}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono font-bold text-xs text-pine-900 px-2 py-0.5 bg-gold-100/70 rounded-md border border-gold-200">
+                  {res.reservationCode}
+                </span>
+                {renderStatusBadge(res.status)}
+              </div>
+
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h5 className="font-bold text-sm text-slate-900">{res.guestName}</h5>
+                  <span className="text-[11px] text-slate-500">{res.phone}</span>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-xs text-pine-950 truncate max-w-[150px]">{res.roomName}</div>
+                  <span className="text-[10px] text-slate-400 capitalize">{res.category} • {res.guests} pax</span>
+                </div>
+              </div>
+
+              <div className="p-2 rounded-xl bg-stone-50 border border-stone-200/70 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1.5 text-slate-700 text-[11px]">
+                  <Calendar className="w-3 h-3 text-gold-600 flex-shrink-0" />
+                  <span>{res.checkIn} → {res.checkOut}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {renderPaymentBadge(res.paymentStatus)}
+                  <span className="font-mono text-xs font-bold text-slate-900">₱{res.totalAmount.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="pt-1 flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                {res.status === 'Pending Review' ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onConfirm(res.id)}
+                      className="flex-1 sm:flex-none px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center justify-center gap-1"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Approve</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenDeclineModal(res.id)}
+                      className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Decline
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRes(res)}
+                    className="w-full sm:w-auto px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-pine-900 border border-stone-300 rounded-xl text-xs font-semibold transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-pine-700" />
+                    <span>View Details</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Quick Details Modal */}
       {selectedRes && (
         <div 
-          className="fixed inset-0 z-50 bg-pine-950/70 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-pine-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
           onClick={() => setSelectedRes(null)}
         >
           <div 
-            className="w-full max-w-lg bg-[#fffdfa] rounded-3xl border-2 border-gold-300 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200"
+            className="w-full max-w-lg bg-[#fffdfa] rounded-3xl border-2 border-gold-300 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-gold-200">
@@ -345,7 +423,7 @@ export const RecentReservationsTable: React.FC<RecentReservationsTableProps> = (
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="p-3 rounded-2xl bg-stone-50 border border-stone-200 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400">Guest Information</span>
                 <div className="font-bold text-slate-900">{selectedRes.guestName}</div>
@@ -418,8 +496,8 @@ export const RecentReservationsTable: React.FC<RecentReservationsTableProps> = (
 
       {/* Decline Reason Modal */}
       {isDeclineModalOpen && (
-        <div className="fixed inset-0 z-50 bg-pine-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#fffdfa] rounded-3xl border-2 border-rose-300 p-5 space-y-4 shadow-xl">
+        <div className="fixed inset-0 z-50 bg-pine-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="w-full max-w-sm bg-[#fffdfa] rounded-3xl border-2 border-rose-300 p-4 sm:p-5 space-y-4 shadow-xl max-h-[92vh] overflow-y-auto">
             <h4 className="font-serif font-bold text-base text-rose-950">
               Decline Reservation Request
             </h4>

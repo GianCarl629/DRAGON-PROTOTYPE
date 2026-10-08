@@ -25,7 +25,6 @@ export const BillingView: React.FC<BillingViewProps> = ({
   const [billingRecords, setBillingRecords] = useState<AdminBillingRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Kumuha ng billing records mula sa Supabase
   const fetchBillingRecords = async () => {
     setIsLoading(true);
     const { data, error } = await supabase
@@ -68,7 +67,6 @@ export const BillingView: React.FC<BillingViewProps> = ({
   const [selectedRecord, setSelectedRecord] = useState<AdminBillingRecord | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // New Invoice Form
   const [invoiceForm, setInvoiceForm] = useState({
     tenantOrGuest: '',
     roomOrBed: 'Dormitory Room (Shared Bedspace) - Bed 1',
@@ -135,7 +133,6 @@ export const BillingView: React.FC<BillingViewProps> = ({
     
     if (!error && data) {
       const newRec = data[0];
-      // Sync local helper service
       saveLocalInvoice({
         id: newRec.id,
         invoiceNumber: newRec.invoice_number,
@@ -161,7 +158,6 @@ export const BillingView: React.FC<BillingViewProps> = ({
   return (
     <div className="space-y-6">
       
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="font-serif font-bold text-2xl text-pine-950 flex items-center gap-2">
@@ -185,7 +181,6 @@ export const BillingView: React.FC<BillingViewProps> = ({
         </button>
       </div>
 
-      {/* Summary KPI Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-[#fffdfa] border border-gold-200/90 p-5 rounded-3xl space-y-1 shadow-card">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
@@ -222,7 +217,6 @@ export const BillingView: React.FC<BillingViewProps> = ({
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
       <div className="p-4 rounded-3xl bg-[#fffdfa] border border-gold-200/90 shadow-card space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           <div className="relative flex-1">
@@ -257,9 +251,87 @@ export const BillingView: React.FC<BillingViewProps> = ({
         </div>
       </div>
 
-      {/* Main Billing Table */}
+      {/* Main Billing: Responsive Mobile Cards & Desktop Table */}
       <div className="bg-[#fffdfa] border border-gold-200/90 rounded-3xl overflow-hidden shadow-card">
-        <div className="overflow-x-auto">
+        
+        <div className="block md:hidden divide-y divide-gold-200/60">
+          {filteredRecords.length === 0 ? (
+            <div className="py-12 px-4 text-center text-slate-400 text-xs">
+              No billing statements found matching your criteria.
+            </div>
+          ) : (
+            filteredRecords.map((rec) => (
+              <div key={rec.id} className="p-4 space-y-3 hover:bg-gold-50/30 transition-colors">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono font-bold text-xs text-pine-900 bg-gold-100/80 px-2.5 py-1 rounded-lg border border-gold-300">
+                    {rec.invoiceNumber}
+                  </span>
+
+                  <select
+                    value={rec.paymentStatus}
+                    onChange={(e) => handleUpdateStatus(rec.id, e.target.value as any)}
+                    className={`text-[10px] font-bold px-2 py-1 rounded-lg border cursor-pointer focus:outline-none bg-stone-50 ${
+                      rec.paymentStatus === 'Paid'
+                        ? 'text-emerald-800 border-emerald-300 bg-emerald-50/70'
+                        : rec.paymentStatus === 'Pending'
+                        ? 'text-amber-800 border-amber-300 bg-amber-50/70'
+                        : 'text-rose-800 border-rose-300 bg-rose-50/70'
+                    }`}
+                  >
+                    <option value="Paid">Paid</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Overdue">Overdue</option>
+                  </select>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-sm text-slate-900">{rec.tenantOrGuest}</span>
+                    <span className="font-serif font-bold text-base text-pine-900">
+                      ₱{rec.totalAmount.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-600 font-medium mt-0.5">
+                    {rec.roomOrBed} • {rec.billingPeriod}
+                  </div>
+                  {rec.dueDate && (
+                    <div className="text-[11px] text-slate-500 mt-0.5">
+                      Due: <strong className="text-slate-700">{rec.dueDate}</strong>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-1.5 p-2 rounded-xl bg-stone-50 border border-stone-200 text-center text-[10px]">
+                  <div>
+                    <span className="text-slate-400 block">Rent</span>
+                    <span className="font-bold text-slate-800">₱{rec.rentAmount.toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Utilities</span>
+                    <span className="font-bold text-slate-800">₱{(rec.waterAmount + rec.electricityAmount).toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Deposit</span>
+                    <span className="font-bold text-slate-800">₱{rec.depositAmount.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRecord(rec)}
+                    className="w-full sm:w-auto px-3 py-1.5 bg-stone-100 hover:bg-gold-100 text-slate-700 hover:text-pine-950 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5 border border-stone-200"
+                  >
+                    <Receipt className="w-3.5 h-3.5 text-pine-700" />
+                    <span>View Statement & Receipt</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="text-[11px] uppercase tracking-wider text-pine-950 border-b border-gold-200/80 bg-gold-50/60 font-bold">
               <tr>
@@ -369,10 +441,9 @@ export const BillingView: React.FC<BillingViewProps> = ({
         </div>
       </div>
 
-      {/* BILLING BREAKDOWN MODAL */}
       {selectedRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white border border-stone-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white border border-stone-200 rounded-3xl max-w-md w-full max-h-[92vh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <div className="space-y-0.5">
                 <span className="font-mono text-xs font-bold text-pine-900 bg-gold-100 px-2 py-0.5 rounded border border-gold-300">
@@ -465,10 +536,9 @@ export const BillingView: React.FC<BillingViewProps> = ({
         </div>
       )}
 
-      {/* GENERATE STATEMENT MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
-          <form onSubmit={handleCreateInvoice} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-pine-950/70 backdrop-blur-sm animate-fade-in">
+          <form onSubmit={handleCreateInvoice} className="bg-white border border-stone-200 rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200">
               <h3 className="font-bold text-sm text-slate-900 font-serif">
                 Generate Statement of Account

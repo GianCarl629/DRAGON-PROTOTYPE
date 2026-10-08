@@ -2,12 +2,27 @@ import React, { useState, useRef, useEffect } from 'react';
 import { User, CalendarCheck, LogOut, ChevronDown, Award, MousePointer2, MessageSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { CursorPreference, getCursorPreference, setCursorPreference } from '../../services/cursorService';
+import { getUnreadRepliesCountForCustomer } from '../../services/db/inquiryService';
 
 export const UserMenu: React.FC = () => {
   const { user, logout, openReservationsModal, openProfileModal, reservations } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [cursorPref, setCursorPref] = useState<CursorPreference>(getCursorPreference);
+  const [unreadInquiries, setUnreadInquiries] = useState<number>(() => {
+    return user?.email ? getUnreadRepliesCountForCustomer(user.email) : 0;
+  });
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const updateUnread = () => {
+      if (user?.email) {
+        setUnreadInquiries(getUnreadRepliesCountForCustomer(user.email));
+      }
+    };
+    updateUnread();
+    window.addEventListener('dragon_treasure_inquiry_updated', updateUnread);
+    return () => window.removeEventListener('dragon_treasure_inquiry_updated', updateUnread);
+  }, [user?.email]);
 
   useEffect(() => {
     const handleCursorChange = (e: Event) => {
@@ -61,15 +76,26 @@ export const UserMenu: React.FC = () => {
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-pine-900 to-pine-800 text-gold-300 font-serif font-bold text-xs flex items-center justify-center border border-gold-400/80 flex-shrink-0 shadow-2xs">
-          {initial}
+        <div className="relative flex-shrink-0">
+          <div className={`w-6 h-6 rounded-full font-serif font-bold text-xs flex items-center justify-center border shadow-2xs transition-colors ${
+            isOpen
+              ? 'bg-gold-500 text-pine-950 border-gold-300'
+              : 'bg-gradient-to-tr from-pine-900 to-pine-800 text-gold-300 border-gold-400/80'
+          }`}>
+            {initial}
+          </div>
+          {unreadInquiries > 0 && (
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 border-2 border-white animate-pulse" title={`${unreadInquiries} new inquiry reply`} />
+          )}
         </div>
-        <span className="text-xs font-bold max-w-[100px] truncate text-pine-950">
+        <span className={`text-xs font-bold max-w-[100px] truncate transition-colors ${
+          isOpen ? 'text-white' : 'text-pine-950'
+        }`}>
           Hi, {firstName}
         </span>
         <ChevronDown
           className={`w-3.5 h-3.5 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-gold-400' : 'text-slate-400'
+            isOpen ? 'rotate-180 text-gold-300' : 'text-slate-500'
           }`}
           strokeWidth={2.5}
         />
@@ -90,7 +116,7 @@ export const UserMenu: React.FC = () => {
                 <span>Member</span>
               </span>
             </div>
-            <span className="text-[11px] text-slate-500 block truncate mt-0.5">
+            <span className="text-[11px] text-slate-600 font-medium block truncate mt-0.5">
               {user.email}
             </span>
           </div>
@@ -130,13 +156,37 @@ export const UserMenu: React.FC = () => {
               type="button"
               onClick={() => {
                 setIsOpen(false);
+                openReservationsModal('inquiries');
+              }}
+              className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:text-pine-950 hover:bg-stone-100/80 transition-colors flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-pine-700 group-hover:text-gold-600 transition-colors" />
+                <span>My Inquiries & Messages</span>
+              </div>
+              {unreadInquiries > 0 ? (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <span>{unreadInquiries} New</span>
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-stone-200 text-slate-700">
+                  Chat
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
                 const el = document.getElementById('inquire');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
               className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:text-pine-950 hover:bg-stone-100/80 transition-colors flex items-center gap-2 group cursor-pointer"
             >
               <MessageSquare className="w-4 h-4 text-pine-700 group-hover:text-gold-600 transition-colors" />
-              <span>Send Concierge Inquiry</span>
+              <span>Send New Inquiry</span>
             </button>
           </div>
 

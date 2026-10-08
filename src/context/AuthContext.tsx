@@ -33,8 +33,8 @@ interface AuthContextType {
 
   // User Dashboard Modals
   isReservationsModalOpen: boolean;
-  reservationsModalTab: 'bookings' | 'billing' | 'payment';
-  openReservationsModal: (tab?: 'bookings' | 'billing' | 'payment') => void;
+  reservationsModalTab: 'bookings' | 'billing' | 'payment' | 'inquiries';
+  openReservationsModal: (tab?: 'bookings' | 'billing' | 'payment' | 'inquiries') => void;
   closeReservationsModal: () => void;
   isProfileModalOpen: boolean;
   openProfileModal: () => void;
@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [pendingBookingIntent, setPendingBookingIntent] = useState<PendingBookingIntent | null>(null);
 
   const [isReservationsModalOpen, setIsReservationsModalOpen] = useState(false);
-  const [reservationsModalTab, setReservationsModalTab] = useState<'bookings' | 'billing' | 'payment'>('bookings');
+  const [reservationsModalTab, setReservationsModalTab] = useState<'bookings' | 'billing' | 'payment' | 'inquiries'>('bookings');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // Sync auth state if URL has #login or #register on load
@@ -154,7 +154,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setPendingBookingIntent(null);
   };
 
-  const openReservationsModal = (tab?: 'bookings' | 'billing' | 'payment') => {
+  const openReservationsModal = (tab?: 'bookings' | 'billing' | 'payment' | 'inquiries') => {
     if (tab) {
       setReservationsModalTab(tab);
     }

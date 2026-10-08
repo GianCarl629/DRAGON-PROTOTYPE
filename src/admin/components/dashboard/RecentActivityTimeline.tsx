@@ -75,7 +75,7 @@ export const RecentActivityTimeline: React.FC<RecentActivityTimelineProps> = ({
           </div>
 
           {/* Filter Pills */}
-          <div className="flex items-center gap-1 p-1 bg-stone-100 rounded-xl border border-stone-200 text-[11px] font-medium self-start sm:self-auto">
+          <div className="flex items-center gap-1 p-1 bg-stone-100 rounded-xl border border-stone-200 text-[11px] font-medium self-start sm:self-auto overflow-x-auto max-w-full">
             <button
               type="button"
               onClick={() => setFilterType('all')}
